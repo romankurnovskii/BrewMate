@@ -16,14 +16,15 @@ Beta.
 - [x] list installed
 - [x] top downloads
 - [x] show logs on install/uninstall
-- [] fix scroll
+- [ ] fix scroll
+- [ ] add 3rd party taps
+- [ ] handle apps required sudo/pass on install/uninstall
 
 # Install
 
 1. Download the latest DMG file from the [releases page](https://github.com/romankurnovskii/BrewMate/releases).
 2. Double-click the DMG file to open it.
 3. Drag the BrewMate app to your Applications folder.
-4. Launch BrewMate from your Applications folder.
 
 or
 ```
@@ -32,10 +33,18 @@ brew install romankurnovskii/cask/brewmate --cask
 
 or
 ```
-brew tap romankurnovskii/homebrew
+brew tap romankurnovskii/homebrew-cask
 brew update
 brew install brewmate --cask
 ```
+
+## First time launch
+
+1. Navigate to your "Applications" folder.
+1. Find the app `BrewMate` and right-click on it.
+1. Select "Open" from the context menu.
+1. When the security warning appears, click "Open" to confirm that you want to open the app.
+1. The app will now launch.
 
 # Screenshots
 
