@@ -1,0 +1,71 @@
+import { exec, spawn } from 'child_process';
+import { contextBridge } from 'electron';
+import { BrewCLICommands, BREW_INSTALLED_JSON } from '../src/data/constants';
+
+const execWrapper = async (command: string): Promise<string> => {
+  console.log('Started command: ' + command);
+  return new Promise((resolve, reject) => {
+    exec(command, (err, stdout, stderr) => {
+      if (err) {
+        reject(err);
+        return;
+      }
+      resolve(stdout);
+    });
+  });
+};
+
+const spawnWrapper = async (
+  command: string[],
+  callback: (data: string, error?: Error) => void
+): Promise<number> => {
+  console.log('Started command: ' + [...command].toString());
+  const child = spawn(command[0], command.slice(1));
+
+  child.stdout.on('data', (data) => {
+    callback(data.toString());
+  });
+
+  child.stderr.on('data', (data) => {
+    callback(data.toString(), new Error('Error occurred!'));
+  });
+
+  return new Promise((resolve, reject) => {
+    child.on('exit', (code) => {
+      if (code !== 0) {
+        reject(new Error(`Process exited with code ${code}`));
+      } else {
+        resolve(code);
+      }
+    });
+  });
+};
+
+contextBridge.exposeInMainWorld('brewApi', {
+  getInstalled: async () => {
+    const cmd = BREW_INSTALLED_JSON;
+    const res = await execWrapper(cmd);
+    const newLocal = JSON.parse(res) as { casks: any; formulae: any };
+    const casks: any = newLocal['casks'];
+    const formulae: any = newLocal['formulae'];
+    return [casks, formulae];
+  },
+  installCask: async (appToken: string, callback?: any): Promise<any> => {
+    const commandStr = `brew install --cask --force ${appToken}`;
+    const command = commandStr.split(' ');
+    const res = await spawnWrapper(command, callback);
+    return res;
+  },
+  unInstallCask: async (appToken: string, callback?: any) => {
+    const commandStr = `brew uninstall --cask --force ${appToken}`;
+    const command = commandStr.split(' ');
+    const res = await spawnWrapper(command, callback);
+    return res;
+  },
+  update: async (callback: any): Promise<any> => {
+    const commandStr = BrewCLICommands.UPDATE;
+    const command = commandStr.split(' ');
+    const res = await spawnWrapper(command, callback);
+    return res;
+  },
+});

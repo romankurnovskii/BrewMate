@@ -1,0 +1,25 @@
+name: Build and Test
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build-and-test:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install Dependencies
+        run: |
+          npm install
+          npm test
+        working-directory: .
+
+      - name: Build Electron App
+        run: |
+          npm run electron:build
+          pwd
+          ls -la
+        working-directory: .

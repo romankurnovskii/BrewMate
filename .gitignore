@@ -1,0 +1,26 @@
+.DS_Store
+.env
+.vs/
+.vscode/
+
+# Logs
+logs
+*.log
+
+# Runtime data
+pids
+*.pid
+*.seed
+
+# Coverage directory used by tools like istanbul
+coverage
+.eslintcache
+
+ts-gen
+
+/dist/
+/build/
+
+node_modules
+.npmrc
+**/package-lock.json
