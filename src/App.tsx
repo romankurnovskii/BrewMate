@@ -229,7 +229,11 @@ function App() {
               </h1>
             </div>
             <div className='d-flex flex-wrap'>
-              {isLoading ? <SpinnerBg /> : <AppList apps={renderApps} />}
+              {isLoading ? (
+                <SpinnerBg />
+              ) : (
+                <AppList appsNew={[]} apps={renderApps} />
+              )}
             </div>
           </div>
         </div>
