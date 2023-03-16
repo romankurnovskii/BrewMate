@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { AppType, IApp } from '../../types/apps';
 import { IHomebrewApp } from '../../types/homebrew';
-import { ISerhiiLondarOSMACApp } from '../../types/serhii-londar';
+import { IOpenSourceApp } from '../../types/opensource-apps';
 import ButtonIcon from '../buttons/ButtonIcon';
 import SpinnerSm from '../spinners/SpinnerSm';
 import Description from './Description';
@@ -23,18 +23,16 @@ function AppContainer({
 }: IProps) {
   const [isLoading, setIsLoading] = useState(false);
   const isHomebrew = app.appSourceType === AppType.Homebrew;
-  const isSerhiiLondarOSMAC = app.appSourceType === AppType.SerhiiLondarOSMAC;
+  const isSerhiiLondarOSMAC = app.appSourceType === AppType.OpenSourceGithub;
 
   let appData;
   let installsCount = 0;
   if (isHomebrew) {
     appData = app.sourceMetaData as IHomebrewApp;
     installsCount = appData.count ? appData.count : 0;
-    console.log(321, appData);
   }
   if (isSerhiiLondarOSMAC) {
-    appData = app.sourceMetaData as ISerhiiLondarOSMACApp;
-    console.log(41, appData);
+    appData = app.sourceMetaData as IOpenSourceApp;
   }
 
   const onClickInstallHandler = () => {
@@ -63,9 +61,9 @@ function AppContainer({
   };
 
   const isSerhiiLondarOSMACApp = (
-    appMetaData: ISerhiiLondarOSMACApp | IHomebrewApp
-  ): appMetaData is ISerhiiLondarOSMACApp => {
-    return app.appSourceType === AppType.SerhiiLondarOSMAC;
+    appMetaData: IOpenSourceApp | IHomebrewApp
+  ): appMetaData is IOpenSourceApp => {
+    return app.appSourceType === AppType.OpenSourceGithub;
   };
 
   return (

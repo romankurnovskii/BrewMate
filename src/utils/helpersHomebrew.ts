@@ -1,5 +1,5 @@
 import { fetchAllBrewGUIApps, fetchTopInstalls30Days } from './api';
-import { sortAppsByInstalled, transformArrayToDict } from './helpers';
+import { getAppCategory, transformArrayToDict } from './helpers';
 import {
   IHomebrewApp,
   IHomebrewAppDict,
@@ -7,6 +7,7 @@ import {
 } from '../types/homebrew';
 import { saveDataToStorage } from './storage';
 import { BREW_ALL_CASKS_DICT } from '../data/constants';
+import { AppType, IApp } from '../types/apps';
 
 export const updateAllCasks = async (): Promise<IHomebrewApp[]> => {
   // fetch
@@ -41,12 +42,6 @@ export const convertTopInstalledResponceToHomebrewApps = (
 
   const res = Object.values(allCasksDict) as IHomebrewApp[];
   const sortedApps = sortAppsByInstalled(res);
-  // res.sort((a, b) => {
-  //   const countA = a.count ? a.count : 0;
-  //   const countB = b.count ? b.count : 0;
-  //   return countB - countA;
-  // });
-
   return sortedApps;
 };
 
@@ -71,4 +66,38 @@ export const updateInstalledStatusApps = (
   saveDataToStorage(BREW_ALL_CASKS_DICT, transformedAllApps);
 
   return updatedApps;
+};
+
+export const convertHomebrewAppstoCommonStructure = (
+  apps: IHomebrewApp[]
+): IApp[] => {
+  return apps.map((app) => {
+    const category = getAppCategory(app.name[0], app.desc);
+    return {
+      id: app.token,
+      title: app.name[0],
+      description: app.desc,
+      categories: [category],
+      installed: app.installed,
+      homepage: app.homepage,
+      appSourceType: AppType.Homebrew,
+      sourceMetaData: { ...app },
+    };
+  });
+};
+
+export const sortAppsByInstalled = (apps: IHomebrewApp[]): IHomebrewApp[] => {
+  const sortedApps = apps.sort((a, b) => {
+    const countA = a.count ? a.count : 0;
+    const countB = b.count ? b.count : 0;
+    return countB - countA;
+  });
+  return sortedApps;
+};
+
+export const sortAppsByName = (apps: IHomebrewApp[]): IHomebrewApp[] => {
+  return apps.sort((a, b) => {
+    // Assuming the first element of the 'name' array is the primary name for sorting
+    return a.name[0].localeCompare(b.name[0]);
+  });
 };

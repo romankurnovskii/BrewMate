@@ -6,12 +6,7 @@ import { IHomebrewApp } from './types/homebrew';
 import { BrewCLICommands, GITHUB_PROJECT_URL } from './data/constants';
 import LinkBtn from './components/buttons/link';
 import { runHomebrewCommand } from './utils/api';
-import {
-  convertHomebrewAppstoCommonStructure,
-  getAppCategory,
-  shuffleArray,
-  sortAppsByInstalled,
-} from './utils/helpers';
+import { shuffleArray } from './utils/helpers';
 import { useAppContext } from './utils/storage';
 import SpinnerBg from './components/spinners/SpinnerBg';
 import SpinnerSm from './components/spinners/SpinnerSm';
@@ -19,9 +14,16 @@ import Menu from './components/menu/Menu';
 import MenuItem from './components/menu/MenuItem';
 import MenuTools from './components/menu/MenuTools';
 import packageJson from '../package.json';
-import { IApp } from './types/apps';
+import { AppType, IApp } from './types/apps';
+import {
+  convertHomebrewAppstoCommonStructure,
+  sortAppsByInstalled,
+} from './utils/helpersHomebrew';
 
 function App() {
+  const [selectedSource, setSelectedSource] = useState<AppType>(
+    AppType.Homebrew
+  );
   const [renderApps, setRenderApps] = useState<IHomebrewApp[]>([]);
   const [appsNewStructure, setAppsNewStructure] = useState<IApp[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
@@ -29,11 +31,13 @@ function App() {
 
   const {
     procsOutput,
+    apps,
     casks,
     installedApps,
     updateInstalledApps,
     updateCasksData,
     setProcsOutput,
+    updateAppsFromOpenSource,
   } = useAppContext();
 
   const INSTALLED_CASS_CATEGORY_TITLE = 'Installed on Mac OS';
@@ -43,7 +47,7 @@ function App() {
     updateCasksData().then((res) => {
       setIsLoading(false);
     });
-
+    updateAppsFromOpenSource();
     if (casks.length > 0) {
       setRenderApps(casks);
       setIsLoading(false);
@@ -60,8 +64,7 @@ function App() {
 
   // Converts casks to common structure
   useEffect(() => {
-    const converteNewApps = convertHomebrewAppstoCommonStructure(renderApps);
-    setAppsNewStructure(converteNewApps);
+    setAppsNewStructure(apps[selectedSource]);
   }, [renderApps]);
 
   const getTop30days = () => {
@@ -89,40 +92,33 @@ function App() {
     // update rendered
 
     if (!category) {
-      setRenderApps(casks);
+      setAppsNewStructure(apps[selectedSource]);
       return;
     }
 
-    // sortApps(brewApps);
-    let filteredApps = category
-      ? // eslint-disable-next-line array-callback-return
-        casks.filter((cask) => {
-          const cat = getAppCategory(cask.name[0], cask.desc);
-          if (cat === category) {
-            return cask;
-          }
-        })
-      : casks;
+    let filteredApps = apps[selectedSource].filter((app) =>
+      app.categories.includes(category)
+    );
 
     filteredApps = shuffleArray(filteredApps);
-    setRenderApps(filteredApps);
+    setAppsNewStructure(filteredApps);
   };
 
   const onSearchInput = (event: any) => {
     const searchQuery = String(event.target.value || '').toLowerCase();
 
     // eslint-disable-next-line array-callback-return
-    const filtered = casks.filter((app) => {
-      const token = app.token;
-      let title = app.name; // array
-      const desc = app.desc;
+    const filtered = apps[selectedSource].filter((app) => {
+      const title = app.title;
+      let categories = app.categories; // array
+      const desc = app.description;
 
-      let appStrInfo = `${token} ${title} ${desc}`;
+      let appStrInfo = `${title} ${categories} ${desc}`;
       if (appStrInfo.toLowerCase().includes(searchQuery)) {
         return app;
       }
     });
-    setRenderApps(filtered);
+    setAppsNewStructure(filtered);
   };
 
   const handleCommandOutput = async (data: string) => {
@@ -148,12 +144,81 @@ function App() {
       });
   };
 
+  const handleSourceChange = (event: any) => {
+    setSelectedCategory(null);
+    setSelectedSource(event.target.value);
+    if (event.target.value === AppType.OpenSourceGithub) {
+      setAppsNewStructure(apps[AppType.OpenSourceGithub]);
+    } else {
+      setAppsNewStructure(apps[AppType.Homebrew]);
+    }
+  };
+
   return (
     <div>
       <div className='container-fluid'>
         <div className='row'>
           {/* TODO: move to container */}
+
           <div
+            className='col-md-2 position-fixed bg-light'
+            style={{
+              minWidth: '150px',
+              maxWidth: '180px',
+              lineHeight: '1.0',
+              height: '100%',
+            }}
+          >
+            <nav className='nav flex-column my-1'>
+              <div className='input-group my-1'>
+                <input
+                  type='text'
+                  className='form-control'
+                  placeholder='Search...'
+                  aria-label='Search'
+                  aria-describedby='search-icon'
+                  onChange={(e) => onSearchInput(e)}
+                />
+              </div>
+              <div className='input-group my-1'>
+                <select
+                  className='form-select'
+                  value={selectedSource}
+                  onChange={handleSourceChange}
+                >
+                  <option value={AppType.Homebrew}>Homebrew</option>
+                  <option value={AppType.OpenSourceGithub}>Open Source</option>
+                </select>
+              </div>
+              <hr />
+
+              <Menu onCategorySelect={handleCategorySelect} />
+
+              {selectedSource === AppType.Homebrew && (
+                <>
+                  <hr />
+                  <MenuItem
+                    key='TopMonthItem'
+                    title='Month Popular'
+                    isActive={false}
+                    onClick={getTop30days}
+                    href='#'
+                  />
+
+                  <MenuItem
+                    title='Installed'
+                    isActive={false}
+                    onClick={renderInstalledCasks}
+                    href='#'
+                  />
+                  <hr />
+                  <MenuTools onCommandClick={onCommandClickHandler} />
+                </>
+              )}
+            </nav>
+          </div>
+
+          {/* <div
             className='col-md-2 position-fixed bg-light'
             style={{
               minWidth: '150px',
@@ -195,12 +260,13 @@ function App() {
 
               <MenuTools onCommandClick={onCommandClickHandler} />
             </nav>
-          </div>
+          </div> */}
 
           <div className='col-md-10 offset-md-2'>
             <div className='header'>
               <h1>
-                {selectedCategory} {!isLoading && <>{renderApps.length} apps</>}
+                {selectedCategory}
+                {!isLoading && <> {appsNewStructure.length} apps</>}
               </h1>
             </div>
             <div className='d-flex flex-wrap'>
