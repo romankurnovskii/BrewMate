@@ -33,7 +33,7 @@ brew install romankurnovskii/cask/brewmate --cask
 
 or
 ```
-brew tap romankurnovskii/homebrew-cask
+brew tap romankurnovskii/cask
 brew update
 brew install brewmate --cask
 ```
@@ -61,6 +61,7 @@ macOS 10.15 or later.
 2. Install dependencies: `npm install`
 3. Build the app: `npm run electron:build`
 4. The built app will be located in the `dist` folder.
+5. For development run `electron:dev`
 
 
 ## Available Scripts in addition to the existing ones
@@ -112,7 +113,6 @@ brewmate/
         └── BrewMate.app
 
 ```
-
 
 # License
 
