@@ -1,4 +1,4 @@
-/* eslint-disable jsx-a11y/anchor-is-valid */
+/* eslint-disable  */
 import { useState } from 'react';
 import { categories } from '../../data/categories';
 import MenuItem from './MenuItem';

@@ -69,7 +69,7 @@ export const AppContextProvider = ({ children }: any) => {
 
     return Promise.all([updateAllCasks(), getLocalInstalledApps()])
       .then(([fetchedCasks, installedApps]) => {
-        let allCasksUpdated = updateInstalledStatusApps(
+        const allCasksUpdated = updateInstalledStatusApps(
           fetchedCasks,
           installedApps
         );

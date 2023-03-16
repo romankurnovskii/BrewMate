@@ -64,7 +64,7 @@ export const runHomebrewCommand = async (
 // ------------------ Open Source Apps source from github
 
 export const fetchAppsCategoriesFromSerhiiLondarOSMAC = async (): Promise<
-  any[]
+any[]
 > => {
   const response = await fetch(OSS_CATEGORIES_JSON_URL, {
     cache: 'no-store',
@@ -75,7 +75,7 @@ export const fetchAppsCategoriesFromSerhiiLondarOSMAC = async (): Promise<
 };
 
 export const fetchAppsFromSerhiiLondarOSMAC = async (): Promise<
-  IOpenSourceApp[]
+IOpenSourceApp[]
 > => {
   const response = await fetch(OSS_APPS_JSON_URL, {
     cache: 'no-store',

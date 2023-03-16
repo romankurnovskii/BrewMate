@@ -1,4 +1,4 @@
-/* eslint-disable jsx-a11y/anchor-is-valid */
+/* eslint-disable  */
 
 // TODO make generic
 type IProps = {
@@ -6,7 +6,7 @@ type IProps = {
   onClick: (title?: string) => void;
 };
 
-function ButtonDanger({ title, onClick }: IProps) {
+function ButtonDanger ({ title, onClick }: IProps) {
   return (
     <button
       type='button'

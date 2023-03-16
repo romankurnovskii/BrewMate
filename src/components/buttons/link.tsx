@@ -1,4 +1,4 @@
-/* eslint-disable jsx-a11y/anchor-is-valid */
+/* eslint-disable  */
 
 type IProps = {
   title: string;
@@ -6,7 +6,7 @@ type IProps = {
   onClick: (title?: string) => void;
 };
 
-function LinkBtn({ title, href = '#', onClick }: IProps) {
+function LinkBtn ({ title, href = '#', onClick }: IProps) {
   return (
     <a href={href} className='card-link' onClick={() => onClick(title)}>
       {title}

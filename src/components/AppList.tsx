@@ -6,7 +6,7 @@ type IProps = {
   apps: IApp[];
 };
 
-function AppList({ apps }: IProps) {
+function AppList ({ apps }: IProps) {
   const { setProcsOutput, updateCasksData } = useAppContext();
 
   const handleCommandOutput = async (data: string) => {

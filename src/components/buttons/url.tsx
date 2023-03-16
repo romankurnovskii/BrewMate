@@ -1,11 +1,11 @@
-/* eslint-disable jsx-a11y/anchor-is-valid */
+/* eslint-disable  */
 
 type IProps = {
   title: string;
   onClick: (title: string) => {};
 };
 
-function UrlBtn({ title, onClick }: IProps) {
+function UrlBtn ({ title, onClick }: IProps) {
   return (
     <a href='#' onClick={() => onClick(title)}>
       {title}

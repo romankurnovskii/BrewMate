@@ -15,7 +15,7 @@ type IProps = {
   onClickUninstall?: () => Promise<any>;
 };
 
-function AppContainer({
+function AppContainer ({
   app,
   onClickHomepage,
   onClickInstall,
@@ -90,15 +90,17 @@ function AppContainer({
 
           {onClickInstall &&
             !app.installed &&
-            (isLoading ? (
+            (isLoading
+              ? (
               <SpinnerSm />
-            ) : (
+                )
+              : (
               <ButtonIcon
                 title={'download'}
                 colorType='success'
                 onClick={onClickInstallHandler}
               />
-            ))}
+                ))}
 
           {app.installed && onClickUninstall && isLoading && <SpinnerSm />}
           {onClickUninstall && app.installed && !isLoading && (
