@@ -4,7 +4,7 @@ import { IHomebrewApp } from './types/homebrew';
 import { BrewCLICommands, GITHUB_PROJECT_URL } from './data/constants';
 import LinkBtn from './components/buttons/link';
 import { runHomebrewCommand } from './utils/api';
-import { shuffleArray } from './utils/helpers';
+import { shuffleArray, sortAppsByInstalled } from './utils/helpers';
 import { useAppContext } from './utils/storage';
 import SpinnerBg from './components/spinners/SpinnerBg';
 import SpinnerSm from './components/spinners/SpinnerSm';
@@ -13,10 +13,7 @@ import MenuItem from './components/menu/MenuItem';
 import MenuTools from './components/menu/MenuTools';
 import packageJson from '../package.json';
 import { AppType, IApp } from './types/apps';
-import {
-  convertHomebrewAppstoCommonStructure,
-  sortAppsByInstalled,
-} from './utils/helpersHomebrew';
+import { convertHomebrewAppstoCommonStructure } from './utils/helpersHomebrew';
 
 function App () {
   const [selectedSource, setSelectedSource] = useState<AppType>(
@@ -68,8 +65,8 @@ function App () {
   const getTop30days = () => {
     setIsLoading(true);
     setSelectedCategory('Month Popular');
-    const sortedCasks = sortAppsByInstalled(casks);
-    setRenderApps(sortedCasks);
+    const sortedApps = sortAppsByInstalled(apps[AppType.Homebrew]);
+    setAppsNewStructure(sortedApps.slice(0, 250));
     setIsLoading(false);
   };
 
@@ -81,16 +78,18 @@ function App () {
       setIsLoading(false);
     });
     setRenderApps(installedApps);
-    setIsLoading(false);
+    // setIsLoading(false);
   };
 
   const handleCategorySelect = (category: string) => {
+    setIsLoading(true);
     setSelectedCategory(category);
     // sort by categories
     // update rendered
 
     if (!category) {
       setAppsNewStructure(apps[selectedSource]);
+      setIsLoading(false);
       return;
     }
 
@@ -100,6 +99,7 @@ function App () {
 
     filteredApps = shuffleArray(filteredApps);
     setAppsNewStructure(filteredApps);
+    setIsLoading(false);
   };
 
   const onSearchInput = (event: any) => {
@@ -143,6 +143,7 @@ function App () {
   };
 
   const handleSourceChange = (event: any) => {
+    setIsLoading(true);
     setSelectedCategory(null);
     setSelectedSource(event.target.value);
     if (event.target.value === AppType.OpenSourceGithub) {
@@ -150,6 +151,7 @@ function App () {
     } else {
       setAppsNewStructure(apps[AppType.Homebrew]);
     }
+    setIsLoading(false);
   };
 
   return (
@@ -215,50 +217,6 @@ function App () {
               )}
             </nav>
           </div>
-
-          {/* <div
-            className='col-md-2 position-fixed bg-light'
-            style={{
-              minWidth: '150px',
-              maxWidth: '180px',
-              lineHeight: '1.0',
-              height: '100%',
-            }}
-          >
-            <nav className='nav flex-column my-1'>
-              <div className='input-group my-1'>
-                <input
-                  type='text'
-                  className='form-control'
-                  placeholder='Search...'
-                  aria-label='Search'
-                  aria-describedby='search-icon'
-                  onChange={(e) => onSearchInput(e)}
-                />
-              </div>
-              <hr />
-              <Menu onCategorySelect={handleCategorySelect} />
-              <hr />
-
-              <MenuItem
-                key='TopMonthItem'
-                title='Month Popular'
-                isActive={false}
-                onClick={getTop30days}
-                href='#'
-              />
-
-              <MenuItem
-                title='Installed'
-                isActive={false}
-                onClick={renderInstalledCasks}
-                href='#'
-              />
-              <hr />
-
-              <MenuTools onCommandClick={onCommandClickHandler} />
-            </nav>
-          </div> */}
 
           <div className='col-md-10 offset-md-2'>
             <div className='header'>
