@@ -48,7 +48,7 @@ brew install brewmate --cask
 
 # Screenshots
 
-![BrewMate Screenshot 1](assets/mainwindow.png)
+![BrewMate Screenshot 1](assets/mainwindow.gif)
 
 
 # Requirements

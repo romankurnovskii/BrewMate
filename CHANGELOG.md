@@ -1,4 +1,4 @@
-## Changelog 2023-03-12-16
+## Changelog v0.2.1 / 23-03-12-16
 
 ### Main features
 
