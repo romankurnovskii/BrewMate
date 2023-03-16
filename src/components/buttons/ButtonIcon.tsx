@@ -4,7 +4,7 @@ type IProps = {
   onClick: (title?: string) => void;
 };
 
-function ButtonIcon({ title, colorType, onClick }: IProps) {
+function ButtonIcon ({ title, colorType, onClick }: IProps) {
   const iconColor = colorType ? 'text-' + colorType : '';
   return (
     <button className='btn p-1 btn-sm' onClick={() => onClick(title)}>

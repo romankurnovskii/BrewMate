@@ -1,5 +1,3 @@
-/* eslint-disable react-hooks/exhaustive-deps */
-/* eslint-disable jsx-a11y/anchor-is-valid */
 import { useState, useEffect } from 'react';
 import AppList from './components/AppList';
 import { IHomebrewApp } from './types/homebrew';
@@ -20,7 +18,7 @@ import {
   sortAppsByInstalled,
 } from './utils/helpersHomebrew';
 
-function App() {
+function App () {
   const [selectedSource, setSelectedSource] = useState<AppType>(
     AppType.Homebrew
   );
@@ -110,10 +108,10 @@ function App() {
     // eslint-disable-next-line array-callback-return
     const filtered = apps[selectedSource].filter((app) => {
       const title = app.title;
-      let categories = app.categories; // array
+      const categories = app.categories; // array
       const desc = app.description;
 
-      let appStrInfo = `${title} ${categories} ${desc}`;
+      const appStrInfo = `${title} ${categories} ${desc}`;
       if (appStrInfo.toLowerCase().includes(searchQuery)) {
         return app;
       }

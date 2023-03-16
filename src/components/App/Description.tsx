@@ -1,10 +1,10 @@
-/* eslint-disable jsx-a11y/anchor-is-valid */
+/* eslint-disable  */
 
 type IProps = {
   description: string;
 };
 
-function Description({ description }: IProps) {
+function Description ({ description }: IProps) {
   return <p className='card-text'>{description}</p>;
 }
 

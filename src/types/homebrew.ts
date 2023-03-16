@@ -16,12 +16,12 @@ export interface IHomebrewTopInstallResponse {
   start_date: string;
   end_date: string;
   total_count: number;
-  formulae: {
+  formulae: Array<{
     [key: string]: {
       cask: string;
       count: string;
     };
-  }[];
+  }>;
 }
 
 export type IHomebrewAppDict = {

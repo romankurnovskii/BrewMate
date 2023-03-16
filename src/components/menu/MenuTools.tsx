@@ -1,4 +1,4 @@
-/* eslint-disable jsx-a11y/anchor-is-valid */
+/* eslint-disable  */
 import { BrewCLICommands, BrewCliCommandsNames } from '../../data/constants';
 import MenuItem from './MenuItem';
 
@@ -11,7 +11,7 @@ const MenuTools = ({ onCommandClick }: IProps) => {
     onCommandClick(command);
   };
 
-  //TODO: use config file for such setup
+  // TODO: use config file for such setup
   const commands = [BrewCLICommands.UPDATE, BrewCLICommands.UPGRADE];
 
   return (
