@@ -1,5 +1,6 @@
 import { act, render, screen } from '@testing-library/react';
 import App from './App';
+import { AppType } from './types/apps';
 import { IHomebrewApp } from './types/homebrew';
 import { updateInstalledStatusApps } from './utils/helpers';
 
@@ -28,7 +29,47 @@ export const mockAllApps = [
   },
 ];
 
+export const mockAllAppsCommon = [
+  {
+    id: 'app1',
+    title: 'App One',
+    description: 'This is the first app.',
+    categories: ['Utility', 'Productivity'],
+    installed: null,
+    homepage: 'https://appone.example.com',
+    appSourceType: AppType.Homebrew,
+    sourceMetaData: {
+      // Add any specific properties for IHomebrewApp here
+    },
+  },
+  {
+    id: 'app2',
+    title: 'App Two',
+    description: 'This is the second app.',
+    categories: ['Entertainment', 'Video'],
+    installed: '1.0.0',
+    homepage: 'https://apptwo.example.com',
+    appSourceType: AppType.Homebrew,
+    sourceMetaData: {
+      // Add any specific properties for IHomebrewApp here
+    },
+  },
+  {
+    id: 'app3',
+    title: 'App Three',
+    description: 'This is the third app.',
+    categories: ['Education', 'Learning'],
+    installed: null,
+    homepage: 'https://appthree.example.com',
+    appSourceType: AppType.Homebrew,
+    sourceMetaData: {
+      // Add any specific properties for IHomebrewApp here
+    },
+  },
+];
+
 test('renders text', async () => {
+  // eslint-disable-next-line testing-library/no-unnecessary-act
   await act(async () => {
     render(<App />);
   });
