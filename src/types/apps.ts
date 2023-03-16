@@ -12,5 +12,5 @@ export interface IApp {
   installed: string | null; // version
   homepage: string;
   appSourceType: AppType;
-  sourceMetaData?: IHomebrewApp | any;
+  sourceMetaData: IHomebrewApp | {};
 }

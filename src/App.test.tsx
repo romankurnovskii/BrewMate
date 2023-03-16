@@ -2,7 +2,7 @@ import { act, render, screen } from '@testing-library/react';
 import App from './App';
 import { AppType } from './types/apps';
 import { IHomebrewApp } from './types/homebrew';
-import { updateInstalledStatusApps } from './utils/helpers';
+import { updateInstalledStatusApps } from './utils/helpersHomebrew';
 
 export const mockAllApps = [
   {

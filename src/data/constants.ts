@@ -9,6 +9,7 @@ export const HOMEBREW_TOP_DOWNLOADS_30D_JSON_URL =
 export const HOMEBREW_TOP_DOWNLOADS_90D_JSON_URL =
   HOMEBREW_API + 'analytics/cask-install/homebrew-cask/90d.json';
 
+  
 // ----------- LOCAL_STORAGE
 
 export const TOP_CASKS_INSTALLS_30_DAYS = 'TOP_CASKS_INSTALLS_30_DAYS';

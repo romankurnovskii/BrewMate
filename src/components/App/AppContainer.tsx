@@ -1,8 +1,10 @@
 import { useState } from 'react';
-import { IApp } from '../../types/apps';
+import { AppType, IApp } from '../../types/apps';
+import { IHomebrewApp } from '../../types/homebrew';
 import ButtonIcon from '../buttons/ButtonIcon';
 import SpinnerSm from '../spinners/SpinnerSm';
 import Description from './Description';
+import InstallsCount from './InstallsCount';
 import Title from './Title';
 
 type IProps = {
@@ -12,13 +14,19 @@ type IProps = {
   onClickUninstall?: () => Promise<any>;
 };
 
-function App({
+function AppContainer({
   app,
   onClickHomepage,
   onClickInstall,
   onClickUninstall,
 }: IProps) {
   const [isLoading, setIsLoading] = useState(false);
+  const isHomebrew = app.appSourceType === AppType.Homebrew;
+  let installsCount = 0;
+  if (isHomebrew) {
+    const appData = app.sourceMetaData as IHomebrewApp;
+    installsCount = appData.count ? appData.count : 0;
+  }
 
   const onClickInstallHandler = () => {
     setIsLoading(true);
@@ -44,6 +52,8 @@ function App({
     console.log('App info:', app);
     onClickHomepage();
   };
+
+  // console.log(64,app.title)
 
   return (
     <div className='card m-1' style={{ width: '15rem', height: '7rem' }}>
@@ -79,9 +89,7 @@ function App({
             />
           )}
 
-          {/* {app.count && (
-            <span className='text-muted downloads-count mb-1'>{app.count}</span>
-          )} */}
+          {installsCount > 0 && <InstallsCount count={installsCount} />}
 
           <ButtonIcon
             title={'captive_portal'}
@@ -94,4 +102,4 @@ function App({
   );
 }
 
-export default App;
+export default AppContainer;

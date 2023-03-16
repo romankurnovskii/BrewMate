@@ -1,26 +1,18 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable jsx-a11y/anchor-is-valid */
 import { useState, useEffect } from 'react';
 import AppList from './components/AppList';
 import { IHomebrewApp } from './types/homebrew';
-import {
-  BrewCLICommands,
-  BREW_ALL_CASKS_DICT,
-  GITHUB_PROJECT_URL,
-} from './data/constants';
+import { BrewCLICommands, GITHUB_PROJECT_URL } from './data/constants';
 import LinkBtn from './components/buttons/link';
-import {
-  fetchTopInstalls30Days,
-  getLocalInstalledApps,
-  runHomebrewCommand,
-} from './utils/api';
+import { runHomebrewCommand } from './utils/api';
 import {
   convertHomebrewAppstoCommonStructure,
-  convertTopInstalledResponceToHomebrewApps,
   getAppCategory,
   shuffleArray,
-  updateInstalledStatusApps,
+  sortAppsByInstalled,
 } from './utils/helpers';
-import { getDataFromStorage, useAppContext } from './utils/storage';
+import { useAppContext } from './utils/storage';
 import SpinnerBg from './components/spinners/SpinnerBg';
 import SpinnerSm from './components/spinners/SpinnerSm';
 import Menu from './components/menu/Menu';
@@ -31,15 +23,15 @@ import { IApp } from './types/apps';
 
 function App() {
   const [renderApps, setRenderApps] = useState<IHomebrewApp[]>([]);
+  const [appsNewStructure, setAppsNewStructure] = useState<IApp[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
   const {
     procsOutput,
     casks,
-    setCasks,
     installedApps,
-    setInstalledApps,
+    updateInstalledApps,
     updateCasksData,
     setProcsOutput,
   } = useAppContext();
@@ -48,7 +40,6 @@ function App() {
 
   useEffect(() => {
     setIsLoading(true);
-
     updateCasksData().then((res) => {
       setIsLoading(false);
     });
@@ -57,57 +48,39 @@ function App() {
       setRenderApps(casks);
       setIsLoading(false);
     }
-
-    if (installedApps.length > 0) {
-      setRenderApps(installedApps);
-      setIsLoading(false);
-    }
-
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
     if (!selectedCategory) {
       setRenderApps(casks);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    const converteNewApps = convertHomebrewAppstoCommonStructure(renderApps);
+    setAppsNewStructure(converteNewApps);
   }, [casks]);
 
+  // Converts casks to common structure
   useEffect(() => {
-    const updatedCasks = updateInstalledStatusApps(casks, installedApps);
-    setCasks(updatedCasks);
-    if (selectedCategory === INSTALLED_CASS_CATEGORY_TITLE) {
-      setRenderApps(installedApps);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [installedApps]);
+    const converteNewApps = convertHomebrewAppstoCommonStructure(renderApps);
+    setAppsNewStructure(converteNewApps);
+  }, [renderApps]);
 
   const getTop30days = () => {
     setIsLoading(true);
     setSelectedCategory('Month Popular');
-    fetchTopInstalls30Days()
-      .then((appsData) => {
-        const allCasksDict = getDataFromStorage(BREW_ALL_CASKS_DICT);
-        const sortedApps = convertTopInstalledResponceToHomebrewApps(
-          appsData,
-          allCasksDict
-        );
-        setRenderApps(sortedApps);
-        setIsLoading(false);
-      })
-      .catch(console.error);
+    const sortedCasks = sortAppsByInstalled(casks);
+    setRenderApps(sortedCasks);
+    setIsLoading(false);
   };
 
   const renderInstalledCasks = async () => {
     setIsLoading(true);
     setSelectedCategory(INSTALLED_CASS_CATEGORY_TITLE);
-    getLocalInstalledApps()
-      .then(setInstalledApps)
-      .then(() => setIsLoading(false));
-    setRenderApps(installedApps);
-    if (installedApps.length > 0) {
+    updateInstalledApps().then(() => {
+      setRenderApps(installedApps);
       setIsLoading(false);
-    }
+    });
+    setRenderApps(installedApps);
+    setIsLoading(false);
   };
 
   const handleCategorySelect = (category: string) => {
@@ -175,9 +148,6 @@ function App() {
       });
   };
 
-  const appsNewStructure: IApp[] =
-    convertHomebrewAppstoCommonStructure(renderApps);
-  
   return (
     <div>
       <div className='container-fluid'>
@@ -234,11 +204,7 @@ function App() {
               </h1>
             </div>
             <div className='d-flex flex-wrap'>
-              {isLoading ? (
-                <SpinnerBg />
-              ) : (
-                <AppList appsNew={appsNewStructure} apps={renderApps} />
-              )}
+              {isLoading ? <SpinnerBg /> : <AppList apps={appsNewStructure} />}
             </div>
           </div>
         </div>
