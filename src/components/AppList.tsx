@@ -1,15 +1,17 @@
 import { useEffect, useState } from 'react';
+import { AppType, IApp } from '../types/apps';
 import { IHomebrewApp } from '../types/homebrew';
 import { useAppContext } from '../utils/storage';
-import AppBlock from './AppBlock';
+import App from './App/App';
 
 //TODO: handle scroll
 
 type IProps = {
   apps: IHomebrewApp[];
+  appsNew: IApp[];
 };
 
-function AppList({ apps }: IProps) {
+function AppList({ apps, appsNew }: IProps) {
   const [appBlocksNeeded, setAppBlocksNeeded] = useState(200);
   const { setProcsOutput, updateCasksData } = useAppContext();
 
@@ -88,17 +90,40 @@ function AppList({ apps }: IProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const onClickHomepageHandler = async (url: string) => {
+    window.open(url);
+  };
+
+  const appsMap = appsNew.map((app) => {
+    const isHomebrewApp = app.appSourceType === AppType.Homebrew;
+
+    return (
+      <App
+        key={app.id}
+        app={app}
+        onClickInstall={
+          isHomebrewApp ? () => onClickInstallHandler(app.id) : undefined
+        }
+        onClickUninstall={
+          isHomebrewApp ? () => onClickUninstallHandler(app.id) : undefined
+        }
+        onClickHomepage={() => onClickHomepageHandler(app.homepage)}
+      />
+    );
+  });
+
   return (
     <div className='d-flex align-content-start flex-wrap'>
       <div className='row'>
-        {apps.map((app) => (
+        {appsMap}
+        {/* {apps.map((app) => (
           <AppBlock
             key={app.token}
             app={app}
             onClickInstall={onClickInstallHandler}
             onClickUninstall={onClickUninstallHandler}
           />
-        ))}
+        ))} */}
       </div>
     </div>
   );

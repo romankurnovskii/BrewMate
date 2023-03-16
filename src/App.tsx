@@ -14,6 +14,7 @@ import {
   runHomebrewCommand,
 } from './utils/api';
 import {
+  convertHomebrewAppstoCommonStructure,
   convertTopInstalledResponceToHomebrewApps,
   getAppCategory,
   shuffleArray,
@@ -26,6 +27,7 @@ import Menu from './components/menu/Menu';
 import MenuItem from './components/menu/MenuItem';
 import MenuTools from './components/menu/MenuTools';
 import packageJson from '../package.json';
+import { IApp } from './types/apps';
 
 function App() {
   const [renderApps, setRenderApps] = useState<IHomebrewApp[]>([]);
@@ -173,6 +175,9 @@ function App() {
       });
   };
 
+  const appsNewStructure: IApp[] =
+    convertHomebrewAppstoCommonStructure(renderApps);
+  
   return (
     <div>
       <div className='container-fluid'>
@@ -229,7 +234,11 @@ function App() {
               </h1>
             </div>
             <div className='d-flex flex-wrap'>
-              {isLoading ? <SpinnerBg /> : <AppList apps={renderApps} />}
+              {isLoading ? (
+                <SpinnerBg />
+              ) : (
+                <AppList appsNew={appsNewStructure} apps={renderApps} />
+              )}
             </div>
           </div>
         </div>
