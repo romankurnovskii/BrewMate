@@ -3,7 +3,6 @@ import { AppType, IApp } from '../types/apps';
 import { IHomebrewApp } from '../types/homebrew';
 import { useAppContext } from '../utils/storage';
 import App from './App/App';
-import AppBlock from './AppBlock';
 
 //TODO: handle scroll
 
