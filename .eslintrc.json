@@ -5,7 +5,6 @@
     "es2021": true
   },
   "extends": ["plugin:react/recommended", "standard-with-typescript"],
-
   "parserOptions": {
     "project": "./tsconfig.json",
     "ecmaVersion": "latest",
@@ -18,6 +17,7 @@
     "@typescript-eslint/no-non-null-assertion": "off",
     "@typescript-eslint/strict-boolean-expressions": "off",
     "@typescript-eslint/no-floating-promises": "off", // TODO: consider
+    "@typescript-eslint/no-unused-vars": "off", // TODO: consider
     "@typescript-eslint/restrict-template-expressions": "off",
     "@typescript-eslint/restrict-plus-operands": "off",
     "@typescript-eslint/no-misused-promises": "off"
