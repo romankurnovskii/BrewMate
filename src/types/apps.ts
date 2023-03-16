@@ -1,18 +1,22 @@
 import { IHomebrewApp } from './homebrew';
-import { ISerhiiLondarOSMACApp } from './serhii-londar';
+import { IOpenSourceApp } from './opensource-apps';
 
 export enum AppType {
   Homebrew = 'Homebrew',
-  SerhiiLondarOSMAC = 'serhii-londar/open-source-mac-os-apps',
+  OpenSourceGithub = 'serhii-londar/open-source-mac-os-apps',
 }
 
 export interface IApp {
   id: string;
   title: string;
   description: string;
-  categories: any;
+  categories: string[];
   installed: string | null; // version
   homepage: string;
   appSourceType: AppType;
-  sourceMetaData: IHomebrewApp | ISerhiiLondarOSMACApp;
+  sourceMetaData: IHomebrewApp | IOpenSourceApp;
 }
+
+export type IAppsStorage = {
+  [key in AppType]: IApp[];
+};

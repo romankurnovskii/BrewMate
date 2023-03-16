@@ -1,13 +1,12 @@
 /* eslint-disable jsx-a11y/anchor-is-valid */
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { categories } from '../../data/categories';
 import MenuItem from './MenuItem';
 
 type IProps = {
   onCategorySelect: (category: string) => void;
 };
-const Menu = ({ onCategorySelect
-}: IProps) => {
+const Menu = ({ onCategorySelect }: IProps) => {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
   const handleClick = (category: string) => {

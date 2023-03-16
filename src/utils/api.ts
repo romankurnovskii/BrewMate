@@ -5,10 +5,13 @@ import {
   BREW_ALL_FORMULAS_INSTALLED_DICT,
   HOMEBREW_CASKS_JSON_URL,
   HOMEBREW_TOP_DOWNLOADS_30D_JSON_URL,
+  OSS_APPS_JSON_URL,
+  OSS_CATEGORIES_JSON_URL,
 } from '../data/constants';
 import { IHomebrewApp, IHomebrewTopInstallResponse } from '../types/homebrew';
 import { transformArrayToDict } from './helpers';
 import { saveDataToStorage } from './storage';
+import { IOpenSourceApp } from '../types/opensource-apps';
 
 export const fetchAllBrewGUIApps = async (): Promise<IHomebrewApp[]> => {
   const response = await fetch(HOMEBREW_CASKS_JSON_URL, { cache: 'no-store' });
@@ -56,4 +59,28 @@ export const runHomebrewCommand = async (
   } else {
     throw new Error('Invalid command');
   }
+};
+
+// ------------------ Open Source Apps source from github
+
+export const fetchAppsCategoriesFromSerhiiLondarOSMAC = async (): Promise<
+  any[]
+> => {
+  const response = await fetch(OSS_CATEGORIES_JSON_URL, {
+    cache: 'no-store',
+  });
+  const data = await response.json();
+  const categories = data.categories;
+  return categories;
+};
+
+export const fetchAppsFromSerhiiLondarOSMAC = async (): Promise<
+  IOpenSourceApp[]
+> => {
+  const response = await fetch(OSS_APPS_JSON_URL, {
+    cache: 'no-store',
+  });
+  const data = await response.json();
+  const categories = data.applications;
+  return categories;
 };

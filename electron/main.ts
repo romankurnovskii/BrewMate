@@ -19,6 +19,7 @@ function createWindow() {
     // backgroundColor: nativeTheme.shouldUseDarkColors
     //   ? darkBackgroundColor
     //   : lightBackgroundColor,
+    backgroundColor: lightBackgroundColor,
     webPreferences: {
       nodeIntegration: true,
       preload: path.join(__dirname, 'preload.js'),

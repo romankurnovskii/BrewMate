@@ -1,8 +1,14 @@
-import React, { createContext, useContext, useState } from 'react';
-import { updateAllCasks, updateInstalledStatusApps } from './helpersHomebrew';
+import { createContext, useContext, useState } from 'react';
+import {
+  convertHomebrewAppstoCommonStructure,
+  sortAppsByName,
+  updateAllCasks,
+  updateInstalledStatusApps,
+} from './helpersHomebrew';
 import { IHomebrewApp } from '../types/homebrew';
-import { getLocalInstalledApps } from './api';
-import { sortAppsByName } from './helpers';
+import { fetchAppsFromSerhiiLondarOSMAC, getLocalInstalledApps } from './api';
+import { AppType, IAppsStorage } from '../types/apps';
+import { convertOpenSourceAppsToCommonStructure } from './helpersOSApps';
 
 export const getDataFromStorage = (key: string) => {
   const data = localStorage.getItem(key);
@@ -21,29 +27,40 @@ export const saveDataToStorage = (key: string, data: any) => {
 interface IAppContext {
   procsOutput: string;
   setProcsOutput: (output: string) => void;
+  apps: IAppsStorage;
   casks: IHomebrewApp[];
   setCasks: (apps: IHomebrewApp[]) => void;
   installedApps: IHomebrewApp[];
   updateInstalledApps: () => Promise<any>;
   setInstalledApps: (apps: IHomebrewApp[]) => void;
   updateCasksData: () => Promise<any>;
+  updateAppsFromOpenSource: () => Promise<any>;
 }
 
 const AppContext = createContext<IAppContext>({
   procsOutput: '',
   setProcsOutput: () => {},
+  apps: {
+    [AppType.Homebrew]: [],
+    [AppType.OpenSourceGithub]: [],
+  },
   casks: [],
   setCasks: () => {},
   installedApps: [],
   updateInstalledApps: () => Promise.resolve(),
   setInstalledApps: () => {},
   updateCasksData: () => Promise.resolve(),
+  updateAppsFromOpenSource: () => Promise.resolve(),
 });
 
 export const useAppContext = () => useContext(AppContext);
 
 export const AppContextProvider = ({ children }: any) => {
   const [procsOutput, setProcsOutput] = useState('');
+  const [apps, setApps] = useState<IAppsStorage>({
+    [AppType.Homebrew]: [],
+    [AppType.OpenSourceGithub]: [],
+  });
   const [casks, setCasks] = useState<IHomebrewApp[]>([]);
   const [installedApps, setInstalledApps] = useState<IHomebrewApp[]>([]);
 
@@ -52,11 +69,18 @@ export const AppContextProvider = ({ children }: any) => {
 
     return Promise.all([updateAllCasks(), getLocalInstalledApps()])
       .then(([fetchedCasks, installedApps]) => {
-        const allCasksUpdated = updateInstalledStatusApps(
+        let allCasksUpdated = updateInstalledStatusApps(
           fetchedCasks,
           installedApps
         );
+
+        const convertedApps =
+          convertHomebrewAppstoCommonStructure(allCasksUpdated);
         setCasks(allCasksUpdated);
+        setApps((prev) => ({
+          ...prev,
+          [AppType.Homebrew]: convertedApps,
+        }));
         setInstalledApps(installedApps);
         return allCasksUpdated;
       })
@@ -65,10 +89,19 @@ export const AppContextProvider = ({ children }: any) => {
 
   const updateInstalledApps = async () => {
     let _installedApps = await getLocalInstalledApps();
-    _installedApps = sortAppsByName(_installedApps)
+    _installedApps = sortAppsByName(_installedApps);
     setInstalledApps(_installedApps);
     const updatedApps = updateInstalledStatusApps(casks, _installedApps);
     setCasks(updatedApps);
+  };
+
+  const updateAppsFromOpenSource = async () => {
+    const _apps = await fetchAppsFromSerhiiLondarOSMAC();
+    const convertedApps = convertOpenSourceAppsToCommonStructure(_apps);
+    setApps((prev) => ({
+      ...prev,
+      [AppType.OpenSourceGithub]: convertedApps,
+    }));
   };
 
   return (
@@ -76,12 +109,14 @@ export const AppContextProvider = ({ children }: any) => {
       value={{
         procsOutput,
         setProcsOutput,
+        apps,
         casks,
         setCasks,
         installedApps,
         updateInstalledApps,
         setInstalledApps,
         updateCasksData,
+        updateAppsFromOpenSource,
       }}
     >
       {children}
