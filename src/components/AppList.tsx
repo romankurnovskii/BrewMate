@@ -116,14 +116,15 @@ function AppList({ apps, appsNew }: IProps) {
   return (
     <div className='d-flex align-content-start flex-wrap'>
       <div className='row'>
-        {apps.map((app) => (
+        {appsMap}
+        {/* {apps.map((app) => (
           <AppBlock
             key={app.token}
             app={app}
             onClickInstall={onClickInstallHandler}
             onClickUninstall={onClickUninstallHandler}
           />
-        ))}
+        ))} */}
       </div>
     </div>
   );

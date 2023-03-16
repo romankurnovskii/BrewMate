@@ -1,5 +1,6 @@
 import { categories } from '../data/categories';
 import { BREW_ALL_CASKS_DICT } from '../data/constants';
+import { AppType, IApp } from '../types/apps';
 import { IHomebrewApp, IHomebrewTopInstallResponse } from '../types/homebrew';
 import { saveDataToStorage } from './storage';
 
@@ -100,4 +101,21 @@ export const shuffleArray = <T>(array: T[]): T[] => {
     [array[i], array[j]] = [array[j], array[i]];
   }
   return array;
+};
+
+export const convertHomebrewAppstoCommonStructure = (
+  apps: IHomebrewApp[]
+): IApp[] => {
+  return apps.map((app) => {
+    return {
+      id: app.token,
+      title: app.name[0],
+      description: app.desc,
+      categories: [],
+      installed: app.installed,
+      homepage: app.homepage,
+      appSourceType: AppType.Homebrew,
+      sourceMetaData: { ...app },
+    };
+  });
 };
