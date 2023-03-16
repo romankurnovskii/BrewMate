@@ -1,7 +1,8 @@
 import React, { createContext, useContext, useState } from 'react';
+import { updateAllCasks, updateInstalledStatusApps } from './helpersHomebrew';
 import { IHomebrewApp } from '../types/homebrew';
-import { getLocalInstalledApps, updateAllCasks } from './api';
-import { updateInstalledStatusApps } from './helpers';
+import { getLocalInstalledApps } from './api';
+import { sortAppsByName } from './helpers';
 
 export const getDataFromStorage = (key: string) => {
   const data = localStorage.getItem(key);
@@ -23,6 +24,7 @@ interface IAppContext {
   casks: IHomebrewApp[];
   setCasks: (apps: IHomebrewApp[]) => void;
   installedApps: IHomebrewApp[];
+  updateInstalledApps: () => Promise<any>;
   setInstalledApps: (apps: IHomebrewApp[]) => void;
   updateCasksData: () => Promise<any>;
 }
@@ -33,6 +35,7 @@ const AppContext = createContext<IAppContext>({
   casks: [],
   setCasks: () => {},
   installedApps: [],
+  updateInstalledApps: () => Promise.resolve(),
   setInstalledApps: () => {},
   updateCasksData: () => Promise.resolve(),
 });
@@ -46,6 +49,7 @@ export const AppContextProvider = ({ children }: any) => {
 
   const updateCasksData = async () => {
     console.log('Updating casks data');
+
     return Promise.all([updateAllCasks(), getLocalInstalledApps()])
       .then(([fetchedCasks, installedApps]) => {
         const allCasksUpdated = updateInstalledStatusApps(
@@ -59,6 +63,14 @@ export const AppContextProvider = ({ children }: any) => {
       .catch(console.error);
   };
 
+  const updateInstalledApps = async () => {
+    let _installedApps = await getLocalInstalledApps();
+    _installedApps = sortAppsByName(_installedApps)
+    setInstalledApps(_installedApps);
+    const updatedApps = updateInstalledStatusApps(casks, _installedApps);
+    setCasks(updatedApps);
+  };
+
   return (
     <AppContext.Provider
       value={{
@@ -67,6 +79,7 @@ export const AppContextProvider = ({ children }: any) => {
         casks,
         setCasks,
         installedApps,
+        updateInstalledApps,
         setInstalledApps,
         updateCasksData,
       }}

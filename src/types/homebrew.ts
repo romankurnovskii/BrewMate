@@ -23,3 +23,7 @@ export interface IHomebrewTopInstallResponse {
     };
   }[];
 }
+
+export type IHomebrewAppDict = {
+  [key: string]: IHomebrewApp;
+};
