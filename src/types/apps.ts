@@ -1,7 +1,9 @@
 import { IHomebrewApp } from './homebrew';
+import { ISerhiiLondarOSMACApp } from './serhii-londar';
 
 export enum AppType {
   Homebrew = 'Homebrew',
+  SerhiiLondarOSMAC = 'serhii-londar/open-source-mac-os-apps',
 }
 
 export interface IApp {
@@ -12,5 +14,5 @@ export interface IApp {
   installed: string | null; // version
   homepage: string;
   appSourceType: AppType;
-  sourceMetaData: IHomebrewApp | {};
+  sourceMetaData: IHomebrewApp | ISerhiiLondarOSMACApp;
 }
