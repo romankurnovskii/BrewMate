@@ -1,3 +1,11 @@
+## Changelog v0.2.2-1
+
+### Enhancements
+
+- New methods for handling upgrade, upgrade all apps, and logs functionality.
+- Support for upgrade all apps and opening logs commands in the menu.
+- File appending support in the logger function.
+
 ## Changelog v0.2.1 / 23-03-12-16
 
 ### Main features

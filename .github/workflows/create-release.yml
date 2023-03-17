@@ -37,6 +37,7 @@ jobs:
         run: |
           echo "VERSION=$(jq -r .version package.json)" >> $GITHUB_ENV
           echo "VERSION=$(jq -r .version package.json)" >> $GITHUB_OUTPUT
+          echo "VERSION=$(jq -r .version package.json)" >> $GITHUB_STEP_SUMMARY
         shell: bash
 
       - name: Upload Assets to Release
@@ -53,10 +54,6 @@ jobs:
         #TODO refactor
         id: generate_checksum
         run: |
-          ls -latr dist
           shasum -a 256 ./dist/BrewMate-${{ env.VERSION }}-universal-mac.zip | awk '{print $1}' >> shasumver
-          ls -latr
-          cat shasumver
-          echo "SHA 256:" >> $GITHUB_STEP_SUMMARY
-          cat shasumver >> $GITHUB_STEP_SUMMARY
-        # echo "MAC_UNIVERSAL_SHA256=" >> $GITHUB_OUTPUT
+          echo "SHA 256:"   >> $GITHUB_STEP_SUMMARY
+          cat   shasumver   >> $GITHUB_STEP_SUMMARY
