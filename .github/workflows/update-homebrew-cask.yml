@@ -6,33 +6,72 @@ on:
     types:
       - completed
 
+permissions:
+  contents: write
+  pull-requests: write
+
 jobs:
   update-cask:
+
     runs-on: ubuntu-latest
-    if: ${{ github.event.workflow_run.event == 'push' }}
+    # if: ${{ github.event.workflow_run.event == 'push' }}
 
     steps:
       - name: Checkout homebrew-cask repository
         uses: actions/checkout@v3
         with:
           repository: romankurnovskii/homebrew-cask
-          token: ${{ secrets.GH_TOKEN }}
-          path: homebrew-cask
+          token: ${{ secrets.TOKEN_HOMEBREW_CASK || github.token  }}
 
       - name: Update cask file
-        run: |
           VERSION=$(jq -r .version ../BrewMate/package.json)
           SHA256=$(cat ../BrewMate/shasumver)
-          CASK_FILE="homebrew-cask/Casks/brewmate.rb"
+        run: |
+          ls -latr
+          CASK_FILE="Casks/brewmate.rb"
           sed -i "s/version .*/version \"$VERSION\"/" $CASK_FILE
           sed -i "s/sha256 .*/sha256 \"$SHA256\"/" $CASK_FILE
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
 
       - name: Create Pull Request
-        uses: peter-evans/create-pull-request@v4
-        with:
-          token: ${{ secrets.GH_TOKEN }}
-          path: homebrew-cask
-          commit-message: "Update BrewMate to ${{ env.VERSION }}"
-          title: "Update BrewMate to ${{ env.VERSION }}"
-          body: "This PR updates BrewMate to version ${{ env.VERSION }}."
-          branch: "update/brewmate-${{ env.VERSION }}"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TOKEN_HOMEBREW_CASK: ${{ secrets.TOKEN_HOMEBREW_CASK }}
+          BRANCH_NAME: update-version-${{ env.VERSION }}
+        run: |
+          ls -latr
+          git config user.name "R K"
+          git config user.email "email@example.com"
+          git checkout -b ${BRANCH_NAME}
+          git add .
+          git commit -m "update to version ${VERSION}"
+
+          REPO_URL=$(git remote get-url origin)
+          REPO_URL_WITH_TOKEN=$(echo "${REPO_URL}" | sed "s://://${TOKEN_HOMEBREW_CASK}@:")
+          git remote set-url origin "${REPO_URL_WITH_TOKEN}"
+
+          # Delete the remote branch if it exists
+          git push origin --delete ${BRANCH_NAME} || true
+
+          # Push the branch
+          git push origin ${BRANCH_NAME}
+
+          # Create PR
+          PR_URL="https://api.github.com/repos/romankurnovskii/homebrew-cask/pulls"
+          curl --request POST \
+          --url $PR_URL \
+          --header "authorization: token ${TOKEN_HOMEBREW_CASK}" \
+          --header 'content-type: application/json' \
+          --data @- << EOF
+          {
+            "title": "Update BrewMate to ${VERSION}",
+            "body": " **${GITHUB_WORKFLOW}**. \n\n commit: _${GITHUB_SHA}_.",
+            "head": "${BRANCH_NAME}", 
+            "base": "main"
+          }
+          EOF
+
+        # token: ${{ secrets.TOKEN_HOMEBREW_CASK }}
+        # gen new - https://github.com/settings/tokens
+        # https://github.com/romankurnovskii/homebrew-cask/settings/actions write perm, allow pr
+        # https://github.com/romankurnovskii/homebrew-cask/settings/secrets/actions copy from step 1
