@@ -1,13 +1,17 @@
 import { exec, spawn } from 'child_process';
-import { contextBridge, ipcMain, ipcRenderer } from 'electron';
+import { contextBridge, ipcRenderer } from 'electron';
 import { BrewCLICommands, BREW_INSTALLED_JSON } from '../src/data/constants';
-import { logger, LOG_FILE_PATH } from './helpers';
+
+const log = (data: string) => {
+  ipcRenderer.send('save-data-to-logfile', data);
+};
 
 const execWrapper = async (command: string): Promise<string> => {
-  console.log('Started command: ' + command);
+  log('Started command: ' + command);
   return new Promise((resolve, reject) => {
     exec(command, (err, stdout, stderr) => {
       if (err) {
+        log(err + '\n' + stderr);
         reject(err);
         return;
       }
@@ -20,17 +24,16 @@ const spawnWrapper = async (
   command: string[],
   callback: (data: string, error?: Error) => void
 ): Promise<number> => {
-  console.log('Started command: ' + [...command].toString());
-  logger('Started command: ' + [...command].toString());
+  log('Started command: ' + [...command].toString());
   const child = spawn(command[0], command.slice(1));
 
   child.stdout.on('data', (data) => {
-    logger(data.toString());
+    log(data.toString());
     callback(data.toString());
   });
 
   child.stderr.on('data', (data) => {
-    logger(data.toString());
+    log(data.toString());
     callback(data.toString(), new Error('Error occurred!'));
   });
 
@@ -85,9 +88,9 @@ contextBridge.exposeInMainWorld('brewApi', {
     return res;
   },
   openLogs: async (callback: any): Promise<any> => {
-    const commandStr = 'open ' + LOG_FILE_PATH;
-    const command = commandStr.split(' ');
-    const res = await spawnWrapper(command, callback);
+    const logFilePath = await ipcRenderer.invoke('get-logfile-path');
+    const commandStr = `open "${logFilePath}"`;
+    const res = await execWrapper(commandStr);
     return res;
   },
 });

@@ -1,21 +1,18 @@
-import {
-  app,
-  BrowserWindow,
-  nativeTheme,
-  shell,
-} from 'electron';
+import { app, BrowserWindow, nativeTheme, shell, ipcMain } from 'electron';
 import installExtension, {
   REACT_DEVELOPER_TOOLS,
 } from 'electron-devtools-installer';
 import fixPath from 'fix-path';
 import * as path from 'path';
+import { LOG_FILE_NAME } from './constants';
+import { logger } from './helpers';
 import MenuBuilder from './menu';
 
 fixPath(); // works 3.0 version for now
 
-
 const darkBackgroundColor = '#2e2c29';
 const lightBackgroundColor = 'white';
+const logFilePath = path.join(app.getPath('userData'), LOG_FILE_NAME);
 
 function createWindow() {
   const mainWindow = new BrowserWindow({
@@ -82,7 +79,9 @@ app.whenReady().then(() => {
   installExtension(REACT_DEVELOPER_TOOLS)
     .then((name) => console.log(`Added Extension:  ${name}`))
     .catch((err) => console.log('An error occurred: ', err));
-
+  
+  const currentVersion = app.getVersion();
+  logger(logFilePath, `Current version of the app: ${currentVersion}`);
   createWindow();
 });
 
@@ -96,4 +95,12 @@ app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
     app.quit();
   }
+});
+
+ipcMain.on('save-data-to-logfile', (event: any, data: any) => {
+  logger(logFilePath, data);
+});
+
+ipcMain.handle('get-logfile-path', () => {
+  return logFilePath;
 });
