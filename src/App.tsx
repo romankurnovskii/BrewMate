@@ -15,7 +15,7 @@ import packageJson from '../package.json';
 import { AppType, IApp } from './types/apps';
 import { convertHomebrewAppstoCommonStructure } from './utils/helpersHomebrew';
 
-const App =() => {
+const App = () => {
   const [selectedSource, setSelectedSource] = useState<AppType>(
     AppType.Homebrew
   );
