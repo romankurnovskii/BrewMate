@@ -12,7 +12,12 @@ const MenuTools = ({ onCommandClick }: IProps) => {
   };
 
   // TODO: use config file for such setup
-  const commands = [BrewCLICommands.UPDATE, BrewCLICommands.UPGRADE];
+  const commands = [
+    BrewCLICommands.UPDATE,
+    BrewCLICommands.UPGRADE,
+    BrewCLICommands.UPGRADE_ALL,
+    BrewCLICommands.OPEN_LOGS,
+  ];
 
   return (
     <div>

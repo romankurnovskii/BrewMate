@@ -48,11 +48,13 @@ export const runHomebrewCommand = async (
   if (BrewCliCommandsNames[command]) {
     switch (command) {
       case BrewCLICommands.UPDATE:
-        console.log(51, BrewCLICommands.UPDATE);
         return window.brewApi.update(handleCommandOutput);
       case BrewCLICommands.UPGRADE:
-        console.log(514, BrewCLICommands.UPGRADE);
-        return window.brewApi.update(handleCommandOutput);
+        return window.brewApi.upgrade(handleCommandOutput);
+      case BrewCLICommands.UPGRADE_ALL:
+        return window.brewApi.upgradeAll(handleCommandOutput);
+      case BrewCLICommands.OPEN_LOGS:
+        return window.brewApi.openLogs(handleCommandOutput);
       default:
         throw new Error('Current command not supported');
     }
@@ -63,8 +65,7 @@ export const runHomebrewCommand = async (
 
 // ------------------ Open Source Apps source from github
 
-export const fetchAppsCategoriesFromSerhiiLondarOSMAC = async (): Promise<
-any[]
+export const fetchAppsCategoriesFromSerhiiLondarOSMAC = async (): Promise<any[]
 > => {
   const response = await fetch(OSS_CATEGORIES_JSON_URL, {
     cache: 'no-store',
@@ -74,8 +75,7 @@ any[]
   return categories;
 };
 
-export const fetchAppsFromSerhiiLondarOSMAC = async (): Promise<
-IOpenSourceApp[]
+export const fetchAppsFromSerhiiLondarOSMAC = async (): Promise<IOpenSourceApp[]
 > => {
   const response = await fetch(OSS_APPS_JSON_URL, {
     cache: 'no-store',

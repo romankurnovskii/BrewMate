@@ -21,8 +21,10 @@ export enum BrewCLICommands {
   GET_INSTALLED_FORMULAS_JSON_OUTPUT = 'brew info --installed --formula --json=v2',
   UPDATE = 'brew update',
   UPGRADE = 'brew upgrade',
+  UPGRADE_ALL = 'brew cu --all --cleanup --force --yes',
   INSTALL_CASK = 'brew install --cask --force',
   UNINSTALL_CASK = 'brew uninstall --cask --force',
+  OPEN_LOGS = 'OPEN_LOGS',
 }
 
 type BrewCliCommandsNamesType = {
@@ -32,6 +34,8 @@ type BrewCliCommandsNamesType = {
 export const BrewCliCommandsNames: Partial<BrewCliCommandsNamesType> = {
   [BrewCLICommands.UPDATE]: 'brew update',
   [BrewCLICommands.UPGRADE]: 'brew upgrade',
+  [BrewCLICommands.UPGRADE_ALL]: 'upgrade all apps',
+  [BrewCLICommands.OPEN_LOGS]: 'logs',
 };
 
 // ----------- LOCAL_STORAGE
