@@ -34,11 +34,12 @@ jobs:
           echo "VERSION=$VERSION" >> $GITHUB_ENV
 
       - name: Create Pull Request
+          VERSION=$(jq -r .version ../BrewMate/package.json)
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TOKEN_HOMEBREW_CASK: ${{ secrets.TOKEN_HOMEBREW_CASK }}
-          BRANCH_NAME: update-version-${{ env.VERSION }}
         run: |
+          BRANCH_NAME=update-version-$(jq -r .version ../BrewMate/package.json)
           ls -latr
           git config user.name "R K"
           git config user.email "email@example.com"
