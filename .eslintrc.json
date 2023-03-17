@@ -6,7 +6,7 @@
   },
   "extends": ["plugin:react/recommended", "standard-with-typescript"],
   "parserOptions": {
-    "project": "./tsconfig.json",
+    "project": ["./tsconfig.json", "./electron/tsconfig.json"],
     "ecmaVersion": "latest",
     "sourceType": "module"
   },

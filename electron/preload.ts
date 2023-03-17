@@ -11,7 +11,7 @@ const execWrapper = async (command: string): Promise<string> => {
   return new Promise((resolve, reject) => {
     exec(command, (err, stdout, stderr) => {
       if (err) {
-        log(err + '\n' + stderr);
+        log(err.message + '\n' + stderr);
         reject(err);
         return;
       }

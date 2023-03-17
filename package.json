@@ -1,11 +1,10 @@
 {
   "name": "brewmate",
-  "version": "0.2.5",
+  "version": "0.2.7",
   "author": "Roman Kurnovskii",
   "description": "BrewMate - Homebrew Apps GUI Manager",
   "homepage": ".",
   "main": "build/electron/main.js",
-  "private": true,
   "dependencies": {
     "electron-devtools-installer": "^3.2.0",
     "electron-reload": "^2.0.0-alpha.1",
@@ -17,15 +16,15 @@
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
+    "eject": "react-scripts eject",
     "test": "react-scripts test",
     "test:bg": "CI=true react-scripts test --watchAll=false",
-    "lint": "eslint 'src/**/*.{ts,tsx}'",
-    "lint:fix": "eslint --fix 'src/**/*.{ts,tsx}'",
+    "lint": "eslint 'src/**/*.{ts,tsx}' 'electron/**/*.ts'",
+    "lint:fix": "eslint --fix 'src/**/*.{ts,tsx}' 'electron/**/*.ts'",
     "postinstall": "husky install && electron-builder install-app-deps",
     "electron:dev": "concurrently \"cross-env BROWSER=none yarn start\" \"wait-on http://127.0.0.1:3000 && tsc -p electron -w\" \"wait-on http://127.0.0.1:3000 && tsc -p electron && electron .\"",
     "electron:build": "yarn build && tsc -p electron && electron-builder",
     "electron:dist": "yarn build && tsc -p electron && electron-builder --mac --dir",
-    "eject": "react-scripts eject",
     "make:release": "git add . && git commit -m \"$(jq -r .version package.json)\" && git tag $(jq -r .version package.json) && git push && git push --tags"
   },
   "build": {
@@ -39,7 +38,7 @@
         ]
       },
       "category": "public.app-category.productivity",
-      "icon": "assets/icon1024.png"
+      "icon": "assets/icon1024nocorner.png"
     },
     "extends": null,
     "files": [
@@ -73,7 +72,7 @@
     "@testing-library/user-event": "^14.4.3",
     "@types/electron-devtools-installer": "^2.2.2",
     "@types/jest": "^29.4.0",
-    "@types/node": "^18.13.0",
+    "@types/node": "^16.18.16",
     "@types/react": "^18.0.28",
     "@types/react-dom": "^18.0.11",
     "@typescript-eslint/eslint-plugin": "^5.55.0",
@@ -93,7 +92,7 @@
     "wait-on": "^7.0.1"
   },
   "lint-staged": {
-    "*.{js,ts,jsx,tsx}": "npm run lint"
+    "*.{js,ts,jsx,tsx}": "npm run lint:fix"
   },
   "husky": {
     "hooks": {

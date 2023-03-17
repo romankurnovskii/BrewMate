@@ -12,9 +12,14 @@ on:
 jobs:
   create-release:
     runs-on: macos-latest
-
     steps:
       - uses: actions/checkout@v3
+
+      - name: Get Version
+        id: get_version
+        run: |
+          echo "VERSION=$(jq -r .version package.json)" >> $GITHUB_ENV
+          echo "VERSION=$(jq -r .version package.json)" >> $GITHUB_OUTPUT
 
       - name: Install Dependencies
         run: |
@@ -25,20 +30,11 @@ jobs:
       - name: Build Electron App
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          # https://github.com/romankurnovskii/BrewMate/settings/actions : set read/write
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
         run: |
           npm run electron:build
-          pwd
           ls -la
         working-directory: .
-
-      - name: Set Version
-        run: |
-          echo "VERSION=$(jq -r .version package.json)" >> $GITHUB_ENV
-          echo "VERSION=$(jq -r .version package.json)" >> $GITHUB_OUTPUT
-          echo "VERSION=$(jq -r .version package.json)" >> $GITHUB_STEP_SUMMARY
-        shell: bash
 
       - name: Upload Assets to Release
         uses: softprops/action-gh-release@v1
@@ -49,13 +45,11 @@ jobs:
             ./dist/BrewMate-${{ env.VERSION }}-universal-mac.zip
           draft: false
           name: Release ${{ github.ref }}
-          tag_name: ${{ github.ref }}
+          tag_name: ${{ env.VERSION }}
           generate_release_notes: true
 
       - name: Generate SHA256 Checksum
-        #TODO refactor
-        id: generate_checksum
         run: |
           shasum -a 256 ./dist/BrewMate-${{ env.VERSION }}-universal-mac.zip | awk '{print $1}' >> shasumver
-          echo "SHA 256:"   >> $GITHUB_STEP_SUMMARY
-          cat   shasumver   >> $GITHUB_STEP_SUMMARY
+          echo "SHA 256:" >> $GITHUB_STEP_SUMMARY
+          cat shasumver >> $GITHUB_STEP_SUMMARY

@@ -2,6 +2,7 @@ import { app, BrowserWindow, nativeTheme, shell, ipcMain } from 'electron';
 import installExtension, {
   REACT_DEVELOPER_TOOLS,
 } from 'electron-devtools-installer';
+import { exec } from 'child_process';
 import fixPath from 'fix-path';
 import * as path from 'path';
 import { LOG_FILE_NAME } from './constants';
@@ -14,7 +15,7 @@ const darkBackgroundColor = '#2e2c29';
 const lightBackgroundColor = 'white';
 const logFilePath = path.join(app.getPath('userData'), LOG_FILE_NAME);
 
-function createWindow() {
+function createWindow () {
   const mainWindow = new BrowserWindow({
     width: 1300,
     height: 800,
@@ -37,17 +38,19 @@ function createWindow() {
     mainWindow.webContents.openDevTools();
 
     // Hot Reloading on 'node_modules/.bin/electronPath'
-    require('electron-reload')(__dirname, {
-      electron: path.join(
-        __dirname,
-        '..',
-        '..',
-        'node_modules',
-        '.bin',
-        'electron' + (process.platform === 'win32' ? '.cmd' : '')
-      ),
-      forceHardReset: true,
-      hardResetMethod: 'exit',
+    import('electron-reload').then((electronReload: any) => {
+      electronReload(__dirname, {
+        electron: path.join(
+          __dirname,
+          '..',
+          '..',
+          'node_modules',
+          '.bin',
+          'electron' + (process.platform === 'win32' ? '.cmd' : '')
+        ),
+        forceHardReset: true,
+        hardResetMethod: 'exit',
+      });
     });
   }
 
@@ -79,10 +82,12 @@ app.whenReady().then(() => {
   installExtension(REACT_DEVELOPER_TOOLS)
     .then((name) => console.log(`Added Extension:  ${name}`))
     .catch((err) => console.log('An error occurred: ', err));
-  
+
   const currentVersion = app.getVersion();
   logger(logFilePath, `Current version of the app: ${currentVersion}`);
+
   createWindow();
+  runInitCommands();
 });
 
 app.on('activate', () => {
@@ -104,3 +109,15 @@ ipcMain.on('save-data-to-logfile', (event: any, data: any) => {
 ipcMain.handle('get-logfile-path', () => {
   return logFilePath;
 });
+
+const runInitCommands = () => {
+  const command = 'brew update && brew tap buo/cask-upgrade';
+  logger(logFilePath, 'Started command: ' + command);
+  exec(command, (error, stdout, stderr) => {
+    if (error) {
+      logger(logFilePath, `Error executing the command: ${error.message}`);
+      return;
+    }
+    logger(logFilePath, `Command output: ${stderr} ${stdout}`);
+  });
+};

@@ -14,11 +14,11 @@ interface DarwinMenuItemConstructorOptions extends MenuItemConstructorOptions {
 export default class MenuBuilder {
   mainWindow: BrowserWindow;
 
-  constructor(mainWindow: BrowserWindow) {
+  constructor (mainWindow: BrowserWindow) {
     this.mainWindow = mainWindow;
   }
 
-  buildMenu(): Menu {
+  buildMenu (): Menu {
     if (
       process.env.NODE_ENV === 'development' ||
       process.env.DEBUG_PROD === 'true'
@@ -34,7 +34,7 @@ export default class MenuBuilder {
     return menu;
   }
 
-  setupDevelopmentEnvironment(): void {
+  setupDevelopmentEnvironment (): void {
     this.mainWindow.webContents.on('context-menu', (_, props) => {
       const { x, y } = props;
 
@@ -49,7 +49,7 @@ export default class MenuBuilder {
     });
   }
 
-  buildDarwinTemplate(): MenuItemConstructorOptions[] {
+  buildDarwinTemplate (): MenuItemConstructorOptions[] {
     const subMenuAbout: DarwinMenuItemConstructorOptions = {
       label: 'Electron',
       submenu: [
@@ -153,13 +153,13 @@ export default class MenuBuilder {
       submenu: [
         {
           label: 'Learn More',
-          click() {
+          click () {
             shell.openExternal('https://github.com/romankurnovskii/BrewMate');
           },
         },
         {
           label: 'Documentation',
-          click() {
+          click () {
             shell.openExternal(
               'https://github.com/romankurnovskii/BrewMate/tree/main/docs#readme'
             );
@@ -167,7 +167,7 @@ export default class MenuBuilder {
         },
         {
           label: 'Search Issues',
-          click() {
+          click () {
             shell.openExternal(
               'https://github.com/romankurnovskii/BrewMate/issues'
             );

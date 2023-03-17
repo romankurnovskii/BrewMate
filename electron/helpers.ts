@@ -6,7 +6,7 @@ export const logger = (logfile: string, message: string) => {
   const logMessage = `[${timestamp}] ${message}${os.EOL}`;
   fs.appendFile(logfile, logMessage, (err) => {
     if (err) {
-      console.error(`writeFile error: ${err}`);
+      console.error(`writeFile error: ${err.message}`);
     }
   });
 };
