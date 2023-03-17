@@ -47,7 +47,7 @@ jobs:
         with:
           files: |
             ./dist/BrewMate-${{ env.VERSION }}-universal-mac.zip
-          draft: true
+          draft: false
           generate_release_notes: true
 
       - name: Generate SHA256 Checksum
