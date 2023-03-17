@@ -93,10 +93,11 @@
     "wait-on": "^7.0.1"
   },
   "lint-staged": {
-    "*.{js,ts,jsx,tsx}": "npm run lint:fix"},
+    "*.{js,ts,jsx,tsx}": "npm run lint"
+  },
   "husky": {
     "hooks": {
-        "pre-commit": "npm run lint:fix && npm run test:bg"
+      "pre-commit": "npm run lint:fix && npm run lint && npm run test:bg"
     }
   }
 }
