@@ -8,6 +8,8 @@ declare global {
       getInstalled: () => Promise<[any, any]>;
       update: (callback: any) => Promise<any>;
       upgrade: (callback: any) => Promise<any>;
+      upgradeAll: (callback: any) => Promise<any>;
+      openLogs: (callback?: any) => Promise<any>;
     };
     ipcRenderer: any;
   }

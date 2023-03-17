@@ -15,7 +15,7 @@ import packageJson from '../package.json';
 import { AppType, IApp } from './types/apps';
 import { convertHomebrewAppstoCommonStructure } from './utils/helpersHomebrew';
 
-function App () {
+const App = () => {
   const [selectedSource, setSelectedSource] = useState<AppType>(
     AppType.Homebrew
   );
@@ -161,7 +161,7 @@ function App () {
           {/* TODO: move to container */}
 
           <div
-            className='col-md-2 position-fixed bg-light'
+            className='col-md-2 position-fixed bg-light overflow-auto'
             style={{
               minWidth: '150px',
               maxWidth: '180px',
@@ -213,6 +213,7 @@ function App () {
                   />
                   <hr />
                   <MenuTools onCommandClick={onCommandClickHandler} />
+                  <hr />
                 </>
               )}
             </nav>
@@ -225,6 +226,7 @@ function App () {
                 {!isLoading && <> {appsNewStructure.length} apps</>}
               </h1>
             </div>
+
             <div className='d-flex flex-wrap'>
               {isLoading ? <SpinnerBg /> : <AppList apps={appsNewStructure} />}
             </div>
@@ -264,6 +266,6 @@ function App () {
       </div>
     </div>
   );
-}
+};
 
 export default App;

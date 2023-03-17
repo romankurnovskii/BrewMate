@@ -1,4 +1,9 @@
-import { app, BrowserWindow, nativeTheme, shell } from 'electron';
+import {
+  app,
+  BrowserWindow,
+  nativeTheme,
+  shell,
+} from 'electron';
 import installExtension, {
   REACT_DEVELOPER_TOOLS,
 } from 'electron-devtools-installer';
@@ -7,6 +12,7 @@ import * as path from 'path';
 import MenuBuilder from './menu';
 
 fixPath(); // works 3.0 version for now
+
 
 const darkBackgroundColor = '#2e2c29';
 const lightBackgroundColor = 'white';
@@ -22,6 +28,7 @@ function createWindow() {
     backgroundColor: lightBackgroundColor,
     webPreferences: {
       nodeIntegration: true,
+      contextIsolation: true,
       preload: path.join(__dirname, 'preload.js'),
     },
   });
