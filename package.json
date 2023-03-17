@@ -1,6 +1,6 @@
 {
   "name": "brewmate",
-  "version": "0.2.2-1",
+  "version": "0.2.3",
   "author": "Roman Kurnovskii",
   "description": "BrewMate - Homebrew Apps GUI Manager",
   "homepage": ".",
@@ -18,9 +18,10 @@
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
+    "test:bg": "CI=true react-scripts test --watchAll=false",
     "lint": "eslint 'src/**/*.{ts,tsx}'",
     "lint:fix": "eslint --fix 'src/**/*.{ts,tsx}'",
-    "postinstall": "electron-builder install-app-deps",
+    "postinstall": "husky install && electron-builder install-app-deps",
     "electron:dev": "concurrently \"cross-env BROWSER=none yarn start\" \"wait-on http://127.0.0.1:3000 && tsc -p electron -w\" \"wait-on http://127.0.0.1:3000 && tsc -p electron && electron .\"",
     "electron:build": "yarn build && tsc -p electron && electron-builder",
     "electron:dist": "yarn build && tsc -p electron && electron-builder --mac --dir",
@@ -91,9 +92,11 @@
     "typescript": "^4.9.5",
     "wait-on": "^7.0.1"
   },
+  "lint-staged": {
+    "*.{js,ts,jsx,tsx}": "npm run lint:fix"},
   "husky": {
     "hooks": {
-        "pre-commit": "npm run lint:fix && npm test"
+        "pre-commit": "npm run lint:fix && npm run test:bg"
     }
   }
 }
