@@ -14,7 +14,7 @@ jobs:
   update-cask:
 
     runs-on: ubuntu-latest
-    # if: ${{ github.event.workflow_run.event == 'push' }}
+    if: ${{ github.event.workflow_run.event == 'push' }}
 
     steps:
       - name: Checkout homebrew-cask repository
