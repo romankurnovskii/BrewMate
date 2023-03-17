@@ -1,0 +1,38 @@
+name: Update Homebrew Cask
+
+on:
+  workflow_run:
+    workflows: ["Release"]
+    types:
+      - completed
+
+jobs:
+  update-cask:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.event == 'push' }}
+
+    steps:
+      - name: Checkout homebrew-cask repository
+        uses: actions/checkout@v2
+        with:
+          repository: romankurnovskii/homebrew-cask
+          token: ${{ secrets.GH_TOKEN }}
+          path: homebrew-cask
+
+      - name: Update cask file
+        run: |
+          VERSION=$(jq -r .version ../BrewMate/package.json)
+          SHA256=$(cat ../BrewMate/shasumver)
+          CASK_FILE="homebrew-cask/Casks/brewmate.rb"
+          sed -i "s/version .*/version \"$VERSION\"/" $CASK_FILE
+          sed -i "s/sha256 .*/sha256 \"$SHA256\"/" $CASK_FILE
+
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v4
+        with:
+          token: ${{ secrets.GH_TOKEN }}
+          path: homebrew-cask
+          commit-message: "Update BrewMate to ${{ env.VERSION }}"
+          title: "Update BrewMate to ${{ env.VERSION }}"
+          body: "This PR updates BrewMate to version ${{ env.VERSION }}."
+          branch: "update/brewmate-${{ env.VERSION }}"
