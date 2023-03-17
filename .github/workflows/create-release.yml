@@ -48,6 +48,8 @@ jobs:
           files: |
             ./dist/BrewMate-${{ env.VERSION }}-universal-mac.zip
           draft: false
+          name: Release ${{ github.ref }}
+          tag_name: ${{ github.ref }}
           generate_release_notes: true
 
       - name: Generate SHA256 Checksum
