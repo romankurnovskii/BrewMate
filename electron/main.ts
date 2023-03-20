@@ -1,4 +1,4 @@
-import { app, BrowserWindow, nativeTheme, shell, ipcMain } from 'electron';
+import { app, BrowserWindow, shell, ipcMain } from 'electron';
 import installExtension, {
   REACT_DEVELOPER_TOOLS,
 } from 'electron-devtools-installer';
@@ -54,13 +54,13 @@ function createWindow () {
     });
   }
 
-  nativeTheme.on('updated', () => {
-    const backgroundColor = nativeTheme.shouldUseDarkColors
-      ? darkBackgroundColor
-      : lightBackgroundColor;
+  // nativeTheme.on('updated', () => {
+  //   const backgroundColor = nativeTheme.shouldUseDarkColors
+  //     ? darkBackgroundColor
+  //     : lightBackgroundColor;
 
-    mainWindow.setBackgroundColor(backgroundColor);
-  });
+  //   mainWindow.setBackgroundColor(backgroundColor);
+  // });
 
   // Mac OS Menu
   const menuBuilder = new MenuBuilder(mainWindow);
