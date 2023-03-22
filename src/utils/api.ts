@@ -81,6 +81,6 @@ export const fetchAppsFromSerhiiLondarOSMAC = async (): Promise<IOpenSourceApp[]
     cache: 'no-store',
   });
   const data = await response.json();
-  const categories = data.applications;
-  return categories;
+  const apps = data.applications;
+  return apps;
 };

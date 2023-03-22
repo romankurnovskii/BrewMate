@@ -1,15 +1,20 @@
 import { AppType, IApp } from '../types/apps';
 import { IOpenSourceApp } from '../types/opensource-apps';
-import { getAppCategory } from './helpers';
+import { getAppCategory, getCategoryFromMap } from './helpers';
 
 export const convertOpenSourceAppsToCommonStructure = (
   apps: IOpenSourceApp[]
 ): IApp[] => {
   return apps.map((app) => {
-    const category = getAppCategory(
-      app.title,
-      app.short_description + app.categories.join(' ')
-    );
+    let category = 'Other';
+    if (app.categories.length > 0) {
+      category = getCategoryFromMap(app.categories[0].toLowerCase());
+    } else {
+      category = getAppCategory(
+        app.title,
+        app.short_description + app.categories.join(' ')
+      );
+    }
 
     return {
       id: app.repo_url,

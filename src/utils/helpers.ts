@@ -1,4 +1,4 @@
-import { categories } from '../data/categories';
+import { categories, categoryMapping } from '../data/categories';
 import { IApp } from '../types/apps';
 import { IHomebrewApp } from '../types/homebrew';
 
@@ -10,6 +10,11 @@ const matchKeywords = (text: string, keywords: string[]): boolean => {
     }
   }
   return false;
+};
+
+// TODO: refactor names
+export const getCategoryFromMap = (jsonCategory: string): string => {
+  return categoryMapping[jsonCategory] || 'Other';
 };
 
 export const getAppCategory = (name: string, description: string): string => {
