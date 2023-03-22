@@ -54,6 +54,13 @@ jobs:
           echo "SHA 256:" >> $GITHUB_STEP_SUMMARY
           cat shasumver >> $GITHUB_STEP_SUMMARY
 
+      - name: Checkout homebrew-cask repository
+        uses: actions/checkout@v3
+        with:
+          repository: romankurnovskii/homebrew-cask
+          path: homebrew-cask
+          token: ${{ secrets.TOKEN_HOMEBREW_CASK || github.token  }}
+
       - name: Update Cask | Create Pull Request
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
