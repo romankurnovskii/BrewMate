@@ -161,7 +161,7 @@ export default class MenuBuilder {
           label: 'Documentation',
           click () {
             shell.openExternal(
-              'https://github.com/romankurnovskii/BrewMate/tree/main/docs#readme'
+              'https://github.com/romankurnovskii/BrewMate/tree/main/#readme'
             );
           },
         },
@@ -170,6 +170,14 @@ export default class MenuBuilder {
           click () {
             shell.openExternal(
               'https://github.com/romankurnovskii/BrewMate/issues'
+            );
+          },
+        },
+        {
+          label: 'Homepage',
+          click () {
+            shell.openExternal(
+              'https://romankurnovskii.com/brewmate'
             );
           },
         },

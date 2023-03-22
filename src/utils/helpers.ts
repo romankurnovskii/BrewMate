@@ -5,7 +5,7 @@ import { IHomebrewApp } from '../types/homebrew';
 // Define a function to match keywords in names and descriptions
 const matchKeywords = (text: string, keywords: string[]): boolean => {
   for (const keyword of keywords) {
-    if (text.toLowerCase().includes(keyword)) {
+    if (text.toLowerCase().includes(keyword.toLowerCase())) {
       return true;
     }
   }

@@ -235,14 +235,10 @@ const App = () => {
 
         <div className='footer'>
           <div className='row justify-content-between'>
-            <div className='col-auto text-left'>
-              &copy; 2023 BrewMate ver.{packageJson.version}
-            </div>
             <div
-              className='col text-center'
+              className='col-auto text-left'
               style={{
                 paddingBottom: '25px',
-                paddingLeft: '21px',
                 fontSize: '14px',
               }}
             >
@@ -253,13 +249,21 @@ const App = () => {
                 </>
               )}
             </div>
-            <div className='col-auto text-right'>
+            <div
+              className='col-auto text-right'
+              style={{
+                paddingBottom: '25px',
+                paddingRight: '21px',
+                fontSize: '14px',
+              }}
+            >
               <LinkBtn
                 title='Github'
                 onClick={() => {
                   window.open(GITHUB_PROJECT_URL);
                 }}
-              />
+              />{' '}
+              | &copy; 2023 BrewMate ver.{packageJson.version}
             </div>
           </div>
         </div>
