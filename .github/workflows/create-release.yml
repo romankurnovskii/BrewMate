@@ -54,29 +54,12 @@ jobs:
           echo "SHA 256:" >> $GITHUB_STEP_SUMMARY
           cat shasumver >> $GITHUB_STEP_SUMMARY
 
-  update-cask:
-    runs-on: ubuntu-latest
-    if: ${{ github.event_name == 'push' }}
-    steps:
-      - name: Checkout homebrew-cask repository
-        uses: actions/checkout@v3
-        with:
-          repository: romankurnovskii/homebrew-cask
-          path: homebrew-cask
-          token: ${{ secrets.TOKEN_HOMEBREW_CASK || github.token  }}
-
-      - name: Update cask file
+      - name: Update Cask | Create Pull Request
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TOKEN_HOMEBREW_CASK: ${{ secrets.TOKEN_HOMEBREW_CASK }}
         run: |
-          ls -la
-          VERSION=$(jq -r .version ./package.json)
-          SHA256=$(cat ./shasumver)
-          CASK_FILE="homebrew-cask/Casks/brewmate.rb"
-          sed -i "s/version .*/version \"$VERSION\"/" $CASK_FILE
-          sed -i "s/sha256 .*/sha256 \"$SHA256\"/" $CASK_FILE
-
-      - name: Create Pull Request
-        run: |
-          VERSION=$(jq -r .version BrewMate/package.json)
+          VERSION=$(jq -r .version package.json)
           BRANCH_NAME=update-version-${VERSION}
           git -C homebrew-cask config user.name "R K"
           git -C homebrew-cask config user.email "email@example.com"
@@ -108,7 +91,3 @@ jobs:
             "base": "main"
           }
           EOF
-
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          TOKEN_HOMEBREW_CASK: ${{ secrets.TOKEN_HOMEBREW_CASK }}
