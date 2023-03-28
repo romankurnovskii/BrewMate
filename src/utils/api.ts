@@ -53,6 +53,8 @@ export const runHomebrewCommand = async (
         return window.brewApi.upgrade(handleCommandOutput);
       case BrewCLICommands.UPGRADE_ALL:
         return window.brewApi.upgradeAll(handleCommandOutput);
+      case BrewCLICommands.TAPS:
+        return window.brewApi.getLocalTaps(handleCommandOutput);
       case BrewCLICommands.OPEN_LOGS:
         return window.brewApi.openLogs(handleCommandOutput);
       default:

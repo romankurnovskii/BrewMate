@@ -11,11 +11,6 @@ export const HOMEBREW_TOP_DOWNLOADS_90D_JSON_URL =
 
 // ----------- CLI_COMMANDS
 
-// get installed apps in json format
-export const BREW_INSTALLED_JSON = 'brew info --installed --casks --json=v2';
-export const BREW_INSTALLED_FORMULA_JSON =
-  'brew info --installed --formula --json=v2';
-
 export enum BrewCLICommands {
   GET_INSTALLED_CASKS_JSON_OUTPUT = 'brew info --installed --casks --json=v2',
   GET_INSTALLED_FORMULAS_JSON_OUTPUT = 'brew info --installed --formula --json=v2',
@@ -24,6 +19,8 @@ export enum BrewCLICommands {
   UPGRADE_ALL = 'brew cu --all --cleanup --force --yes',
   INSTALL_CASK = 'brew install --cask --force',
   UNINSTALL_CASK = 'brew uninstall --cask --force',
+  TAPS_ALL_INFO = 'brew tap-info --installed --json',
+  TAPS = 'brew tap',
   OPEN_LOGS = 'OPEN_LOGS',
 }
 
@@ -35,6 +32,7 @@ export const BrewCliCommandsNames: Partial<BrewCliCommandsNamesType> = {
   [BrewCLICommands.UPDATE]: 'brew update',
   [BrewCLICommands.UPGRADE]: 'brew upgrade',
   [BrewCLICommands.UPGRADE_ALL]: 'upgrade all apps',
+  [BrewCLICommands.TAPS]: 'repositories',
   [BrewCLICommands.OPEN_LOGS]: 'logs',
 };
 

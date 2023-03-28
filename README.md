@@ -10,13 +10,11 @@ Beta.
 
 ## Features
 
-- [x] install casks
-- [x] uninstall casks
+- [x] install/uninstall casks
 - [x] brew update/upgrade
-- [x] list installed
-- [x] top downloads
+- [x] list local installed
+- [x] top installs
 - [x] show logs on install/uninstall
-- [ ] fix scroll
 - [ ] add 3rd party taps
 - [ ] handle apps required sudo/pass on install/uninstall
 
