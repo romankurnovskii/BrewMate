@@ -1,4 +1,10 @@
-## Changelog v0.2.2-1
+## 0.2.10
+
+- List local taps
+- Logs view
+- Fetch opensource apps from github repositories
+
+## 0.2.2-1
 
 ### Enhancements
 
@@ -6,7 +12,7 @@
 - Support for upgrade all apps and opening logs commands in the menu.
 - File appending support in the logger function.
 
-## Changelog v0.2.1 / 23-03-12-16
+## v0.2.1 / 23-03-12-16
 
 ### Main features
 
