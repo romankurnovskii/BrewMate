@@ -68,9 +68,16 @@ jobs:
         run: |
           VERSION=$(jq -r .version package.json)
           BRANCH_NAME=update-version-${VERSION}
+          SHA256=$(shasum -a 256 ./dist/BrewMate-${VERSION}-universal-mac.zip | awk '{print $1}')
+
           git -C homebrew-cask config user.name "R K"
           git -C homebrew-cask config user.email "email@example.com"
           git -C homebrew-cask checkout -b ${BRANCH_NAME}
+
+          # Set new version
+          sed -i '' "s/version .*/version '${VERSION}'/" homebrew-cask/Casks/brewmate.rb
+          sed -i '' "s/sha256 .*/sha256 '${SHA256}'/" homebrew-cask/Casks/brewmate.rb
+    
           git -C homebrew-cask add .
           git -C homebrew-cask commit -m "update to version ${VERSION}"
 
