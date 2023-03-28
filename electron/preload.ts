@@ -1,6 +1,6 @@
 import { exec, spawn } from 'child_process';
 import { contextBridge, ipcRenderer } from 'electron';
-import { BrewCLICommands, BREW_INSTALLED_JSON } from '../src/data/constants';
+import { BrewCLICommands } from '../src/data/constants';
 
 const log = (data: string) => {
   ipcRenderer.send('save-data-to-logfile', data);
@@ -50,8 +50,8 @@ const spawnWrapper = async (
 
 contextBridge.exposeInMainWorld('brewApi', {
   getInstalled: async () => {
-    const cmd = BREW_INSTALLED_JSON;
-    const res = await execWrapper(cmd);
+    const command = BrewCLICommands.GET_INSTALLED_CASKS_JSON_OUTPUT;
+    const res = await execWrapper(command);
     const newLocal = JSON.parse(res) as { casks: any; formulae: any };
     const casks: any = newLocal['casks'];
     const formulae: any = newLocal['formulae'];
@@ -85,6 +85,13 @@ contextBridge.exposeInMainWorld('brewApi', {
     const commandStr = BrewCLICommands.UPGRADE_ALL;
     const command = commandStr.split(' ');
     const res = await spawnWrapper(command, callback);
+    return res;
+  },
+  getLocalTaps: async (callback: any): Promise<string[]> => {
+    const command = BrewCLICommands.TAPS;
+    const terminalOutput = await execWrapper(command);
+    const res = terminalOutput.trim().split('\n');
+    console.log(94, res);
     return res;
   },
   openLogs: async (callback: any): Promise<any> => {

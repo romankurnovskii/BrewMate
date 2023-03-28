@@ -16,6 +16,7 @@ const MenuTools = ({ onCommandClick }: IProps) => {
     BrewCLICommands.UPDATE,
     BrewCLICommands.UPGRADE,
     BrewCLICommands.UPGRADE_ALL,
+    BrewCLICommands.TAPS,
     BrewCLICommands.OPEN_LOGS,
   ];
 

@@ -14,6 +14,7 @@ import MenuTools from './components/menu/MenuTools';
 import packageJson from '../package.json';
 import { AppType, IApp } from './types/apps';
 import { convertHomebrewAppstoCommonStructure } from './utils/helpersHomebrew';
+import SecondColumn from './components/columns/SecondColumn';
 
 const App = () => {
   const [selectedSource, setSelectedSource] = useState<AppType>(
@@ -23,6 +24,8 @@ const App = () => {
   const [appsNewStructure, setAppsNewStructure] = useState<IApp[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [showTaps, setShowTaps] = useState(false);
+  const [localTaps, setLocalTaps] = useState<string[]>([]);
 
   const {
     procsOutput,
@@ -84,6 +87,7 @@ const App = () => {
   const handleCategorySelect = (category: string) => {
     setIsLoading(true);
     setSelectedCategory(category);
+    setShowTaps(false);
     // sort by categories
     // update rendered
 
@@ -131,11 +135,22 @@ const App = () => {
 
   const onCommandClickHandler = (command: BrewCLICommands) => {
     setProcsOutput('Executing ' + command);
+
+    if (command === BrewCLICommands.TAPS) {
+      setShowTaps(true);
+    } else {
+      setShowTaps(false);
+    }
+
     runHomebrewCommand(command, handleCommandOutput)
-      .then(() => {
+      .then((output?: any) => {
         setTimeout(() => {
           setProcsOutput('');
         }, 5000);
+        if (output && command === BrewCLICommands.TAPS) {
+          setLocalTaps(output);
+          console.log(151, output);
+        }
       })
       .catch((err) => {
         setProcsOutput('Error: ' + err);
@@ -161,9 +176,8 @@ const App = () => {
           {/* TODO: move to container */}
 
           <div
-            className='col-md-2 position-fixed bg-light overflow-auto'
+            className='col position-fixed bg-light overflow-auto'
             style={{
-              minWidth: '150px',
               maxWidth: '180px',
               lineHeight: '1.0',
               height: '100%',
@@ -219,7 +233,17 @@ const App = () => {
             </nav>
           </div>
 
-          <div className='col-md-10 offset-md-2'>
+          {/* New column */}
+          {showTaps && <SecondColumn taps={localTaps} />}
+
+          {/* <div className='col-md-10 offset-md-2'> */}
+          <div
+            className={`col-md-${showTaps ? '8' : '10'} offset-md-4`}
+            style={{
+              height: '100%',
+              marginLeft: `${showTaps ? '420px' : '190px'}`,
+            }}
+          >
             <div className='header'>
               <h1>
                 {selectedCategory}
