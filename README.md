@@ -2,7 +2,7 @@
 
 **BrewMate - Homebrew GUI**
 
-BrewMate is a macOS GUI application that makes it easy to search for, install, and uninstall Homebrew casks. You can also see the top downloaded casks for the last month.
+BrewMate is a macOS GUI application that makes it easy to search for, install, and uninstall Homebrew casks. You can also see the top downloaded casks.
 
 # Status
 

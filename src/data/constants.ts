@@ -39,6 +39,7 @@ export const BrewCliCommandsNames: Partial<BrewCliCommandsNamesType> = {
 // ----------- LOCAL_STORAGE
 
 export const TOP_CASKS_INSTALLS_30_DAYS = 'TOP_CASKS_INSTALLS_30_DAYS';
+export const TOP_CASKS_INSTALLS_90_DAYS = 'TOP_CASKS_INSTALLS_90_DAYS';
 export const BREW_ALL_CASKS_DICT = 'BREW_ALL_CASKS_DICT';
 export const BREW_ALL_CASKS_INSTALLED_DICT = 'BREW_ALL_CASKS_INSTALLED_DICT';
 export const BREW_ALL_FORMULAS_INSTALLED_DICT =

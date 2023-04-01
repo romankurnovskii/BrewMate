@@ -65,9 +65,9 @@ const App = () => {
     setAppsNewStructure(apps[selectedSource]);
   }, [renderApps]);
 
-  const getTop30days = () => {
+  const getTop90days = () => {
     setIsLoading(true);
-    setSelectedCategory('Month Popular');
+    setSelectedCategory('Popular');
     const sortedApps = sortAppsByInstalled(apps[AppType.Homebrew]);
     setAppsNewStructure(sortedApps.slice(0, 250));
     setIsLoading(false);
@@ -212,10 +212,10 @@ const App = () => {
                 <>
                   <hr />
                   <MenuItem
-                    key='TopMonthItem'
-                    title='Month Popular'
+                    key='TopInstalls'
+                    title='Popular'
                     isActive={false}
-                    onClick={getTop30days}
+                    onClick={getTop90days}
                     href='#'
                   />
 

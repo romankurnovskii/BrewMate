@@ -1,4 +1,4 @@
-import { fetchAllBrewGUIApps, fetchTopInstalls30Days } from './api';
+import { fetchAllBrewGUIApps, fetchTopInstalls90Days } from './api';
 import { getAppCategory, transformArrayToDict } from './helpers';
 import {
   IHomebrewApp,
@@ -12,7 +12,7 @@ import { AppType, IApp } from '../types/apps';
 export const updateAllCasks = async (): Promise<IHomebrewApp[]> => {
   // fetch
   const fetchedCasks = await fetchAllBrewGUIApps();
-  const casksWithInstallsCount = await fetchTopInstalls30Days();
+  const casksWithInstallsCount = await fetchTopInstalls90Days();
 
   const res = convertTopInstalledResponceToHomebrewApps(
     casksWithInstallsCount,

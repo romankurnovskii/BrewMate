@@ -4,7 +4,7 @@ import {
   BREW_ALL_CASKS_INSTALLED_DICT,
   BREW_ALL_FORMULAS_INSTALLED_DICT,
   HOMEBREW_CASKS_JSON_URL,
-  HOMEBREW_TOP_DOWNLOADS_30D_JSON_URL,
+  HOMEBREW_TOP_DOWNLOADS_90D_JSON_URL,
   OSS_APPS_JSON_URL,
   OSS_CATEGORIES_JSON_URL,
 } from '../data/constants';
@@ -19,9 +19,9 @@ export const fetchAllBrewGUIApps = async (): Promise<IHomebrewApp[]> => {
   return data;
 };
 
-export const fetchTopInstalls30Days =
+export const fetchTopInstalls90Days =
   async (): Promise<IHomebrewTopInstallResponse> => {
-    const response = await fetch(HOMEBREW_TOP_DOWNLOADS_30D_JSON_URL, {
+    const response = await fetch(HOMEBREW_TOP_DOWNLOADS_90D_JSON_URL, {
       cache: 'no-store',
     });
     const data = await response.json();
