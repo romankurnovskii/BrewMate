@@ -24,7 +24,7 @@ const spawnWrapper = async (
   command: string[],
   callback: (data: string, error?: Error) => void
 ): Promise<number> => {
-  log('Started command: ' + [...command].toString());
+  log('Started command: ' + [...command].join(' '));
   const child = spawn(command[0], command.slice(1));
 
   child.stdout.on('data', (data) => {
