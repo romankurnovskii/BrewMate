@@ -83,8 +83,11 @@ contextBridge.exposeInMainWorld('brewApi', {
   },
   upgradeAll: async (callback: any): Promise<any> => {
     const commandStr = BrewCLICommands.UPGRADE_ALL;
-    const command = commandStr.split(' ');
-    const res = await spawnWrapper(command, callback);
+    const commands = commandStr.split(';').map((cmd) => cmd.trim().split(' '));
+    let res;
+    for (const command of commands) {
+      res = await spawnWrapper(command, callback);
+    }
     return res;
   },
   getLocalTaps: async (callback: any): Promise<string[]> => {

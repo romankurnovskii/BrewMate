@@ -16,7 +16,7 @@ export enum BrewCLICommands {
   GET_INSTALLED_FORMULAS_JSON_OUTPUT = 'brew info --installed --formula --json=v2',
   UPDATE = 'brew update',
   UPGRADE = 'brew upgrade',
-  UPGRADE_ALL = 'brew cu --all --cleanup --force --yes',
+  UPGRADE_ALL = 'brew update; brew upgrade; brew cu --all --cleanup --force --yes',
   INSTALL_CASK = 'brew install --cask --force',
   UNINSTALL_CASK = 'brew uninstall --cask --force',
   TAPS_ALL_INFO = 'brew tap-info --installed --json',
