@@ -59,7 +59,9 @@ jobs:
         with:
           repository: romankurnovskii/homebrew-cask
           path: homebrew-cask
-          token: ${{ secrets.TOKEN_HOMEBREW_CASK || github.token  }}
+          token: ${{ secrets.TOKEN_HOMEBREW_CASK }} 
+          # https://github.com/settings/tokens/
+          # https://github.com/romankurnovskii/BrewMate/settings/secrets/actions
 
       - name: Update Cask | Create Pull Request
         env:

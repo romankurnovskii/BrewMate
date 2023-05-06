@@ -72,7 +72,12 @@ const App = () => {
     setAppsNewStructure(sortedApps.slice(0, 250));
     setIsLoading(false);
   };
-
+  const getRecentlyAddedCasks = () => {
+    // TODO
+    setIsLoading(true);
+    setSelectedCategory('New');
+    setIsLoading(false);
+  };
   const renderInstalledCasks = async () => {
     setIsLoading(true);
     setSelectedCategory(INSTALLED_CASS_CATEGORY_TITLE);
@@ -218,7 +223,13 @@ const App = () => {
                     onClick={getTop90days}
                     href='#'
                   />
-
+                  {/* <MenuItem
+                    key='TopInstalls'
+                    title='New'
+                    isActive={false}
+                    onClick={getRecentlyAddedCasks}
+                    href='#'
+                  /> */}
                   <MenuItem
                     title='Installed'
                     isActive={false}
