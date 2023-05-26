@@ -3,6 +3,7 @@ export {};
 declare global {
   interface Window {
     brewApi: {
+      getAllCasks: (callback?: any) => Promise<Record<string, IApp>>;
       installCask: (appToken: string, callback?: any) => Promise<any>;
       unInstallCask: (appToken: string, callback?: any) => Promise<any>;
       getInstalled: () => Promise<[any, any]>;

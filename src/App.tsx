@@ -154,7 +154,6 @@ const App = () => {
         }, 5000);
         if (output && command === BrewCLICommands.TAPS) {
           setLocalTaps(output);
-          console.log(151, output);
         }
       })
       .catch((err) => {

@@ -1,12 +1,16 @@
 import { createContext, useContext, useState } from 'react';
 import {
-  convertHomebrewAppstoCommonStructure,
+  convertHomebrewAppstoCommonStructure as convertHomebrewAppsToCommonStructure,
   sortAppsByName,
   updateAllCasks,
   updateInstalledStatusApps,
 } from './helpersHomebrew';
 import { IHomebrewApp } from '../types/homebrew';
-import { fetchAppsFromSerhiiLondarOSMAC, getLocalInstalledApps } from './api';
+import {
+  fetchAppsFromSerhiiLondarOSMAC,
+  getAllCasks,
+  getLocalInstalledApps,
+} from './api';
 import { AppType, IAppsStorage } from '../types/apps';
 import { convertOpenSourceAppsToCommonStructure } from './helpersOSApps';
 
@@ -67,19 +71,27 @@ export const AppContextProvider = ({ children }: any) => {
   const updateCasksData = async () => {
     console.log('Updating casks data');
 
-    return Promise.all([updateAllCasks(), getLocalInstalledApps()])
-      .then(([fetchedCasks, installedApps]) => {
+    return Promise.all([
+      getAllCasks(),
+      updateAllCasks(),
+      getLocalInstalledApps(),
+    ])
+      .then(([allCasks, fetchedCasks, installedApps]) => {
         const allCasksUpdated = updateInstalledStatusApps(
           fetchedCasks,
-          installedApps
+          installedApps,
         );
-
         const convertedApps =
-          convertHomebrewAppstoCommonStructure(allCasksUpdated);
+          convertHomebrewAppsToCommonStructure(allCasksUpdated);
         setCasks(allCasksUpdated);
+
+        let _allCasks = Object.values(allCasks);
+        if (_allCasks.length === 0) {
+          _allCasks = convertHomebrewAppsToCommonStructure(allCasksUpdated);
+        }
         setApps((prev) => ({
           ...prev,
-          [AppType.Homebrew]: convertedApps,
+          [AppType.Homebrew]: _allCasks,
         }));
         setInstalledApps(installedApps);
         return allCasksUpdated;

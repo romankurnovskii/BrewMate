@@ -10,7 +10,6 @@ import { BREW_ALL_CASKS_DICT } from '../data/constants';
 import { AppType, IApp } from '../types/apps';
 
 export const updateAllCasks = async (): Promise<IHomebrewApp[]> => {
-  // fetch
   const fetchedCasks = await fetchAllBrewGUIApps();
   const casksWithInstallsCount = await fetchTopInstalls90Days();
 

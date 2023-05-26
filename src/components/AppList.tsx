@@ -6,7 +6,7 @@ type IProps = {
   apps: IApp[];
 };
 
-function AppList ({ apps }: IProps) {
+function AppList({ apps }: IProps) {
   const { setProcsOutput, updateCasksData } = useAppContext();
 
   const handleCommandOutput = async (data: string) => {
@@ -77,8 +77,8 @@ function AppList ({ apps }: IProps) {
   });
 
   return (
-    <div className='d-flex align-content-start flex-wrap'>
-      <div className='row'>{appsMap}</div>
+    <div className="d-flex align-content-start flex-wrap">
+      <div className="row">{appsMap}</div>
     </div>
   );
 }

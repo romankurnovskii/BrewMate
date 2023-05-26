@@ -7,7 +7,7 @@ type IProps = {
 const LocalTapsContainer = ({ taps }: IProps) => {
   return (
     <div
-      className='col position-fixed bg-light overflow-auto '
+      className="col position-fixed bg-light overflow-auto "
       style={{
         width: '100%',
         maxWidth: '220px',
@@ -17,11 +17,11 @@ const LocalTapsContainer = ({ taps }: IProps) => {
         padding: '10px',
       }}
     >
-      <h1 className='mt-2 mb-4'>Brew taps</h1>
+      <h1 className="mt-2 mb-4">Brew taps</h1>
       {taps.map((tap, index) => (
-        <div key={index} className='row my-0 py-0 '>
+        <div key={index} className="row my-0 py-0 ">
           <p
-            className='col-md-8'
+            className="col-md-8"
             style={{
               paddingBottom: '0px',
               fontSize: '12px',

@@ -5,17 +5,25 @@ import installExtension, {
 import { exec } from 'child_process';
 import fixPath from 'fix-path';
 import * as path from 'path';
-import { LOG_FILE_NAME } from './constants';
-import { logger } from './helpers';
+import {
+  CASKS_DICT_FILE_NAME,
+  CASKS_FILE_NAME,
+  LOG_FILE_NAME,
+} from './constants';
+import { loadJson, logger, mergeAllCasks, saveJson } from './helpers';
 import MenuBuilder from './menu';
+import { IHomebrewApp } from '../src/types/homebrew';
+import { fetchHomebrewCasks } from './api';
 
 fixPath(); // works 3.0 version for now
 
 const darkBackgroundColor = '#2e2c29';
 const lightBackgroundColor = 'white';
 const logFilePath = path.join(app.getPath('userData'), LOG_FILE_NAME);
+// const casksFile = path.join(app.getPath('userData'), CASKS_FILE_NAME);
+const casksDictFile = path.join(app.getPath('userData'), CASKS_DICT_FILE_NAME);
 
-function createWindow () {
+function createWindow() {
   const mainWindow = new BrowserWindow({
     width: 1300,
     height: 800,
@@ -46,7 +54,7 @@ function createWindow () {
           '..',
           'node_modules',
           '.bin',
-          'electron' + (process.platform === 'win32' ? '.cmd' : '')
+          'electron' + (process.platform === 'win32' ? '.cmd' : ''),
         ),
         forceHardReset: true,
         hardResetMethod: 'exit',
@@ -110,9 +118,25 @@ ipcMain.handle('get-logfile-path', () => {
   return logFilePath;
 });
 
+ipcMain.handle('get-fetched-casks', (): Record<string, IHomebrewApp> => {
+  try {
+    return loadJson(casksDictFile);
+  } catch (error) {
+    mergeAllCasks();
+    return {};
+  }
+});
+
+ipcMain.handle('save-fetched-casks', (event: any, data: any) => {
+  // saveJson(casksFile, data);
+  // const casksDict = convertCasksArrayToDict(data);
+  saveJson(casksDictFile, data);
+});
+
 const runInitCommands = () => {
   const command = 'brew update && brew tap buo/cask-upgrade';
   logger(logFilePath, 'Started command: ' + command);
+  fetchHomebrewCasks();
   exec(command, (error, stdout, stderr) => {
     if (error) {
       logger(logFilePath, `Error executing the command: ${error.message}`);
