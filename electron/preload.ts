@@ -21,7 +21,7 @@ contextBridge.exposeInMainWorld('brewApi', {
     return [casks, formulae];
   },
   installCask: async (appToken: string, callback?: any): Promise<any> => {
-    const commandStr = `brew install --cask --force ${appToken}`;
+    const commandStr = `brew install --cask --force --no-quarantine ${appToken}`;
     const command = commandStr.split(' ');
     const res = await spawnWrapper(command, callback);
     return res;

@@ -10,7 +10,7 @@ enum BrewCLICommands { // TODO moved from src
   UPDATE = 'brew update',
   UPGRADE = 'brew upgrade',
   UPGRADE_ALL = 'brew update; brew upgrade; brew cu --all --cleanup --force --yes',
-  INSTALL_CASK = 'brew install --cask --force',
+  INSTALL_CASK = 'brew install --cask --force --no-quarantine',
   UNINSTALL_CASK = 'brew uninstall --cask --force',
   TAPS_ALL_INFO = 'brew tap-info --installed --json',
   TAPS = 'brew tap',
