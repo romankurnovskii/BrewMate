@@ -18,7 +18,7 @@ import SecondColumn from './components/columns/SecondColumn';
 
 const App = () => {
   const [selectedSource, setSelectedSource] = useState<AppType>(
-    AppType.Homebrew
+    AppType.Homebrew,
   );
   const [renderApps, setRenderApps] = useState<IHomebrewApp[]>([]);
   const [appsNewStructure, setAppsNewStructure] = useState<IApp[]>([]);
@@ -103,7 +103,7 @@ const App = () => {
     }
 
     let filteredApps = apps[selectedSource].filter((app) =>
-      app.categories.includes(category)
+      app.categories.includes(category),
     );
 
     filteredApps = shuffleArray(filteredApps);
@@ -175,32 +175,32 @@ const App = () => {
 
   return (
     <div>
-      <div className='container-fluid'>
-        <div className='row'>
+      <div className="container-fluid">
+        <div className="row">
           {/* TODO: move to container */}
 
           <div
-            className='col position-fixed bg-light overflow-auto'
+            className="col position-fixed bg-light overflow-auto"
             style={{
               maxWidth: '180px',
               lineHeight: '1.0',
               height: '100%',
             }}
           >
-            <nav className='nav flex-column my-1'>
-              <div className='input-group my-1'>
+            <nav className="nav flex-column my-1">
+              <div className="input-group my-1">
                 <input
-                  type='text'
-                  className='form-control'
-                  placeholder='Search...'
-                  aria-label='Search'
-                  aria-describedby='search-icon'
+                  type="text"
+                  className="form-control"
+                  placeholder="Search..."
+                  aria-label="Search"
+                  aria-describedby="search-icon"
                   onChange={(e) => onSearchInput(e)}
                 />
               </div>
-              <div className='input-group my-1'>
+              <div className="input-group my-1">
                 <select
-                  className='form-select'
+                  className="form-select"
                   value={selectedSource}
                   onChange={handleSourceChange}
                 >
@@ -216,11 +216,11 @@ const App = () => {
                 <>
                   <hr />
                   <MenuItem
-                    key='TopInstalls'
-                    title='Popular'
+                    key="TopInstalls"
+                    title="Popular"
                     isActive={false}
                     onClick={getTop90days}
-                    href='#'
+                    href="#"
                   />
                   {/* <MenuItem
                     key='TopInstalls'
@@ -230,10 +230,10 @@ const App = () => {
                     href='#'
                   /> */}
                   <MenuItem
-                    title='Installed'
+                    title="Installed"
                     isActive={false}
                     onClick={renderInstalledCasks}
-                    href='#'
+                    href="#"
                   />
                   <hr />
                   <MenuTools onCommandClick={onCommandClickHandler} />
@@ -254,23 +254,23 @@ const App = () => {
               marginLeft: `${showTaps ? '420px' : '190px'}`,
             }}
           >
-            <div className='header'>
+            <div className="header">
               <h1>
                 {selectedCategory}
                 {!isLoading && <> {appsNewStructure.length} apps</>}
               </h1>
             </div>
 
-            <div className='d-flex flex-wrap'>
+            <div className="d-flex flex-wrap">
               {isLoading ? <SpinnerBg /> : <AppList apps={appsNewStructure} />}
             </div>
           </div>
         </div>
 
-        <div className='footer'>
-          <div className='row justify-content-between'>
+        <div className="footer">
+          <div className="row justify-content-between">
             <div
-              className='col-auto text-left'
+              className="col-auto text-left"
               style={{
                 paddingBottom: '25px',
                 fontSize: '14px',
@@ -284,7 +284,7 @@ const App = () => {
               )}
             </div>
             <div
-              className='col-auto text-right'
+              className="col-auto text-right"
               style={{
                 paddingBottom: '25px',
                 paddingRight: '21px',
@@ -292,7 +292,7 @@ const App = () => {
               }}
             >
               <LinkBtn
-                title='Github'
+                title="Github"
                 onClick={() => {
                   window.open(GITHUB_PROJECT_URL);
                 }}

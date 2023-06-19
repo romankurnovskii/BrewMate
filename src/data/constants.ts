@@ -20,7 +20,7 @@ export enum BrewCLICommands {
   INSTALL_CASK = 'brew install --cask --no-quarantine --force',
   UNINSTALL_CASK = 'brew uninstall --cask --force',
   TAPS_ALL_INFO = 'brew tap-info --installed --json',
-  TAPS = 'brew search --casks .', // 'brew tap',
+  TAPS = 'brew tap',
   OPEN_LOGS = 'OPEN_LOGS',
 }
 
