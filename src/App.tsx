@@ -25,7 +25,7 @@ const App = () => {
   const [localTaps, setLocalTaps] = useState<string[]>([]);
 
   const [caskApps, setCaskApps] = useState<IApp[]>([]);
-  const [installedApps2, setInstalledApps2] = useState<IApp[]>([]);
+  const [installedApps, setInstalledApps] = useState<IApp[]>([]);
   const [ossApps, setOssApps] = useState<IApp[]>([]);
   const [appsSource, setAppsSource] = useState<AppType>(AppType.Homebrew);
 
@@ -35,11 +35,16 @@ const App = () => {
 
   useEffect(() => {
     setIsLoading(true);
-    getAllCasks().then((casksDict) => {
-      setCaskApps(Object.values(casksDict));
+    fetchCasks().then(() => {
       setIsLoading(false);
     });
   }, []);
+
+  const fetchCasks = async () => {
+    getAllCasks().then((casksDict) => {
+      setCaskApps(Object.values(casksDict));
+    });
+  };
 
   const getTop90days = () => {
     setIsLoading(true);
@@ -61,7 +66,7 @@ const App = () => {
     const [installedCasks, installedFormulas] =
       await window.brewApi.getInstalled();
 
-    setInstalledApps2(installedCasks);
+    setInstalledApps(installedCasks);
     setIsLoading(false);
   };
 
@@ -171,7 +176,14 @@ const App = () => {
             showTaps={showTaps}
             category={selectedCategory}
             searchQuery={appSearchQuery}
-            apps={appsSource === AppType.Homebrew ? caskApps : ossApps}
+            apps={
+              appsSource === AppType.Homebrew &&
+              selectedCategory === INSTALLED_CASK_CATEGORY_TITLE
+                ? installedApps
+                : appsSource === AppType.Homebrew
+                ? caskApps
+                : ossApps
+            }
           />
         </div>
         <FooterContainer statusMsg={procsOutput} />

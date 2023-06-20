@@ -45,7 +45,7 @@ const AppsContainer = ({
         return null;
       });
     } else if (category && category === 'Popular') {
-      filteredApps = sortAppsByInstalled(apps).slice(0, 250);
+      filteredApps = sortAppsByInstalled(apps).slice(0, 300);
     } else if (category) {
       filteredApps = apps.filter((app) => app.categories.includes(category));
     }
