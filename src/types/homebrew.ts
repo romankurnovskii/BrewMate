@@ -4,10 +4,11 @@ export interface IHomebrewApp {
   desc: string;
   homepage: string;
   installed: string | null; // version
-  name: string[]; // responce is array
+  name: string[]; // response is array
   url: string; // .dmg url
   version: string;
   outdated: boolean;
+  tap?: string; // tap: 'homebrew/cask',
 }
 
 export interface IHomebrewTopInstallResponse {
@@ -27,3 +28,4 @@ export interface IHomebrewTopInstallResponse {
 export type IHomebrewAppDict = {
   [key: string]: IHomebrewApp;
 };
+

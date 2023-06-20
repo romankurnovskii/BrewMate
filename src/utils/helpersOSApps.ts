@@ -2,9 +2,7 @@ import { AppType, IApp } from '../types/apps';
 import { IOpenSourceApp } from '../types/opensource-apps';
 import { getAppCategory, getCategoryFromMap } from './helpers';
 
-export const convertOpenSourceAppsToCommonStructure = (
-  apps: IOpenSourceApp[]
-): IApp[] => {
+export const convertOssApps2IApp = (apps: IOpenSourceApp[]): IApp[] => {
   return apps.map((app) => {
     let category = 'Other';
     if (app.categories.length > 0) {
@@ -12,7 +10,7 @@ export const convertOpenSourceAppsToCommonStructure = (
     } else {
       category = getAppCategory(
         app.title,
-        app.short_description + app.categories.join(' ')
+        app.short_description + app.categories.join(' '),
       );
     }
 

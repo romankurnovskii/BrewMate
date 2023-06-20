@@ -1,12 +1,13 @@
 import { AppType, IApp } from '../types/apps';
-import { useAppContext } from '../utils/storage';
+import { useAppContext } from '../storage';
 import AppContainer from './App/AppContainer';
+import { IHomebrewApp } from '../types/homebrew';
 
 type IProps = {
   apps: IApp[];
 };
 
-function AppList ({ apps }: IProps) {
+function AppList({ apps }: IProps) {
   const { setProcsOutput, updateCasksData } = useAppContext();
 
   const handleCommandOutput = async (data: string) => {
@@ -17,6 +18,10 @@ function AppList ({ apps }: IProps) {
       renderLine = renderLine.substring(renderLine.length - maxLength);
     }
     setProcsOutput(renderLine);
+  };
+
+  const getCaskInfo = async (caskToken: string): Promise<IApp> => {
+    return window.brewApi.getCaskInfo(caskToken);
   };
 
   const onClickInstallHandler = async (appToken: string) => {
@@ -39,14 +44,14 @@ function AppList ({ apps }: IProps) {
 
   const onClickUninstallHandler = async (appToken: string) => {
     return window.brewApi
-      .unInstallCask(appToken, handleCommandOutput)
+      .uninstallCask(appToken, handleCommandOutput)
       .then((resCode) => {
-        console.log('UnInstallCask Cask result code: ', resCode);
+        console.log('uninstallCask Cask result code: ', resCode);
         if (resCode === 0) {
           setProcsOutput(appToken + ' is uninstalled');
           updateCasksData();
         } else {
-          setProcsOutput(appToken + ' uninstalle failed with code ' + resCode);
+          setProcsOutput(appToken + ' uninstall failed with code ' + resCode);
         }
         setTimeout(() => {
           setProcsOutput('');
@@ -55,8 +60,14 @@ function AppList ({ apps }: IProps) {
       });
   };
 
-  const onClickHomepageHandler = async (url: string) => {
-    window.open(url);
+  const onClickHomepageHandler = async (app: IApp) => {
+    if (!app.homepage) {
+      getCaskInfo(app.id).then((updatedApp) => {
+        window.open(updatedApp.homepage);
+      });
+    } else {
+      window.open(app.homepage);
+    }
   };
 
   const appsMap = apps.map((app) => {
@@ -71,14 +82,14 @@ function AppList ({ apps }: IProps) {
         onClickUninstall={
           isHomebrewApp ? () => onClickUninstallHandler(app.id) : undefined
         }
-        onClickHomepage={() => onClickHomepageHandler(app.homepage)}
+        onClickHomepage={() => onClickHomepageHandler(app)}
       />
     );
   });
 
   return (
-    <div className='d-flex align-content-start flex-wrap'>
-      <div className='row'>{appsMap}</div>
+    <div className="d-flex align-content-start flex-wrap">
+      <div className="row">{appsMap}</div>
     </div>
   );
 }

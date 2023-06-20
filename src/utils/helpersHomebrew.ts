@@ -1,34 +1,33 @@
-import { fetchAllBrewGUIApps, fetchTopInstalls90Days } from './api';
+import { fetchHomebrewCasks, fetchTopInstalls90Days } from './api';
 import { getAppCategory, transformArrayToDict } from './helpers';
 import {
   IHomebrewApp,
   IHomebrewAppDict,
   IHomebrewTopInstallResponse,
 } from '../types/homebrew';
-import { saveDataToStorage } from './storage';
+import { saveDataToStorage } from '../storage';
 import { BREW_ALL_CASKS_DICT } from '../data/constants';
 import { AppType, IApp } from '../types/apps';
 
 export const updateAllCasks = async (): Promise<IHomebrewApp[]> => {
-  // fetch
-  const fetchedCasks = await fetchAllBrewGUIApps();
+  const fetchedCasks = await fetchHomebrewCasks();
   const casksWithInstallsCount = await fetchTopInstalls90Days();
 
   const res = convertTopInstalledResponceToHomebrewApps(
     casksWithInstallsCount,
-    fetchedCasks
+    fetchedCasks,
   );
   return res;
 };
 
 export const convertTopInstalledResponceToHomebrewApps = (
   topInstallsApps: IHomebrewTopInstallResponse,
-  allCasks: IHomebrewApp[]
+  allCasks: IHomebrewApp[],
 ): IHomebrewApp[] => {
   // convert to dict before merge operation
   const allCasksDict: IHomebrewAppDict = transformArrayToDict(
     allCasks,
-    'token'
+    'token',
   );
 
   const apps = topInstallsApps['formulae'];
@@ -48,7 +47,7 @@ export const convertTopInstalledResponceToHomebrewApps = (
 // Update installed status for all fetched apps
 export const updateInstalledStatusApps = (
   allApps: IHomebrewApp[],
-  installedApps: IHomebrewApp[]
+  installedApps: IHomebrewApp[],
 ): IHomebrewApp[] => {
   const installedDict = transformArrayToDict(installedApps, 'token');
 
@@ -69,7 +68,7 @@ export const updateInstalledStatusApps = (
 };
 
 export const convertHomebrewAppstoCommonStructure = (
-  apps: IHomebrewApp[]
+  apps: IHomebrewApp[],
 ): IApp[] => {
   return apps.map((app) => {
     const category = getAppCategory(app.name[0], app.desc);

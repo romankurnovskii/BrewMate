@@ -10,10 +10,11 @@ import {
 } from '../data/constants';
 import { IHomebrewApp, IHomebrewTopInstallResponse } from '../types/homebrew';
 import { transformArrayToDict } from './helpers';
-import { saveDataToStorage } from './storage';
+import { saveDataToStorage } from '../storage';
 import { IOpenSourceApp } from '../types/opensource-apps';
+import { IAppsDict } from '../types/apps';
 
-export const fetchAllBrewGUIApps = async (): Promise<IHomebrewApp[]> => {
+export const fetchHomebrewCasks = async (): Promise<IHomebrewApp[]> => {
   const response = await fetch(HOMEBREW_CASKS_JSON_URL, { cache: 'no-store' });
   const data = await response.json();
   return data;
@@ -27,6 +28,10 @@ export const fetchTopInstalls90Days =
     const data = await response.json();
     return data;
   };
+
+export const getAllCasks = async (): Promise<IAppsDict> => {
+  return window.brewApi.getAllCasks();
+};
 
 export const getLocalInstalledApps = async (): Promise<IHomebrewApp[]> => {
   const [installedCasks, installedFormulas] =
@@ -43,7 +48,7 @@ export const getLocalInstalledApps = async (): Promise<IHomebrewApp[]> => {
 
 export const runHomebrewCommand = async (
   command: BrewCLICommands,
-  handleCommandOutput: any
+  handleCommandOutput: any,
 ) => {
   if (BrewCliCommandsNames[command]) {
     switch (command) {
@@ -67,7 +72,8 @@ export const runHomebrewCommand = async (
 
 // ------------------ Open Source Apps source from github
 
-export const fetchAppsCategoriesFromSerhiiLondarOSMAC = async (): Promise<any[]
+export const fetchAppsCategoriesFromSerhiiLondarOSMAC = async (): Promise<
+  any[]
 > => {
   const response = await fetch(OSS_CATEGORIES_JSON_URL, {
     cache: 'no-store',
@@ -77,8 +83,7 @@ export const fetchAppsCategoriesFromSerhiiLondarOSMAC = async (): Promise<any[]
   return categories;
 };
 
-export const fetchAppsFromSerhiiLondarOSMAC = async (): Promise<IOpenSourceApp[]
-> => {
+export const fetchOssApps = async (): Promise<IOpenSourceApp[]> => {
   const response = await fetch(OSS_APPS_JSON_URL, {
     cache: 'no-store',
   });

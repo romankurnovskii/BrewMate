@@ -26,14 +26,14 @@ Beta.
 
 or
 ```
-brew install romankurnovskii/cask/brewmate --cask
+brew install romankurnovskii/cask/brewmate --cask --no-quarantine
 ```
 
 or
 ```
 brew tap romankurnovskii/cask
 brew update
-brew install brewmate --cask
+brew install --cask --no-quarantine brewmate 
 ```
 
 ## First time launch

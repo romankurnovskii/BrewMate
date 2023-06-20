@@ -5,24 +5,32 @@ import installExtension, {
 import { exec } from 'child_process';
 import fixPath from 'fix-path';
 import * as path from 'path';
-import { LOG_FILE_NAME } from './constants';
-import { logger } from './helpers';
+import { CASKS_DICT_FILE_NAME, LOG_FILE_NAME } from './constants';
+import { loadJson, logger, saveJson } from './helpers';
 import MenuBuilder from './menu';
+
+import { fetchCasks, fetchPopularCasks } from './api';
+import { HomebrewCLI } from './cli';
+import {
+  convertCask2IApp,
+  convertCasks2IAppsDict,
+  convertNamesToCasks,
+  mergeCasks,
+  updateInstallCountsIHomebrew,
+} from './helpers/casks';
+import { IApp, IAppsDict } from '../src/types/apps';
 
 fixPath(); // works 3.0 version for now
 
-const darkBackgroundColor = '#2e2c29';
 const lightBackgroundColor = 'white';
 const logFilePath = path.join(app.getPath('userData'), LOG_FILE_NAME);
+const casksDictFile = path.join(app.getPath('userData'), CASKS_DICT_FILE_NAME);
 
-function createWindow () {
+function createWindow() {
   const mainWindow = new BrowserWindow({
     width: 1300,
     height: 800,
     show: false,
-    // backgroundColor: nativeTheme.shouldUseDarkColors
-    //   ? darkBackgroundColor
-    //   : lightBackgroundColor,
     backgroundColor: lightBackgroundColor,
     webPreferences: {
       nodeIntegration: true,
@@ -46,21 +54,13 @@ function createWindow () {
           '..',
           'node_modules',
           '.bin',
-          'electron' + (process.platform === 'win32' ? '.cmd' : '')
+          'electron' + (process.platform === 'win32' ? '.cmd' : ''),
         ),
         forceHardReset: true,
         hardResetMethod: 'exit',
       });
     });
   }
-
-  // nativeTheme.on('updated', () => {
-  //   const backgroundColor = nativeTheme.shouldUseDarkColors
-  //     ? darkBackgroundColor
-  //     : lightBackgroundColor;
-
-  //   mainWindow.setBackgroundColor(backgroundColor);
-  // });
 
   // Mac OS Menu
   const menuBuilder = new MenuBuilder(mainWindow);
@@ -77,40 +77,29 @@ function createWindow () {
   });
 }
 
-app.whenReady().then(() => {
-  // DevTools
-  installExtension(REACT_DEVELOPER_TOOLS)
-    .then((name) => console.log(`Added Extension:  ${name}`))
-    .catch((err) => console.log('An error occurred: ', err));
+const runInitCommands = async () => {
+  // fetch all casks
+  // get all casks names from local taps
+  // merge all casks into one dict
+  // convert each to common interface IAPP
+  // save to json
 
-  const currentVersion = app.getVersion();
-  logger(logFilePath, `Current version of the app: ${currentVersion}`);
+  const casks = await fetchCasks();
+  const popularCasks = await fetchPopularCasks();
 
-  createWindow();
-  runInitCommands();
-});
+  const allCaskNames = await HomebrewCLI.getAllCaskNames();
+  let [allCasks, allCasksDict] = mergeCasks(
+    convertNamesToCasks(allCaskNames),
+    casks,
+  );
 
-app.on('activate', () => {
-  if (BrowserWindow.getAllWindows().length === 0) {
-    createWindow();
-  }
-});
+  allCasksDict = updateInstallCountsIHomebrew(allCasksDict, popularCasks);
 
-app.on('window-all-closed', () => {
-  if (process.platform !== 'darwin') {
-    app.quit();
-  }
-});
+  const appsDict = convertCasks2IAppsDict(allCasks);
 
-ipcMain.on('save-data-to-logfile', (event: any, data: any) => {
-  logger(logFilePath, data);
-});
-
-ipcMain.handle('get-logfile-path', () => {
-  return logFilePath;
-});
-
-const runInitCommands = () => {
+  saveJson(casksDictFile, appsDict);
+  logger(logFilePath, 'Updated first init casks dict to' + casksDictFile);
+  logger(logFilePath, 'Casks:' + allCasks.length);
   const command = 'brew update && brew tap buo/cask-upgrade';
   logger(logFilePath, 'Started command: ' + command);
   exec(command, (error, stdout, stderr) => {
@@ -121,3 +110,104 @@ const runInitCommands = () => {
     logger(logFilePath, `Command output: ${stderr} ${stdout}`);
   });
 };
+
+const initApp = () => {
+  app.whenReady().then(() => {
+    // DevTools
+    installExtension(REACT_DEVELOPER_TOOLS)
+      .then((name) => console.log(`Added Extension:  ${name}`))
+      .catch((err) => console.log('An error occurred: ', err));
+
+    const currentVersion = app.getVersion();
+    logger(logFilePath, `Current version of the app: ${currentVersion}`);
+
+    createWindow();
+    runInitCommands();
+  });
+
+  app.on('activate', () => {
+    if (BrowserWindow.getAllWindows().length === 0) {
+      createWindow();
+    }
+  });
+
+  app.on('window-all-closed', () => {
+    if (process.platform !== 'darwin') {
+      app.quit();
+    }
+  });
+};
+
+const initAppAPI = () => {
+  ipcMain.handle('get-all-casks', (): IAppsDict => {
+    try {
+      return loadJson(casksDictFile);
+    } catch (error) {
+      logger(logFilePath, 'Error:' + error);
+      return {};
+    }
+  });
+  ipcMain.handle(
+    'get-cask-info',
+    async (event: any, caskToken: any): Promise<IApp | null> => {
+      try {
+        const allCasks = loadJson(casksDictFile);
+        const cask = await HomebrewCLI.getCaskInfo(caskToken);
+        if (cask) {
+          const caskApp = convertCask2IApp(cask);
+          allCasks[caskApp.id] = caskApp;
+          saveJson(casksDictFile, allCasks);
+          return caskApp;
+        }
+
+        return allCasks[caskToken];
+      } catch (error) {
+        logger(logFilePath, 'Error:' + error);
+        return null;
+      }
+    },
+  );
+  ipcMain.handle('get-installed-casks', async (): Promise<[IApp[], any]> => {
+    try {
+      const [casks, formulas] = await HomebrewCLI.getInstalledCasksJsonOutput();
+      const installedCasksDict = convertCasks2IAppsDict(casks);
+
+      const allCasks = loadJson(casksDictFile);
+      for (const [caskId, value] of Object.entries(installedCasksDict)) {
+        const cask = allCasks[caskId];
+        if (!cask) {
+          logger(
+            logFilePath,
+            'Error: Cant find installed cask from all casks. Cask id:' + caskId,
+          );
+        } else {
+          allCasks[caskId]['installed'] = value['installed'];
+        }
+      }
+
+      return [Object.values(installedCasksDict), formulas];
+    } catch (error) {
+      logger(logFilePath, 'Error:' + error);
+      return [[], []];
+    }
+  });
+
+  ipcMain.handle('save-fetched-casks', (event: any, data: any) => {
+    saveJson(casksDictFile, data);
+  });
+
+  ipcMain.on('save-data-to-logfile', (event: any, data: any) => {
+    logger(logFilePath, data);
+  });
+
+  ipcMain.handle('get-logfile-path', () => {
+    return logFilePath;
+  });
+};
+
+const startApp = () => {
+  initApp();
+  initAppAPI();
+};
+
+startApp();
