@@ -4,9 +4,7 @@
 
 BrewMate is a macOS GUI application that makes it easy to search for, install, and uninstall Homebrew casks. You can also see the top downloaded casks.
 
-# Status
-
-Beta.
+Includes third party apps + from [awesome-brew](https://github.com/romankurnovskii/homebrew-awesome-brew/)
 
 ## Features
 
