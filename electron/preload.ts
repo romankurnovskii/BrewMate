@@ -1,24 +1,20 @@
 import { app, contextBridge, ipcRenderer } from 'electron';
 import { BrewCLICommands } from '../src/data/constants';
 import { execWrapper, spawnWrapper } from './cli';
-import { mergeAllCasks } from './helpers';
-import { IApp } from '../src/types/apps';
+import { IApp, IAppsDict } from '../src/types/apps';
 
-mergeAllCasks().then((casksDict) => {
-  ipcRenderer.invoke('save-fetched-casks', casksDict);
-});
+
 
 contextBridge.exposeInMainWorld('brewApi', {
-  getAllCasks: async (callback?: any): Promise<Record<string, IApp>> => {
-    return ipcRenderer.invoke('get-fetched-casks');
+  getAllCasks: async (callback?: any): Promise<IAppsDict> => {
+    return ipcRenderer.invoke('get-all-casks');
   },
-  getInstalled: async () => {
-    const command = BrewCLICommands.GET_INSTALLED_CASKS_JSON_OUTPUT;
-    const res = await execWrapper(command);
-    const newLocal = JSON.parse(res) as { casks: any; formulae: any };
-    const casks: any = newLocal['casks'];
-    const formulae: any = newLocal['formulae'];
-    return [casks, formulae];
+  getCaskInfo: async (caskToken: string, callback?: any): Promise<IApp> => {
+    return ipcRenderer.invoke('get-cask-info', caskToken);
+  },
+  getInstalled: async (): Promise<[IApp[], any]> => {
+  
+    return ipcRenderer.invoke('get-installed-casks');
   },
   installCask: async (appToken: string, callback?: any): Promise<any> => {
     const commandStr = `brew install --cask --force --no-quarantine ${appToken}`;
@@ -26,7 +22,7 @@ contextBridge.exposeInMainWorld('brewApi', {
     const res = await spawnWrapper(command, callback);
     return res;
   },
-  unInstallCask: async (appToken: string, callback?: any) => {
+  uninstallCask: async (appToken: string, callback?: any) => {
     const commandStr = `brew uninstall --cask --force ${appToken}`;
     const command = commandStr.split(' ');
     const res = await spawnWrapper(command, callback);

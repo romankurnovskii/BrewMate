@@ -4,15 +4,11 @@ import {
   sortAppsByName,
   updateAllCasks,
   updateInstalledStatusApps,
-} from './helpersHomebrew';
-import { IHomebrewApp } from '../types/homebrew';
-import {
-  fetchAppsFromSerhiiLondarOSMAC,
-  getAllCasks,
-  getLocalInstalledApps,
-} from './api';
-import { AppType, IAppsStorage } from '../types/apps';
-import { convertOpenSourceAppsToCommonStructure } from './helpersOSApps';
+} from './utils/helpersHomebrew';
+import { IHomebrewApp } from './types/homebrew';
+import { fetchOssApps, getAllCasks, getLocalInstalledApps } from './utils/api';
+import { AppType, IAppsStorage } from './types/apps';
+import { convertOssApps2IApp } from './utils/helpersOSApps';
 
 export const getDataFromStorage = (key: string) => {
   const data = localStorage.getItem(key);
@@ -108,8 +104,8 @@ export const AppContextProvider = ({ children }: any) => {
   };
 
   const updateAppsFromOpenSource = async () => {
-    const _apps = await fetchAppsFromSerhiiLondarOSMAC();
-    const convertedApps = convertOpenSourceAppsToCommonStructure(_apps);
+    const _apps = await fetchOssApps();
+    const convertedApps = convertOssApps2IApp(_apps);
     setApps((prev) => ({
       ...prev,
       [AppType.OpenSourceGithub]: convertedApps,

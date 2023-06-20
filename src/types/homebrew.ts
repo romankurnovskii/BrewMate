@@ -8,6 +8,7 @@ export interface IHomebrewApp {
   url: string; // .dmg url
   version: string;
   outdated: boolean;
+  tap?: string; // tap: 'homebrew/cask',
 }
 
 export interface IHomebrewTopInstallResponse {
@@ -27,3 +28,4 @@ export interface IHomebrewTopInstallResponse {
 export type IHomebrewAppDict = {
   [key: string]: IHomebrewApp;
 };
+

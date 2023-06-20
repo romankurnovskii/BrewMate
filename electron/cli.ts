@@ -3,7 +3,7 @@ import { log } from './log';
 import { IHomebrewApp } from '../src/types/homebrew';
 
 enum BrewCLICommands { // TODO moved from src
-  GET_ALL_CASK_NAMES = 'brew search --casks .',
+  GET_ALL_CASK_NAMES = 'brew search --casks . | grep -v "font-"',
   GET_INSTALLED_CASKS_JSON_OUTPUT = 'brew info --installed --casks --json=v2',
   GET_INSTALLED_FORMULAS_JSON_OUTPUT = 'brew info --installed --formula --json=v2',
   GET_CASK_INFO = 'brew info --json=v2 --cask ',
@@ -22,7 +22,7 @@ export const execWrapper = async (command: string): Promise<string> => {
   return new Promise((resolve, reject) => {
     exec(command, (err, stdout, stderr) => {
       if (err) {
-        log(err.message + '\n' + stderr);
+        log('Error: ' + err.message + '\n' + stderr);
         reject(err);
         return;
       }
@@ -80,17 +80,21 @@ export namespace HomebrewCLI {
   export async function getInstalledFormulasJsonOutput(): Promise<string> {
     return execWrapper(BrewCLICommands.GET_INSTALLED_FORMULAS_JSON_OUTPUT);
   }
-  export async function getCaskInfo(caskName: string): Promise<any> {
+
+  export async function getCaskInfo(
+    caskName: string,
+  ): Promise<IHomebrewApp | any> {
     const stdout = await execWrapper(BrewCLICommands.GET_CASK_INFO + caskName);
 
     const caskInfo = JSON.parse(stdout);
 
-    if (caskInfo.casks.length > 0 && caskInfo.casks[0].desc) {
-      return caskInfo.casks[0].desc;
+    if (caskInfo.casks.length > 0) {
+      return caskInfo.casks[0];
     } else {
       throw new Error(`Could not find description for cask: ${caskName}`);
     }
   }
+
   export async function update(): Promise<number> {
     return spawnWrapper(['brew', 'update'], (data) => {});
   }

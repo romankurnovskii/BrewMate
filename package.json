@@ -22,7 +22,7 @@
     "test": "react-scripts test",
     "test:bg": "CI=true react-scripts test --watchAll=false",
     "postinstall": "husky install && electron-builder install-app-deps",
-    "electron:dev": "concurrently \"cross-env BROWSER=none yarn start\" \"wait-on http://127.0.0.1:3000 && tsc -p electron -w\" \"wait-on http://127.0.0.1:3000 && tsc -p electron && electron .\"",
+    "electron:dev": "concurrently \"cross-env BROWSER=none yarn start\" \"wait-on http://127.0.0.1:3000 && tsc -p electron -w\" \"wait-on http://127.0.0.1:3000 && tsc -p electron && electron --trace-warnings .\"",
     "electron:build": "yarn build && tsc -p electron && electron-builder",
     "electron:dist": "yarn build && tsc -p electron && electron-builder --mac --dir",
     "make:release": "git add . && git commit -m \"$(jq -r .version package.json)\" && git tag $(jq -r .version package.json) && git push && git push --tags"

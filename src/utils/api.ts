@@ -10,11 +10,11 @@ import {
 } from '../data/constants';
 import { IHomebrewApp, IHomebrewTopInstallResponse } from '../types/homebrew';
 import { transformArrayToDict } from './helpers';
-import { saveDataToStorage } from './storage';
+import { saveDataToStorage } from '../storage';
 import { IOpenSourceApp } from '../types/opensource-apps';
-import { IApp } from '../types/apps';
+import { IAppsDict } from '../types/apps';
 
-export const fetchAllBrewGUIApps = async (): Promise<IHomebrewApp[]> => {
+export const fetchHomebrewCasks = async (): Promise<IHomebrewApp[]> => {
   const response = await fetch(HOMEBREW_CASKS_JSON_URL, { cache: 'no-store' });
   const data = await response.json();
   return data;
@@ -29,7 +29,7 @@ export const fetchTopInstalls90Days =
     return data;
   };
 
-export const getAllCasks = async (): Promise<Record<string, IApp>> => {
+export const getAllCasks = async (): Promise<IAppsDict> => {
   return window.brewApi.getAllCasks();
 };
 
@@ -83,9 +83,7 @@ export const fetchAppsCategoriesFromSerhiiLondarOSMAC = async (): Promise<
   return categories;
 };
 
-export const fetchAppsFromSerhiiLondarOSMAC = async (): Promise<
-  IOpenSourceApp[]
-> => {
+export const fetchOssApps = async (): Promise<IOpenSourceApp[]> => {
   const response = await fetch(OSS_APPS_JSON_URL, {
     cache: 'no-store',
   });

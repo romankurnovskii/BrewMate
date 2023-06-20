@@ -20,3 +20,7 @@ export interface IApp {
 export type IAppsStorage = {
   [key in AppType]: IApp[];
 };
+
+export type IAppsDict = {
+  [key: string]: IApp;
+};

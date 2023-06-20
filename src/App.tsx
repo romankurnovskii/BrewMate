@@ -1,75 +1,51 @@
 import { useState, useEffect } from 'react';
-import AppList from './components/AppList';
-import { IHomebrewApp } from './types/homebrew';
-import { BrewCLICommands, GITHUB_PROJECT_URL } from './data/constants';
-import LinkBtn from './components/buttons/link';
-import { runHomebrewCommand } from './utils/api';
-import { shuffleArray, sortAppsByInstalled } from './utils/helpers';
-import { useAppContext } from './utils/storage';
-import SpinnerBg from './components/spinners/SpinnerBg';
-import SpinnerSm from './components/spinners/SpinnerSm';
+import { BrewCLICommands } from './data/constants';
 import Menu from './components/menu/Menu';
-import MenuItem from './components/menu/MenuItem';
-import MenuTools from './components/menu/MenuTools';
-import packageJson from '../package.json';
-import { AppType, IApp } from './types/apps';
-import { convertHomebrewAppstoCommonStructure } from './utils/helpersHomebrew';
 import SecondColumn from './components/columns/SecondColumn';
+import { fetchOssApps, getAllCasks, runHomebrewCommand } from './utils/api';
+import HomebrewMenu from './components/menu/Homebrew';
+import AppsContainer from './components/AppsContainer';
+import FooterContainer from './components/FooterContainer';
+import AppsSource from './components/menu/AppsSource';
+import Search from './components/menu/Search';
+import { useAppContext } from './storage';
+import { AppType, IApp } from './types/apps';
+import { shuffleArray, sortAppsByInstalled } from './utils/helpers';
+import { convertOssApps2IApp } from './utils/helpersOSApps';
+
+export const INSTALLED_CASK_CATEGORY_TITLE = 'Installed on Mac OS';
 
 const App = () => {
   const [selectedSource, setSelectedSource] = useState<AppType>(
     AppType.Homebrew,
   );
-  const [renderApps, setRenderApps] = useState<IHomebrewApp[]>([]);
-  const [appsNewStructure, setAppsNewStructure] = useState<IApp[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [showTaps, setShowTaps] = useState(false);
   const [localTaps, setLocalTaps] = useState<string[]>([]);
 
-  const {
-    procsOutput,
-    apps,
-    casks,
-    installedApps,
-    updateInstalledApps,
-    updateCasksData,
-    setProcsOutput,
-    updateAppsFromOpenSource,
-  } = useAppContext();
+  const [caskApps, setCaskApps] = useState<IApp[]>([]);
+  const [installedApps2, setInstalledApps2] = useState<IApp[]>([]);
+  const [ossApps, setOssApps] = useState<IApp[]>([]);
+  const [appsSource, setAppsSource] = useState<AppType>(AppType.Homebrew);
 
-  const INSTALLED_CASS_CATEGORY_TITLE = 'Installed on Mac OS';
+  const [appSearchQuery, setAppSearchQuery] = useState<string>('');
+
+  const { procsOutput, apps, setProcsOutput } = useAppContext();
 
   useEffect(() => {
     setIsLoading(true);
-    updateCasksData().then((res) => {
+    getAllCasks().then((casksDict) => {
+      setCaskApps(Object.values(casksDict));
       setIsLoading(false);
     });
-    updateAppsFromOpenSource();
-    if (casks.length > 0) {
-      setRenderApps(casks);
-      setIsLoading(false);
-    }
   }, []);
-
-  useEffect(() => {
-    if (!selectedCategory) {
-      setRenderApps(casks);
-    }
-    const converteNewApps = convertHomebrewAppstoCommonStructure(renderApps);
-    setAppsNewStructure(converteNewApps);
-  }, [casks]);
-
-  // Converts casks to common structure
-  useEffect(() => {
-    setAppsNewStructure(apps[selectedSource]);
-  }, [renderApps]);
 
   const getTop90days = () => {
     setIsLoading(true);
     setSelectedCategory('Popular');
-    const sortedApps = sortAppsByInstalled(apps[AppType.Homebrew]);
-    setAppsNewStructure(sortedApps.slice(0, 250));
+    const sortedApps = sortAppsByInstalled(caskApps);
+    setCaskApps(sortedApps);
     setIsLoading(false);
   };
   const getRecentlyAddedCasks = () => {
@@ -80,24 +56,21 @@ const App = () => {
   };
   const renderInstalledCasks = async () => {
     setIsLoading(true);
-    setSelectedCategory(INSTALLED_CASS_CATEGORY_TITLE);
-    updateInstalledApps().then(() => {
-      setRenderApps(installedApps);
-      setIsLoading(false);
-    });
-    setRenderApps(installedApps);
-    // setIsLoading(false);
+    setSelectedCategory(INSTALLED_CASK_CATEGORY_TITLE);
+
+    const [installedCasks, installedFormulas] =
+      await window.brewApi.getInstalled();
+
+    setInstalledApps2(installedCasks);
+    setIsLoading(false);
   };
 
-  const handleCategorySelect = (category: string) => {
+  const onCategorySelect = (category: string) => {
     setIsLoading(true);
     setSelectedCategory(category);
     setShowTaps(false);
-    // sort by categories
-    // update rendered
 
     if (!category) {
-      setAppsNewStructure(apps[selectedSource]);
       setIsLoading(false);
       return;
     }
@@ -107,25 +80,12 @@ const App = () => {
     );
 
     filteredApps = shuffleArray(filteredApps);
-    setAppsNewStructure(filteredApps);
     setIsLoading(false);
   };
 
   const onSearchInput = (event: any) => {
-    const searchQuery = String(event.target.value || '').toLowerCase();
-
-    // eslint-disable-next-line array-callback-return
-    const filtered = apps[selectedSource].filter((app) => {
-      const title = app.title;
-      const categories = app.categories; // array
-      const desc = app.description;
-
-      const appStrInfo = `${title} ${categories} ${desc}`;
-      if (appStrInfo.toLowerCase().includes(searchQuery)) {
-        return app;
-      }
-    });
-    setAppsNewStructure(filtered);
+    setSelectedCategory('Search');
+    setAppSearchQuery(String(event.target.value || '').toLowerCase());
   };
 
   const handleCommandOutput = async (data: string) => {
@@ -138,7 +98,7 @@ const App = () => {
     setProcsOutput(renderLine);
   };
 
-  const onCommandClickHandler = (command: BrewCLICommands) => {
+  const onCommandClickHandler = (command: BrewCLICommands): void => {
     setProcsOutput('Executing ' + command);
 
     if (command === BrewCLICommands.TAPS) {
@@ -161,14 +121,17 @@ const App = () => {
       });
   };
 
-  const handleSourceChange = (event: any) => {
+  const onAppsSourceChange = (event: any) => {
     setIsLoading(true);
+    setAppsSource(event.target.value);
+
     setSelectedCategory(null);
     setSelectedSource(event.target.value);
+
     if (event.target.value === AppType.OpenSourceGithub) {
-      setAppsNewStructure(apps[AppType.OpenSourceGithub]);
-    } else {
-      setAppsNewStructure(apps[AppType.Homebrew]);
+      fetchOssApps().then((apps) => {
+        setOssApps(convertOssApps2IApp(apps));
+      });
     }
     setIsLoading(false);
   };
@@ -177,8 +140,6 @@ const App = () => {
     <div>
       <div className="container-fluid">
         <div className="row">
-          {/* TODO: move to container */}
-
           <div
             className="col position-fixed bg-light overflow-auto"
             style={{
@@ -188,119 +149,32 @@ const App = () => {
             }}
           >
             <nav className="nav flex-column my-1">
-              <div className="input-group my-1">
-                <input
-                  type="text"
-                  className="form-control"
-                  placeholder="Search..."
-                  aria-label="Search"
-                  aria-describedby="search-icon"
-                  onChange={(e) => onSearchInput(e)}
-                />
-              </div>
-              <div className="input-group my-1">
-                <select
-                  className="form-select"
-                  value={selectedSource}
-                  onChange={handleSourceChange}
-                >
-                  <option value={AppType.Homebrew}>Homebrew</option>
-                  <option value={AppType.OpenSourceGithub}>Open Source</option>
-                </select>
-              </div>
+              <Search onChange={onSearchInput} />
+              <AppsSource
+                appsSource={appsSource}
+                onChange={onAppsSourceChange}
+              />
               <hr />
-
-              <Menu onCategorySelect={handleCategorySelect} />
-
-              {selectedSource === AppType.Homebrew && (
-                <>
-                  <hr />
-                  <MenuItem
-                    key="TopInstalls"
-                    title="Popular"
-                    isActive={false}
-                    onClick={getTop90days}
-                    href="#"
-                  />
-                  {/* <MenuItem
-                    key='TopInstalls'
-                    title='New'
-                    isActive={false}
-                    onClick={getRecentlyAddedCasks}
-                    href='#'
-                  /> */}
-                  <MenuItem
-                    title="Installed"
-                    isActive={false}
-                    onClick={renderInstalledCasks}
-                    href="#"
-                  />
-                  <hr />
-                  <MenuTools onCommandClick={onCommandClickHandler} />
-                  <hr />
-                </>
+              <Menu onCategorySelect={onCategorySelect} />
+              {appsSource === AppType.Homebrew && (
+                <HomebrewMenu
+                  onClickTopInstalls={getTop90days}
+                  onClickInstalled={renderInstalledCasks}
+                  onClickBrewCommand={onCommandClickHandler}
+                />
               )}
             </nav>
           </div>
-
-          {/* New column */}
           {showTaps && <SecondColumn taps={localTaps} />}
-
-          {/* <div className='col-md-10 offset-md-2'> */}
-          <div
-            className={`col-md-${showTaps ? '8' : '10'} offset-md-4`}
-            style={{
-              height: '100%',
-              marginLeft: `${showTaps ? '420px' : '190px'}`,
-            }}
-          >
-            <div className="header">
-              <h1>
-                {selectedCategory}
-                {!isLoading && <> {appsNewStructure.length} apps</>}
-              </h1>
-            </div>
-
-            <div className="d-flex flex-wrap">
-              {isLoading ? <SpinnerBg /> : <AppList apps={appsNewStructure} />}
-            </div>
-          </div>
+          <AppsContainer
+            isLoading={isLoading}
+            showTaps={showTaps}
+            category={selectedCategory}
+            searchQuery={appSearchQuery}
+            apps={appsSource === AppType.Homebrew ? caskApps : ossApps}
+          />
         </div>
-
-        <div className="footer">
-          <div className="row justify-content-between">
-            <div
-              className="col-auto text-left"
-              style={{
-                paddingBottom: '25px',
-                fontSize: '14px',
-              }}
-            >
-              {procsOutput.length > 0 && (
-                <>
-                  <SpinnerSm />
-                  {procsOutput.substring(-10)}
-                </>
-              )}
-            </div>
-            <div
-              className="col-auto text-right"
-              style={{
-                paddingBottom: '25px',
-                paddingRight: '21px',
-                fontSize: '14px',
-              }}
-            >
-              <LinkBtn
-                title="Github"
-                onClick={() => {
-                  window.open(GITHUB_PROJECT_URL);
-                }}
-              />{' '}
-              | &copy; 2023 BrewMate ver.{packageJson.version}
-            </div>
-          </div>
-        </div>
+        <FooterContainer statusMsg={procsOutput} />
       </div>
     </div>
   );

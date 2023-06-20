@@ -1,10 +1,6 @@
-import { getAppCategory } from './../src/utils/helpers';
-import { IApp, AppType } from './../src/types/apps';
 import { IHomebrewApp } from './../src/types/homebrew';
 import * as fs from 'fs';
 import * as os from 'os';
-import { HomebrewCLI } from './cli';
-import { fetchHomebrewCasks } from './api';
 
 export const logger = (logfile: string, message: string) => {
   const timestamp = new Date().toISOString();
@@ -48,89 +44,51 @@ export const convertCasksArrayToDict = (
 };
 
 // MERGE ALL CASKS
-export const mergeAllCasks = async (localDbCasks?: Record<string, IApp>) => {
-  if (localDbCasks) {
-    console.log(localDbCasks);
-  }
-  const casks: IHomebrewApp[] = await fetchHomebrewCasks();
-  const allCaskNames = await HomebrewCLI.getAllCaskNames();
-  const [installedCasks, formulas] =
-    await HomebrewCLI.getInstalledCasksJsonOutput();
+// export const mergeAllCasks = async (localDbCasks?: IAppsDict) => {
+//   if (localDbCasks) {
+//     console.log(localDbCasks);
+//   }
+//   const casks: IHomebrewApp[] = await fetchCasks();
+//   const allCaskNames = await HomebrewCLI.getAllCaskNames();
+//   const [installedCasks, formulas] =
+//     await HomebrewCLI.getInstalledCasksJsonOutput();
 
-  const allCasksUpdated = updateInstalledStatusApps(casks, installedCasks);
+//   const allCasksUpdated = updateInstalledStatusApps(casks, installedCasks);
 
-  const casksDict = convertCasksArrayToDict(allCasksUpdated);
+//   const casksDict = convertCasksArrayToDict(allCasksUpdated);
 
-  const allCasks: Record<string, IApp> = {};
+//   const allCasks: IAppsDict = {};
 
-  for (const caskName of allCaskNames) {
-    let cask: IHomebrewApp = casksDict[caskName];
+//   for (const caskName of allCaskNames) {
+//     let cask: IHomebrewApp = casksDict[caskName];
 
-    if (!cask) {
-      if (caskName.startsWith('font-')) {
-        continue;
-      }
-      cask = getCaskInfoTemplate(caskName);
-    }
+//     if (!cask) {
+//       if (caskName.startsWith('font-')) {
+//         continue;
+//       }
+//       cask = getCaskInfoTemplate(caskName);
+//     }
 
-    const converted = convertCask2IApp(cask);
-    allCasks[caskName] = converted;
-  }
+//     const converted = convertCask2IApp(cask);
+//     allCasks[caskName] = converted;
+//   }
 
-  // TODO handle in another place
-  // const promises = allCaskNames.map(async (caskName) => {
-  //   let cask: IHomebrewApp = casksDict[caskName];
+//   // TODO handle in another place
+//   // const promises = allCaskNames.map(async (caskName) => {
+//   //   let cask: IHomebrewApp = casksDict[caskName];
 
-  //   if (!cask) {
-  //     cask = await getCaskInfo(caskName);
-  //   }
+//   //   if (!cask) {
+//   //     cask = await getCaskInfo(caskName);
+//   //   }
 
-  //   const converted = convertCask2IApp(cask);
-  //   allCasks[caskName] = converted;
-  // });
+//   //   const converted = convertCask2IApp(cask);
+//   //   allCasks[caskName] = converted;
+//   // });
 
-  // await Promise.all(promises);
+//   // await Promise.all(promises);
 
-  return allCasks;
-};
-
-const convertCask2IApp = (cask: IHomebrewApp): IApp => {
-  const category = getAppCategory(cask.name[0], cask.desc);
-  return {
-    id: cask.token,
-    title: cask.name[0],
-    description: cask.desc,
-    categories: [category],
-    installed: cask.installed,
-    homepage: cask.homepage,
-    appSourceType: AppType.Homebrew,
-    sourceMetaData: { ...cask },
-  };
-};
-
-const getCaskInfo = async (caskName: string): Promise<IHomebrewApp> => {
-  if (caskName.startsWith('font-')) {
-    return getCaskInfoTemplate(caskName);
-  }
-  return HomebrewCLI.getCaskInfo(caskName);
-};
-
-const getCaskInfoTemplate = (caskName: string): IHomebrewApp => {
-  let description = '';
-  if (caskName.startsWith('font-')) {
-    description = caskName;
-  }
-  return {
-    token: caskName,
-    desc: '',
-    homepage: '',
-    version: '',
-    installed: '',
-    name: [caskName],
-    url: '',
-    outdated: false,
-  };
-};
+//   return allCasks;
+// };
 
 export const updateInstalledStatusApps = (
   allApps: IHomebrewApp[],
@@ -153,6 +111,7 @@ export const updateInstalledStatusApps = (
   return updatedApps;
 };
 
+// TODO duplicate in src/helpers
 type ObjectWithKeyName = {
   [key: string]: any;
 };
