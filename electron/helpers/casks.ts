@@ -40,12 +40,19 @@ export const createCaskFromName = (
     description = '';
   }
 
+  const removePrefix = (str: string): string => {
+    const caskName = str.split('/').pop();
+    return caskName ?? str;
+  };
+
+  const _token = removePrefix(caskName);
+
   return {
-    token: caskName,
+    token: _token,
     desc: description,
     homepage: '',
     installed: null,
-    name: [caskName],
+    name: [_token],
     url: '',
     version: '',
     outdated: false,
