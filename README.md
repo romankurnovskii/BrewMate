@@ -87,12 +87,20 @@ brewmate/
 ├── src/
 │
 ## main process
-├── electron/
-│   ├── main.ts
-│   ├── menu.ts
-│   ├── preload.ts
-│   └── tsconfig.json
-│
+├── electron
+|  ├── api.ts
+|  ├── cli.ts
+|  ├── constants.ts
+|  ├── helpers
+|  |  └── casks.ts
+|  ├── helpers.ts
+|  ├── log.ts
+|  ├── main.ts
+|  ├── menu.ts
+|  ├── preload.ts
+|  ├── tsconfig.json
+|  └── types
+|     └── index.d.ts
 ## build output
 ├── build/
 │   ├── index.html

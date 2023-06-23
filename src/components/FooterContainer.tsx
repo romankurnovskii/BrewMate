@@ -1,9 +1,5 @@
-import { GITHUB_PROJECT_URL } from '../data/constants';
-import { IApp } from '../types/apps';
-import AppList from './AppList';
-import ButtonIcon from './buttons/ButtonIcon';
 import LinkBtn from './buttons/link';
-import SpinnerBg from './spinners/SpinnerBg';
+import { GITHUB_PROJECT_URL } from '../data/constants';
 import SpinnerSm from './spinners/SpinnerSm';
 import packageJson from '../../package.json';
 

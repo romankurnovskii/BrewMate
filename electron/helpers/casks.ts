@@ -1,12 +1,12 @@
+import { HomebrewCLI } from '../cli';
+import { transformArrayToDict } from '../helpers';
 import { AppType, IApp, IAppsDict } from '../../src/types/apps';
 import {
   IHomebrewApp,
   IHomebrewAppDict,
   IHomebrewTopInstallResponse,
 } from '../../src/types/homebrew';
-import { getAppCategory, sortAppsByInstalled } from '../../src/utils/helpers';
-import { HomebrewCLI } from '../cli';
-import { transformArrayToDict } from '../helpers';
+import { getAppCategory } from '../../src/utils/helpers';
 
 export const getCaskInfo = async (caskName: string): Promise<IHomebrewApp> => {
   if (caskName.startsWith('font-')) {
@@ -20,13 +20,18 @@ export const getCaskInfoTemplate = (caskName: string): IHomebrewApp => {
   if (caskName.startsWith('font-')) {
     description = caskName;
   }
+  const removePrefix = (str: string): string => {
+    const caskName = str.split('/').pop();
+    return caskName ?? str;
+  };
+  const _token = removePrefix(caskName);
   return {
-    token: caskName,
+    token: _token,
     desc: '',
     homepage: '',
     version: '',
     installed: '',
-    name: [caskName],
+    name: [_token],
     url: '',
     outdated: false,
   };
@@ -103,7 +108,7 @@ export const updateCasksMetaInfo = async (
 ): Promise<IHomebrewApp[]> => {
   // to heavy if many requests
   // get installed
-  // get info on those that dont have url
+  // get info on those that don't have url
 
   const updatedCasks: IHomebrewApp[] = [];
   const promises = casks.map(async (cask) => {

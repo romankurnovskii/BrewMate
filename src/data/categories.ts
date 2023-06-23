@@ -16,7 +16,6 @@ export const categories: { [key: string]: string[] } = {
     'YouTube',
     'audio',
     'dlna',
-    'editor',
     'gif',
     'image',
     'jpeg',
@@ -109,6 +108,7 @@ export const categories: { [key: string]: string[] } = {
     'sync',
     'to-do manager',
     'todo',
+    'text editor',
   ],
   Music: [
     'audio',

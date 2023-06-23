@@ -1,5 +1,3 @@
-import ButtonIcon from './buttons/ButtonIcon';
-
 type IProps = {
   taps: string[];
 };

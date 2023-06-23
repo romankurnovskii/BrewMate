@@ -1,24 +1,21 @@
 import { useState, useEffect } from 'react';
-import { BrewCLICommands } from './data/constants';
 import Menu from './components/menu/Menu';
-import SecondColumn from './components/columns/SecondColumn';
-import { fetchOssApps, getAllCasks, runHomebrewCommand } from './utils/api';
-import HomebrewMenu from './components/menu/Homebrew';
 import AppsContainer from './components/AppsContainer';
-import FooterContainer from './components/FooterContainer';
 import AppsSource from './components/menu/AppsSource';
+import SecondColumn from './components/columns/SecondColumn';
+import FooterContainer from './components/FooterContainer';
+import HomebrewMenu from './components/menu/Homebrew';
 import Search from './components/menu/Search';
+import { BrewCLICommands } from './data/constants';
 import { useAppContext } from './storage';
 import { AppType, IApp } from './types/apps';
-import { shuffleArray, sortAppsByInstalled } from './utils/helpers';
+import { fetchOssApps, getAllCasks, runHomebrewCommand } from './utils/api';
+import {  sortAppsByInstalled } from './utils/helpers';
 import { convertOssApps2IApp } from './utils/helpersOSApps';
 
 export const INSTALLED_CASK_CATEGORY_TITLE = 'Installed on Mac OS';
 
 const App = () => {
-  const [selectedSource, setSelectedSource] = useState<AppType>(
-    AppType.Homebrew,
-  );
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [showTaps, setShowTaps] = useState(false);
@@ -53,12 +50,7 @@ const App = () => {
     setCaskApps(sortedApps);
     setIsLoading(false);
   };
-  const getRecentlyAddedCasks = () => {
-    // TODO
-    setIsLoading(true);
-    setSelectedCategory('New');
-    setIsLoading(false);
-  };
+
   const renderInstalledCasks = async () => {
     setIsLoading(true);
     setSelectedCategory(INSTALLED_CASK_CATEGORY_TITLE);
@@ -74,17 +66,6 @@ const App = () => {
     setIsLoading(true);
     setSelectedCategory(category);
     setShowTaps(false);
-
-    if (!category) {
-      setIsLoading(false);
-      return;
-    }
-
-    let filteredApps = apps[selectedSource].filter((app) =>
-      app.categories.includes(category),
-    );
-
-    filteredApps = shuffleArray(filteredApps);
     setIsLoading(false);
   };
 
@@ -131,7 +112,6 @@ const App = () => {
     setAppsSource(event.target.value);
 
     setSelectedCategory(null);
-    setSelectedSource(event.target.value);
 
     if (event.target.value === AppType.OpenSourceGithub) {
       fetchOssApps().then((apps) => {

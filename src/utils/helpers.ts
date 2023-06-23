@@ -36,21 +36,13 @@ type ObjectWithKeyName = {
 // expected for each object in array this keyName value is unique
 export const transformArrayToDict = (
   objects: ObjectWithKeyName[],
-  keyName: string
+  keyName: string,
 ) => {
   const res: ObjectWithKeyName = {};
   objects.forEach((obj) => {
     res[obj[keyName]] = obj;
   });
   return res;
-};
-
-export const shuffleArray = <T>(array: T[]): T[] => {
-  for (let i = array.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [array[i], array[j]] = [array[j], array[i]];
-  }
-  return array;
 };
 
 export const sortAppsByInstalled = (apps: IApp[]): IApp[] => {

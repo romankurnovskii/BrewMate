@@ -1,7 +1,6 @@
 import { AppType, IApp } from '../types/apps';
 import { useAppContext } from '../storage';
 import AppContainer from './App/AppContainer';
-import { IHomebrewApp } from '../types/homebrew';
 
 type IProps = {
   apps: IApp[];
