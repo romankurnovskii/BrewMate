@@ -2,6 +2,7 @@
 .env
 .vs/
 .vscode/
+.idea/
 
 # Logs
 logs
