@@ -20,14 +20,20 @@ enum BrewCLICommands { // TODO moved from src
 export const execWrapper = async (command: string): Promise<string> => {
   log('Started command: ' + command);
   return new Promise((resolve, reject) => {
-    exec(command, (err, stdout, stderr) => {
-      if (err) {
-        log('Error: ' + err.message + '\n' + stderr);
-        reject(err);
-        return;
-      }
-      resolve(stdout);
-    });
+    exec(
+      command,
+      {
+        maxBuffer: 5 * 1024 * 1024,
+      },
+      (err, stdout, stderr) => {
+        if (err) {
+          log('Error: ' + err.message + '\n' + stderr);
+          reject(err);
+          return;
+        }
+        resolve(stdout);
+      },
+    );
   });
 };
 
