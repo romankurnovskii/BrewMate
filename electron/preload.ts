@@ -3,8 +3,6 @@ import { BrewCLICommands } from '../src/data/constants';
 import { execWrapper, spawnWrapper } from './cli';
 import { IApp, IAppsDict } from '../src/types/apps';
 
-
-
 contextBridge.exposeInMainWorld('brewApi', {
   getAllCasks: async (callback?: any): Promise<IAppsDict> => {
     return ipcRenderer.invoke('get-all-casks');
@@ -13,7 +11,6 @@ contextBridge.exposeInMainWorld('brewApi', {
     return ipcRenderer.invoke('get-cask-info', caskToken);
   },
   getInstalled: async (): Promise<[IApp[], any]> => {
-  
     return ipcRenderer.invoke('get-installed-casks');
   },
   installCask: async (appToken: string, callback?: any): Promise<any> => {
