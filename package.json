@@ -73,7 +73,7 @@
     "@testing-library/user-event": "^14.4.3",
     "@types/electron-devtools-installer": "^2.2.2",
     "@types/jest": "^29.4.0",
-    "@types/node": "^18.16.5",
+    "@types/node": "^20.5.0",
     "@types/react": "^18.0.28",
     "@types/react-dom": "^18.0.11",
     "@typescript-eslint/eslint-plugin": "^5.55.0",
