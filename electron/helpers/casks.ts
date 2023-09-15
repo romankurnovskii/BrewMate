@@ -88,39 +88,18 @@ export const mergeCasks = (
   casksOld: IHomebrewApp[],
   casksNew: IHomebrewApp[],
 ): [IHomebrewApp[], IHomebrewAppDict] => {
-  const casks1dict = transformArrayToDict(casksOld, 'token');
-  const casks2dict = transformArrayToDict(casksNew, 'token');
+  const casksOldDict = transformArrayToDict(casksOld, 'token');
+  const casksNewDict = transformArrayToDict(casksNew, 'token');
 
-  for (let [token, cask2] of Object.entries(casks2dict)) {
-    const cask1 = casks1dict[token];
+  for (let [token, cask2] of Object.entries(casksNewDict)) {
+    const cask1 = casksOldDict[token];
     if (cask1) {
       cask2 = updateCask(cask1, cask2);
     }
-    casks1dict[token] = cask2;
+    casksOldDict[token] = cask2;
   }
 
-  return [Object.values(casks1dict), casks1dict];
-};
-
-// TODO Deprecate
-export const updateCasksMetaInfo = async (
-  casks: IHomebrewApp[],
-): Promise<IHomebrewApp[]> => {
-  // to heavy if many requests
-  // get installed
-  // get info on those that don't have url
-
-  const updatedCasks: IHomebrewApp[] = [];
-  const promises = casks.map(async (cask) => {
-    if (cask.url === '' && cask.url === '') {
-      const caskInfo = await getCaskInfo(cask.token);
-      const updatedCask = updateCask(cask, caskInfo);
-      updatedCasks.push(updatedCask);
-    }
-  });
-
-  await Promise.all(promises);
-  return updatedCasks;
+  return [Object.values(casksOldDict), casksOldDict];
 };
 
 export const updateIApp = (oldCask: IApp, newCask: IApp): IApp => {

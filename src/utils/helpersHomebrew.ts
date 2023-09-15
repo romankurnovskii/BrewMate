@@ -13,14 +13,14 @@ export const updateAllCasks = async (): Promise<IHomebrewApp[]> => {
   const fetchedCasks = await fetchHomebrewCasks();
   const casksWithInstallsCount = await fetchTopInstalls90Days();
 
-  const res = convertTopInstalledResponceToHomebrewApps(
+  const res = convertTopInstalledResponseToHomebrewApps(
     casksWithInstallsCount,
     fetchedCasks,
   );
   return res;
 };
 
-export const convertTopInstalledResponceToHomebrewApps = (
+export const convertTopInstalledResponseToHomebrewApps = (
   topInstallsApps: IHomebrewTopInstallResponse,
   allCasks: IHomebrewApp[],
 ): IHomebrewApp[] => {
@@ -67,7 +67,7 @@ export const updateInstalledStatusApps = (
   return updatedApps;
 };
 
-export const convertHomebrewAppstoCommonStructure = (
+export const convertHomebrewAppsToCommonStructure = (
   apps: IHomebrewApp[],
 ): IApp[] => {
   return apps.map((app) => {

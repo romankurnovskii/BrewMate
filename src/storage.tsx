@@ -1,6 +1,6 @@
 import { createContext, useContext, useState } from 'react';
 import {
-  convertHomebrewAppstoCommonStructure as convertHomebrewAppsToCommonStructure,
+  convertHomebrewAppsToCommonStructure,
   sortAppsByName,
   updateAllCasks,
   updateInstalledStatusApps,
