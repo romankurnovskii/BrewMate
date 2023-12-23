@@ -9,7 +9,7 @@ import { CASKS_DICT_FILE_NAME, LOG_FILE_NAME } from './constants';
 import { loadJson, logger, saveJson } from './helpers';
 import MenuBuilder from './menu';
 
-import { fetchCasks, fetchPopularCasks } from './api';
+import { fetch3rdPartyCasksMeta, fetchCasks, fetchPopularCasks } from './api';
 import { HomebrewCLI } from './cli';
 import {
   convertCask2IApp,
@@ -88,14 +88,28 @@ const runInitCommands = async () => {
   const popularCasks = await fetchPopularCasks();
 
   const allCaskNames = await HomebrewCLI.getAllCaskNames();
+
   let [allCasks, allCasksDict] = mergeCasks(
     convertNamesToCasks(allCaskNames),
     casks,
   );
 
   allCasksDict = updateInstallCountsIHomebrew(allCasksDict, popularCasks);
-
   const appsDict = convertCasks2IAppsDict(allCasks);
+
+  // try to fix/set casks with empty desk
+  const thirdPartyCasks = await fetch3rdPartyCasksMeta();
+  const _thirdPartyCasks = thirdPartyCasks['releaseOnly'];
+  Object.values(appsDict).forEach((app) => {
+    if (app.description === '') {
+      for (const _cask of _thirdPartyCasks) {
+        if (_cask['repo'].toLowerCase().includes(app.id)) {
+          appsDict[app.id].description = _cask.description;
+          break;
+        }
+      }
+    }
+  });
 
   saveJson(casksDictFile, appsDict);
   logger(logFilePath, 'Updated first init casks dict to' + casksDictFile);

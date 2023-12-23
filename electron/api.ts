@@ -6,6 +6,7 @@ import {
   IHomebrewApp,
   IHomebrewTopInstallResponse,
 } from '../src/types/homebrew';
+import { THIRD_PARTY_CASKS_URL } from './constants';
 
 export const fetchCasks = async (): Promise<IHomebrewApp[]> => {
   const response = await fetch(HOMEBREW_CASKS_JSON_URL, { cache: 'no-store' });
@@ -22,3 +23,8 @@ export const fetchPopularCasks =
     return data;
   };
 
+export const fetch3rdPartyCasksMeta = async (): Promise<any> => {
+  const response = await fetch(THIRD_PARTY_CASKS_URL);
+  const data = await response.json();
+  return data;
+};
