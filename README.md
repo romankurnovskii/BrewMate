@@ -23,13 +23,14 @@ Includes third party apps + from [awesome-brew](https://github.com/romankurnovsk
 3. Drag the BrewMate app to your Applications folder.
 
 or
+
 ```
-brew install romankurnovskii/cask/brewmate --cask --no-quarantine
+brew install romankurnovskii/awesome-brew/brewmate --cask --no-quarantine
 ```
 
 or
 ```
-brew tap romankurnovskii/cask
+brew tap romankurnovskii/awesome-brew
 brew update
 brew install --cask --no-quarantine brewmate 
 ```
