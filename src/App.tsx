@@ -10,7 +10,7 @@ import { BrewCLICommands } from './data/constants';
 import { useAppContext } from './storage';
 import { AppType, IApp } from './types/apps';
 import { fetchOssApps, getAllCasks, runHomebrewCommand } from './utils/api';
-import {  sortAppsByInstalled } from './utils/helpers';
+import { sortAppsByInstalled } from './utils/helpers';
 import { convertOssApps2IApp } from './utils/helpersOSApps';
 
 export const INSTALLED_CASK_CATEGORY_TITLE = 'Installed on Mac OS';
@@ -99,6 +99,7 @@ const App = () => {
           setProcsOutput('');
         }, 5000);
         if (output && command === BrewCLICommands.TAPS) {
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
           setLocalTaps(output);
         }
       })
@@ -109,6 +110,7 @@ const App = () => {
 
   const onAppsSourceChange = (event: any) => {
     setIsLoading(true);
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     setAppsSource(event.target.value);
 
     setSelectedCategory(null);
@@ -161,8 +163,8 @@ const App = () => {
               selectedCategory === INSTALLED_CASK_CATEGORY_TITLE
                 ? installedApps
                 : appsSource === AppType.Homebrew
-                ? caskApps
-                : ossApps
+                  ? caskApps
+                  : ossApps
             }
           />
         </div>

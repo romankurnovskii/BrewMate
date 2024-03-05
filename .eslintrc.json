@@ -2,7 +2,7 @@
   "parser": "@typescript-eslint/parser",
   "env": {
     "browser": true,
-    "es2021": true
+    "es2023": true
   },
   "extends": [
     "plugin:react/recommended",
@@ -22,8 +22,8 @@
     "@typescript-eslint/strict-boolean-expressions": "off",
     "@typescript-eslint/no-floating-promises": "off", // TODO: consider
     "@typescript-eslint/no-unused-vars": "off", // TODO: consider
+    "@typescript-eslint/no-unsafe-argument": "off", // TODO: IMPORTANT! fixme
     "@typescript-eslint/restrict-template-expressions": "off",
-    "@typescript-eslint/restrict-plus-operands": "off",
     "@typescript-eslint/no-misused-promises": "off",
     "@typescript-eslint/semi": "off", // TODO: consider
     "@typescript-eslint/promise-function-async": "off", // TODO: consider
@@ -35,7 +35,8 @@
     "@typescript-eslint/consistent-indexed-object-style": "off", // TODO: consider
     "@typescript-eslint/consistent-type-definitions": "off", // TODO: consider
     "@typescript-eslint/no-confusing-void-expression": "off", // TODO: consider
-    "@typescript-eslint/return-await": "off" // TODO: consider
+    "@typescript-eslint/return-await": "off", // TODO: consider
+    "@typescript-eslint/restrict-plus-operands": "off"
   },
   "overrides": [
     {
