@@ -37,9 +37,11 @@ export const getLocalInstalledApps = async (): Promise<IHomebrewApp[]> => {
   const [installedCasks, installedFormulas] =
     await window.brewApi.getInstalled();
 
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
   const casksAsDict = transformArrayToDict(installedCasks, 'token');
   saveDataToStorage(BREW_ALL_CASKS_INSTALLED_DICT, casksAsDict);
 
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
   const formulasAsDict = transformArrayToDict(installedFormulas, 'name');
   saveDataToStorage(BREW_ALL_FORMULAS_INSTALLED_DICT, formulasAsDict);
 

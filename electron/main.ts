@@ -3,7 +3,7 @@ import installExtension, {
   REACT_DEVELOPER_TOOLS,
 } from 'electron-devtools-installer';
 import { exec } from 'child_process';
-import fixPath from 'fix-path';
+// import fixPath from 'fix-path';
 import * as path from 'path';
 import { CASKS_DICT_FILE_NAME, LOG_FILE_NAME } from './constants';
 import { loadJson, logger, saveJson } from './helpers';
@@ -20,7 +20,12 @@ import {
 } from './helpers/casks';
 import { IApp, IAppsDict } from '../src/types/apps';
 
-fixPath(); // works 3.0 version for now
+// fixPath(); // works 3.0 version for now
+
+// Dynamically import fix-path as an ES module
+import('fix-path').then((fixPath) => {
+  fixPath.default(); // Call the default function provided by fix-path
+});
 
 const lightBackgroundColor = 'white';
 const logFilePath = path.join(app.getPath('userData'), LOG_FILE_NAME);
