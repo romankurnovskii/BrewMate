@@ -140,8 +140,13 @@ const initApp = () => {
     const currentVersion = app.getVersion();
     logger(logFilePath, `Current version of the app: ${currentVersion}`);
 
+    try {
+      runInitCommands();
+    } catch (error) {
+      logger(logFilePath, `Error executing the init commands: ${error}`);
+      
+    }
     createWindow();
-    runInitCommands();
   });
 
   app.on('activate', () => {
@@ -166,9 +171,8 @@ const initAppAPI = () => {
       return {};
     }
   });
-  ipcMain.handle(
-    'get-cask-info',
-    async (event: any, caskToken: any): Promise<IApp | null> => {
+
+  ipcMain.handle('get-cask-info', async (event: any, caskToken: any): Promise<IApp | null> => {
       try {
         const allCasks = loadJson(casksDictFile);
         const cask = await HomebrewCLI.getCaskInfo(caskToken);
@@ -186,6 +190,7 @@ const initAppAPI = () => {
       }
     },
   );
+
   ipcMain.handle('get-installed-casks', async (): Promise<[IApp[], any]> => {
     try {
       const [casks, formulas] = await HomebrewCLI.getInstalledCasksJsonOutput();

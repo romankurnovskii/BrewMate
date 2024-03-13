@@ -113,3 +113,14 @@ export namespace HomebrewCLI {
     return spawnWrapper(['brew', 'upgrade', '--all'], (data) => {});
   }
 }
+
+/**
+ * Opens the macOS Terminal and executes a given command.
+ * @param command The bash command to execute in the terminal.
+ */
+export const executeCommandInTerminal = (command: string): void => {
+  const escapedCommand = command.replace(/"/g, '\\"'); // escape double quotes
+  // AppleScript to open Terminal and execute the command
+  const appleScript = `tell application "Terminal" to do script "${escapedCommand}"`;
+  execWrapper(`osascript -e '${appleScript}'`);
+};

@@ -1,6 +1,6 @@
 import { app, contextBridge, ipcRenderer } from 'electron';
 import { BrewCLICommands } from '../src/data/constants';
-import { execWrapper, spawnWrapper } from './cli';
+import { execWrapper, spawnWrapper, executeCommandInTerminal } from './cli';
 import { IApp, IAppsDict } from '../src/types/apps';
 
 contextBridge.exposeInMainWorld('brewApi', {
@@ -15,15 +15,17 @@ contextBridge.exposeInMainWorld('brewApi', {
   },
   installCask: async (appToken: string, callback?: any): Promise<any> => {
     const commandStr = `brew install --cask --force --no-quarantine ${appToken}`;
-    const command = commandStr.split(' ');
-    const res = await spawnWrapper(command, callback);
-    return res;
+    executeCommandInTerminal(commandStr);
+    // const command = commandStr.split(' ');
+    // const res = await spawnWrapper(command, callback);
+    return 0;
   },
   uninstallCask: async (appToken: string, callback?: any) => {
     const commandStr = `brew uninstall --cask --force ${appToken}`;
-    const command = commandStr.split(' ');
-    const res = await spawnWrapper(command, callback);
-    return res;
+    executeCommandInTerminal(commandStr);
+    // const command = commandStr.split(' ');
+    // const res = await spawnWrapper(command, callback);
+    return 0;
   },
   update: async (callback: any): Promise<any> => {
     const commandStr = BrewCLICommands.UPDATE;
