@@ -28,7 +28,10 @@ function AppList({ apps }: IProps) {
       .installCask(appToken, handleCommandOutput)
       .then((resCode) => {
         if (resCode === 0) {
-          setProcsOutput(appToken + ' is installed');
+          setProcsOutput(
+            appToken +
+              ' Installation is in progress... See process in the terminal',
+          );
           updateCasksData();
         } else {
           setProcsOutput(appToken + ' install failed with code ' + resCode);
@@ -47,7 +50,10 @@ function AppList({ apps }: IProps) {
       .then((resCode) => {
         console.log('uninstallCask Cask result code: ', resCode);
         if (resCode === 0) {
-          setProcsOutput(appToken + ' is uninstalled');
+          setProcsOutput(
+            appToken +
+              ' Uninstall is in progress... See process in the terminal',
+          );
           updateCasksData();
         } else {
           setProcsOutput(appToken + ' uninstall failed with code ' + resCode);

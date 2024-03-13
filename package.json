@@ -1,105 +1,105 @@
 {
-  "name": "brewmate",
-  "version": "0.4.0",
-  "author": "Roman Kurnovskii",
-  "description": "BrewMate - Homebrew Apps GUI Manager",
-  "homepage": ".",
-  "main": "build/electron/main.js",
-  "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build",
-    "eject": "react-scripts eject",
-    "lint": "eslint 'src/**/*.{ts,tsx}' 'electron/**/*.ts'",
-    "lint:fix": "eslint --fix 'src/**/*.{ts,tsx}' 'electron/**/*.ts'",
-    "test": "react-scripts test",
-    "test:bg": "CI=true react-scripts test --watchAll=false",
-    "postinstall": "husky install && electron-builder install-app-deps",
-    "electron:dev": "concurrently \"cross-env BROWSER=none yarn start\" \"wait-on http://127.0.0.1:3000 && tsc -p electron -w\" \"wait-on http://127.0.0.1:3000 && tsc -p electron && electron --trace-warnings .\"",
-    "electron:build": "yarn build && tsc -p electron && electron-builder",
-    "electron:dist": "yarn build && tsc -p electron && electron-builder --mac --dir",
-    "make:release": "git add . && git commit -m \"$(jq -r .version package.json)\" && git tag $(jq -r .version package.json) && git push && git push --tags"
-  },
-  "build": {
-    "productName": "BrewMate",
-    "appId": "com.romankurnovskii.brewmate",
-    "mac": {
-      "target": {
-        "target": "default",
-        "arch": [
-          "universal"
-        ]
-      },
-      "category": "public.app-category.productivity",
-      "icon": "assets/icon1024nocorner.png"
-    },
-    "extends": null,
-    "files": [
-      "build/**/*"
-    ],
-    "directories": {
-      "buildResources": "assets"
-    }
-  },
-  "eslintConfig": {
-    "extends": [
-      "react-app",
-      "react-app/jest"
-    ]
-  },
-  "browserslist": {
-    "production": [
-      ">0.2%",
-      "not dead",
-      "not op_mini all"
-    ],
-    "development": [
-      "last 1 chrome version",
-      "last 1 firefox version",
-      "last 1 safari version"
-    ]
-  },
-  "dependencies": {
-    "electron-devtools-installer": "^3.2.0",
-    "electron-reload": "^2.0.0-alpha.1",
-    "fix-path": "^4.0.0",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "react-scripts": "^5.0.1"
-  },
-  "devDependencies": {
-    "@babel/plugin-transform-private-property-in-object": "^7.23.4",
-    "@testing-library/jest-dom": "^6.4.2",
-    "@testing-library/react": "^14.2.1",
-    "@testing-library/user-event": "^14.5.2",
-    "@types/electron-devtools-installer": "^2.2.5",
-    "@types/jest": "^29.5.12",
-    "@types/node": "^20.11.24",
-    "@types/react": "^18.2.61",
-    "@types/react-dom": "^18.2.19",
-    "@typescript-eslint/eslint-plugin": "^6.4.0",
-    "@typescript-eslint/parser": "^6.0.0",
-    "concurrently": "^8.2.2",
-    "cross-env": "^7.0.3",
-    "electron": "^29.1.0",
-    "electron-builder": "^24.13.3",
-    "eslint": "^8.57.0",
-    "eslint-config-prettier": "^9.1.0",
-    "eslint-config-standard-with-typescript": "^43.0.1",
-    "eslint-plugin-import": "^2.29.1",
-    "eslint-plugin-n": "^16.6.2",
-    "eslint-plugin-promise": "^6.1.1",
-    "eslint-plugin-react": "^7.34.0",
-    "husky": "^9.0.11",
-    "prettier": "^3.2.5",
-    "typescript": "^4.9.5",
-    "wait-on": "^7.2.0"
-  },
-  "lint-staged": {
-    "*.{js,ts,jsx,tsx}": "npm run lint:fix"
-  },
-  "husky": {
-    "hooks": {
-      "pre-commit": "npm run lint:fix && npm run lint && npm run test:bg"
-    }
-  }
+	"name": "brewmate",
+	"version": "0.4.0",
+	"author": "Roman Kurnovskii",
+	"description": "BrewMate - Homebrew Apps GUI Manager",
+	"homepage": ".",
+	"main": "build/electron/main.js",
+	"scripts": {
+		"start": "react-scripts start",
+		"build": "react-scripts build",
+		"eject": "react-scripts eject",
+		"lint": "eslint 'src/**/*.{ts,tsx}' 'electron/**/*.ts'",
+		"lint:fix": "eslint --fix 'src/**/*.{ts,tsx}' 'electron/**/*.ts'",
+		"test": "react-scripts test",
+		"test:bg": "CI=true react-scripts test --watchAll=false",
+		"postinstall": "husky install && electron-builder install-app-deps",
+		"electron:dev": "concurrently \"cross-env BROWSER=none yarn start\" \"wait-on http://127.0.0.1:3000 && tsc -p electron -w\" \"wait-on http://127.0.0.1:3000 && tsc -p electron && electron --trace-warnings .\"",
+		"electron:build": "yarn build && tsc -p electron && electron-builder",
+		"electron:dist": "yarn build && tsc -p electron && electron-builder --mac --dir",
+		"make:release": "git add . && git commit -m \"$(jq -r .version package.json)\" && git tag $(jq -r .version package.json) && git push && git push --tags"
+	},
+	"build": {
+		"productName": "BrewMate",
+		"appId": "com.romankurnovskii.brewmate",
+		"mac": {
+			"target": {
+				"target": "default",
+				"arch": [
+					"universal"
+				]
+			},
+			"category": "public.app-category.productivity",
+			"icon": "assets/icon1024nocorner.png"
+		},
+		"extends": null,
+		"files": [
+			"build/**/*"
+		],
+		"directories": {
+			"buildResources": "assets"
+		}
+	},
+	"eslintConfig": {
+		"extends": [
+			"react-app",
+			"react-app/jest"
+		]
+	},
+	"browserslist": {
+		"production": [
+			">0.2%",
+			"not dead",
+			"not op_mini all"
+		],
+		"development": [
+			"last 1 chrome version",
+			"last 1 firefox version",
+			"last 1 safari version"
+		]
+	},
+	"dependencies": {
+		"electron-devtools-installer": "^3.2.0",
+		"electron-reload": "^2.0.0-alpha.1",
+		"fix-path": "^4.0.0",
+		"react": "^18.2.0",
+		"react-dom": "^18.2.0",
+		"react-scripts": "^5.0.1"
+	},
+	"devDependencies": {
+		"@babel/plugin-transform-private-property-in-object": "^7.23.4",
+		"@testing-library/jest-dom": "^6.4.2",
+		"@testing-library/react": "^14.2.1",
+		"@testing-library/user-event": "^14.5.2",
+		"@types/electron-devtools-installer": "^2.2.5",
+		"@types/jest": "^29.5.12",
+		"@types/node": "^20.11.24",
+		"@types/react": "^18.2.61",
+		"@types/react-dom": "^18.2.19",
+		"@typescript-eslint/eslint-plugin": "^6.4.0",
+		"@typescript-eslint/parser": "^6.0.0",
+		"concurrently": "^8.2.2",
+		"cross-env": "^7.0.3",
+		"electron": "^29.1.0",
+		"electron-builder": "^24.13.3",
+		"eslint": "^8.57.0",
+		"eslint-config-prettier": "^9.1.0",
+		"eslint-config-standard-with-typescript": "^43.0.1",
+		"eslint-plugin-import": "^2.29.1",
+		"eslint-plugin-n": "^16.6.2",
+		"eslint-plugin-promise": "^6.1.1",
+		"eslint-plugin-react": "^7.34.0",
+		"husky": "^9.0.11",
+		"prettier": "^3.2.5",
+		"typescript": "^4.9.5",
+		"wait-on": "^7.2.0"
+	},
+	"lint-staged": {
+		"*.{js,ts,jsx,tsx}": "npm run lint:fix"
+	},
+	"husky": {
+		"hooks": {
+			"pre-commit": "npm run lint:fix && npm run lint && npm run test:bg"
+		}
+	}
 }
