@@ -122,5 +122,5 @@ export const executeCommandInTerminal = (command: string): void => {
   const escapedCommand = command.replace(/"/g, '\\"'); // escape double quotes
   // AppleScript to open Terminal and execute the command
   const appleScript = `tell application "Terminal" to do script "${escapedCommand}"`;
-  execWrapper(`osascript -e '${appleScript} && exit'`);
+  execWrapper(`osascript -e '${appleScript}'`);
 };
