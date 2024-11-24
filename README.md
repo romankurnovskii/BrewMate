@@ -16,6 +16,17 @@ Includes third party apps + from [awesome-brew](https://github.com/romankurnovsk
 - [ ] add 3rd party taps
 - [ ] handle apps required sudo/pass on install/uninstall
 
+## Prerequisites
+
+Before you begin, ensure you have met the following requirements:
+
+- **macOS**: This package is designed to work on macOS. Ensure you are using a compatible version.
+- **Homebrew**: This package requires [Homebrew](https://brew.sh/) to be installed on your system. Homebrew is a package manager for macOS that simplifies the installation of software. If you don't have Homebrew installed, you can install it by running the following command in your terminal:
+
+```sh
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+```
+
 # Install
 
 1. Download the latest DMG file from the [releases page](https://github.com/romankurnovskii/BrewMate/releases).
@@ -24,12 +35,12 @@ Includes third party apps + from [awesome-brew](https://github.com/romankurnovsk
 
 or
 
-```
+```sh
 brew install romankurnovskii/awesome-brew/brewmate --cask --no-quarantine
 ```
 
 or
-```
+```sh
 brew tap romankurnovskii/awesome-brew
 brew update
 brew install --cask --no-quarantine brewmate 
