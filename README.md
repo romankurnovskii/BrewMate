@@ -6,6 +6,8 @@ BrewMate is a macOS GUI application that makes it easy to search for, install, a
 
 Includes third party apps + from [awesome-brew](https://github.com/romankurnovskii/homebrew-awesome-brew/)
 
+![BrewMate Screenshot 1](assets/mainwindow.gif)
+
 ## Features
 
 - [x] install/uninstall casks
@@ -59,11 +61,6 @@ brew install --cask --no-quarantine brewmate
 1. Select "Open" from the context menu.
 1. When the security warning appears, click "Open" to confirm that you want to open the app.
 1. The app will now launch.
-
-# Screenshots
-
-![BrewMate Screenshot 1](assets/mainwindow.gif)
-
 
 # Requirements
 
