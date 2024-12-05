@@ -14,7 +14,7 @@ contextBridge.exposeInMainWorld('brewApi', {
     return ipcRenderer.invoke('get-installed-casks');
   },
   installCask: async (appToken: string, callback?: any): Promise<any> => {
-    const commandStr = `brew install --cask --force --no-quarantine ${appToken}`;
+    const commandStr = `${BrewCLICommands.INSTALL_CASK} ${appToken}`;
     executeCommandInTerminal(commandStr);
     // const command = commandStr.split(' ');
     // const res = await spawnWrapper(command, callback);
@@ -42,7 +42,7 @@ contextBridge.exposeInMainWorld('brewApi', {
   },
   upgradeAll: async (callback: any): Promise<any> => {
     const commandStr = BrewCLICommands.UPGRADE_ALL;
-    executeCommandInTerminal(commandStr)
+    executeCommandInTerminal(commandStr);
     // const commands = commandStr.split(';').map((cmd) => cmd.trim().split(' '));
     // let res;
     // for (const command of commands) {

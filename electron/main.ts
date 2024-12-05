@@ -3,7 +3,6 @@ import installExtension, {
   REACT_DEVELOPER_TOOLS,
 } from 'electron-devtools-installer';
 import { exec } from 'child_process';
-// import fixPath from 'fix-path';
 import * as path from 'path';
 import { CASKS_DICT_FILE_NAME, LOG_FILE_NAME } from './constants';
 import { loadJson, logger, saveJson } from './helpers';
@@ -19,8 +18,6 @@ import {
   updateInstallCountsIHomebrew,
 } from './helpers/casks';
 import { IApp, IAppsDict } from '../src/types/apps';
-
-// fixPath(); // works 3.0 version for now
 
 // Dynamically import fix-path as an ES module
 import('fix-path').then((fixPath) => {
@@ -144,7 +141,6 @@ const initApp = () => {
       runInitCommands();
     } catch (error) {
       logger(logFilePath, `Error executing the init commands: ${error}`);
-      
     }
     createWindow();
   });
@@ -172,7 +168,9 @@ const initAppAPI = () => {
     }
   });
 
-  ipcMain.handle('get-cask-info', async (event: any, caskToken: any): Promise<IApp | null> => {
+  ipcMain.handle(
+    'get-cask-info',
+    async (event: any, caskToken: any): Promise<IApp | null> => {
       try {
         const allCasks = loadJson(casksDictFile);
         const cask = await HomebrewCLI.getCaskInfo(caskToken);
