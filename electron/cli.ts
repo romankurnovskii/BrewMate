@@ -24,6 +24,10 @@ export const execWrapper = async (command: string): Promise<string> => {
       command,
       {
         maxBuffer: 5 * 1024 * 1024,
+        env: {
+          ...process.env,
+          PATH: `${process.env.PATH}:/usr/local/bin`,
+        },
       },
       (err, stdout, stderr) => {
         if (err) {
@@ -42,7 +46,12 @@ export const spawnWrapper = async (
   callback: (data: string, error?: Error) => void,
 ): Promise<number> => {
   log('Started command: ' + [...command].join(' '));
-  const child = spawn(command[0], command.slice(1));
+  const child = spawn(command[0], command.slice(1), {
+    env: {
+      ...process.env,
+      PATH: `${process.env.PATH}:/usr/local/bin`,
+    },
+  });
 
   child.stdout.on('data', (data) => {
     log(data.toString());
