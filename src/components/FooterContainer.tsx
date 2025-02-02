@@ -39,7 +39,7 @@ const FooterContainer = ({ statusMsg }: IProps) => {
               window.open(GITHUB_PROJECT_URL);
             }}
           />{' '}
-          | &copy; 2023 BrewMate ver.{packageJson.version}
+          | &copy; 2025 BrewMate ver.{packageJson.version}
         </div>
       </div>
     </div>
