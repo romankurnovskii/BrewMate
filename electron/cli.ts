@@ -17,6 +17,9 @@ enum BrewCLICommands { // TODO moved from src
   OPEN_LOGS = 'OPEN_LOGS',
 }
 
+const PATH_ENV = `${process.env.PATH}:/bin/sh:/usr/local/bin`
+log('[DEBUG] PATH: ' + PATH_ENV);
+
 export const execWrapper = async (command: string): Promise<string> => {
   log('Started command: ' + command);
   return new Promise((resolve, reject) => {
@@ -26,7 +29,7 @@ export const execWrapper = async (command: string): Promise<string> => {
         maxBuffer: 5 * 1024 * 1024,
         env: {
           ...process.env,
-          PATH: `${process.env.PATH}:/usr/local/bin`,
+          PATH: PATH_ENV,
         },
       },
       (err, stdout, stderr) => {
@@ -49,7 +52,7 @@ export const spawnWrapper = async (
   const child = spawn(command[0], command.slice(1), {
     env: {
       ...process.env,
-      PATH: `${process.env.PATH}:/usr/local/bin`,
+      PATH: PATH_ENV,
     },
   });
 
