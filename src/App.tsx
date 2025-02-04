@@ -119,6 +119,8 @@ const App = () => {
       fetchOssApps().then((apps) => {
         setOssApps(convertOssApps2IApp(apps));
       });
+    } else {
+      fetchCasks();
     }
     setIsLoading(false);
   };
