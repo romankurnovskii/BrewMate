@@ -49,6 +49,7 @@ function createWindow() {
 
     // Hot Reloading on 'node_modules/.bin/electronPath'
     import('electron-reload').then((electronReload: any) => {
+      // TODO TypeError: electronReload is not a function
       electronReload(__dirname, {
         electron: path.join(
           __dirname,
@@ -87,6 +88,7 @@ const runInitCommands = async () => {
   // save to json
 
   const casks = await fetchCasks();
+  logger(logFilePath, 'Fetched Casks:' + casks.length);
   const popularCasks = await fetchPopularCasks();
 
   const allCaskNames = await HomebrewCLI.getAllCaskNames();
@@ -95,6 +97,8 @@ const runInitCommands = async () => {
     convertNamesToCasks(allCaskNames),
     casks,
   );
+
+  logger(logFilePath, '[DEBUG]: Merged allCasks:' + allCasks.length);
 
   allCasksDict = updateInstallCountsIHomebrew(allCasksDict, popularCasks);
   const appsDict = convertCasks2IAppsDict(allCasks);
@@ -127,8 +131,8 @@ const runInitCommands = async () => {
   });
 };
 
-const initApp = () => {
-  app.whenReady().then(() => {
+const initApp = async () => {
+  app.whenReady().then(async () => {
     // DevTools
     installExtension(REACT_DEVELOPER_TOOLS)
       .then((name) => console.log(`Added Extension:  ${name}`))
@@ -138,7 +142,7 @@ const initApp = () => {
     logger(logFilePath, `Current version of the app: ${currentVersion}`);
 
     try {
-      runInitCommands();
+      await runInitCommands();
     } catch (error) {
       logger(logFilePath, `Error executing the init commands: ${error}`);
     }
@@ -227,8 +231,8 @@ const initAppAPI = () => {
   });
 };
 
-const startApp = () => {
-  initApp();
+const startApp = async () => {
+  await initApp();
   initAppAPI();
 };
 
