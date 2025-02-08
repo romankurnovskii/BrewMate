@@ -17,7 +17,7 @@ enum BrewCLICommands { // TODO moved from src
   OPEN_LOGS = 'OPEN_LOGS',
 }
 
-const PATH_ENV = `${process.env.PATH}:/bin/sh:/usr/local/bin`
+const PATH_ENV = `${process.env.PATH}:/bin/sh:/usr/local/bin:/opt/homebrew/bin`
 log('[DEBUG] PATH: ' + PATH_ENV);
 
 export const execWrapper = async (command: string): Promise<string> => {
