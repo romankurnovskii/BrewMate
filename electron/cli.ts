@@ -34,7 +34,7 @@ export const execWrapper = async (command: string): Promise<string> => {
       },
       (err, stdout, stderr) => {
         if (err) {
-          log('Error: ' + err.message + '\n' + stderr);
+          log('[ERROR]: ' + err.message + '\n' + stderr);
           reject(err);
           return;
         }
