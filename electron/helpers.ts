@@ -1,11 +1,12 @@
-import { IHomebrewApp } from '../src/types/homebrew';
 import * as fs from 'fs';
 import * as os from 'os';
+import { IHomebrewApp } from '../src/types/homebrew';
+import {  LOG_FILE_PATH, CASKS_DICT_FILE_PATH } from './constants';
 
-export const logger = (logfile: string, message: string) => {
+export const logger = (message: string, logFile=LOG_FILE_PATH) => {
   const timestamp = new Date().toISOString();
   const logMessage = `[${timestamp}] ${message}${os.EOL}`;
-  fs.appendFile(logfile, logMessage, (err) => {
+  fs.appendFile(logFile, logMessage, (err) => {
     if (err) {
       console.error(`writeFile error: ${err.message}`);
     }
@@ -45,6 +46,17 @@ export const updateInstalledStatusApps = (
   return updatedApps;
 };
 
+
+export const ensureDirnameExistsSync=(filePath: string): void => {
+  try {
+      const dirPath = path.dirname(filePath);
+      fs.mkdirSync(dirPath, { recursive: true });
+  } catch (error) {
+      logger(`[ERROR]: Ensuring directory: ${error.message}`);
+      throw error;
+  }
+}
+
 // TODO duplicate in src/helpers
 type ObjectWithKeyName = {
   [key: string]: any;
@@ -62,3 +74,4 @@ export const transformArrayToDict = (
   });
   return res;
 };
+
