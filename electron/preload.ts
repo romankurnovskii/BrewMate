@@ -1,4 +1,4 @@
-import { app, contextBridge, ipcRenderer } from 'electron';
+import { contextBridge, ipcRenderer } from 'electron';
 import { BrewCLICommands } from '../src/data/constants';
 import { execWrapper, spawnWrapper, executeCommandInTerminal } from './cli';
 import { IApp, IAppsDict } from '../src/types/apps';

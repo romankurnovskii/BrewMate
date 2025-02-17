@@ -104,7 +104,7 @@ const App = () => {
         }
       })
       .catch((err) => {
-        setProcsOutput('Error: ' + err);
+        setProcsOutput('[ERROR] ' + err);
       });
   };
 
