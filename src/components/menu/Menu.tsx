@@ -23,7 +23,7 @@ const Menu = ({ onCategorySelect }: IProps) => {
             title={category}
             isActive={selectedCategory === category}
             onClick={() => handleClick(category)}
-            href='#'
+            href="#"
           />
         );
       })}

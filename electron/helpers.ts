@@ -1,11 +1,13 @@
-import { IHomebrewApp } from '../src/types/homebrew';
 import * as fs from 'fs';
 import * as os from 'os';
+import { LOG_FILE_PATH } from './constants';
+import { IHomebrewApp } from '../src/types/homebrew';
+import path from 'path';
 
-export const logger = (logfile: string, message: string) => {
+export const logger = (message: string, logFile = LOG_FILE_PATH) => {
   const timestamp = new Date().toISOString();
   const logMessage = `[${timestamp}] ${message}${os.EOL}`;
-  fs.appendFile(logfile, logMessage, (err) => {
+  fs.appendFile(logFile, logMessage, (err) => {
     if (err) {
       console.error(`writeFile error: ${err.message}`);
     }
@@ -43,6 +45,16 @@ export const updateInstalledStatusApps = (
   const transformedAllApps = transformArrayToDict(updatedApps, 'token');
 
   return updatedApps;
+};
+
+export const ensureDirnameExistsSync = (filePath: string): void => {
+  try {
+    const dirPath = path.dirname(filePath);
+    fs.mkdirSync(dirPath, { recursive: true });
+  } catch (error) {
+    logger(`[ERROR] Ensuring directory: ${(error as Error).message}`);
+    throw error;
+  }
 };
 
 // TODO duplicate in src/helpers

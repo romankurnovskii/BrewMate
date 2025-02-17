@@ -29,9 +29,9 @@ const MenuTools = ({ onCommandClick }: IProps) => {
             <MenuItem
               key={commandName}
               title={commandName}
-              href='#'
-              className='my-0'
-              fontSize='12px'
+              href="#"
+              className="my-0"
+              fontSize="12px"
               onClick={() => handleClick(command)}
             />
           );

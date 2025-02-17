@@ -15,7 +15,7 @@ type IProps = {
   onClickUninstall?: () => Promise<any>;
 };
 
-function AppContainer ({
+function AppContainer({
   app,
   onClickHomepage,
   onClickInstall,
@@ -61,52 +61,50 @@ function AppContainer ({
   };
 
   const isSerhiiLondarOSMACApp = (
-    appMetaData: IOpenSourceApp | IHomebrewApp
+    appMetaData: IOpenSourceApp | IHomebrewApp,
   ): appMetaData is IOpenSourceApp => {
     return app.appSourceType === AppType.OpenSourceGithub;
   };
 
   return (
-    <div className='card m-1' style={{ width: '15rem', height: '7rem' }}>
+    <div className="card m-1" style={{ width: '15rem', height: '7rem' }}>
       <div
-        className='card-body row'
+        className="card-body row"
         style={{ textOverflow: 'clip', overflow: 'hidden' }}
       >
-        <div className='col-10 p-0'>
-          <div className='d-flex flex-column'>
+        <div className="col-10 p-0">
+          <div className="d-flex flex-column">
             <Title title={app.title} />
             <Description description={app.description} />
           </div>
         </div>
-        <div className='col-2 p-0 d-flex flex-column align-items-center'>
+        <div className="col-2 p-0 d-flex flex-column align-items-center">
           {appData && isSerhiiLondarOSMACApp(appData) && appData.icon_url && (
             <img
               src={appData.icon_url}
               alt={`${app.title} icon`}
-              width='21'
-              height='21'
+              width="21"
+              height="21"
             />
           )}
 
           {onClickInstall &&
             !app.installed &&
-            (isLoading
-              ? (
+            (isLoading ? (
               <SpinnerSm />
-                )
-              : (
+            ) : (
               <ButtonIcon
                 title={'download'}
-                colorType='success'
+                colorType="success"
                 onClick={onClickInstallHandler}
               />
-                ))}
+            ))}
 
           {app.installed && onClickUninstall && isLoading && <SpinnerSm />}
           {onClickUninstall && app.installed && !isLoading && (
             <ButtonIcon
               title={'delete'}
-              colorType='danger'
+              colorType="danger"
               onClick={onClickUninstallHandler}
             />
           )}
@@ -115,7 +113,7 @@ function AppContainer ({
 
           <ButtonIcon
             title={'captive_portal'}
-            colorType='info'
+            colorType="info"
             onClick={onClickHomepageHandler}
           />
         </div>
