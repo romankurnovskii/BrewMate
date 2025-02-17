@@ -1,9 +1,9 @@
 const SpinnerSm = () => {
   return (
     <span
-      className='spinner-border spinner-border-sm'
-      role='status'
-      aria-hidden='true'
+      className="spinner-border spinner-border-sm"
+      role="status"
+      aria-hidden="true"
     ></span>
   );
 };

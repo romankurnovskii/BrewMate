@@ -1,9 +1,10 @@
 import * as fs from 'fs';
 import * as os from 'os';
+import { LOG_FILE_PATH } from './constants';
 import { IHomebrewApp } from '../src/types/homebrew';
-import {  LOG_FILE_PATH, CASKS_DICT_FILE_PATH } from './constants';
+import path from 'path';
 
-export const logger = (message: string, logFile=LOG_FILE_PATH) => {
+export const logger = (message: string, logFile = LOG_FILE_PATH) => {
   const timestamp = new Date().toISOString();
   const logMessage = `[${timestamp}] ${message}${os.EOL}`;
   fs.appendFile(logFile, logMessage, (err) => {
@@ -46,16 +47,15 @@ export const updateInstalledStatusApps = (
   return updatedApps;
 };
 
-
-export const ensureDirnameExistsSync=(filePath: string): void => {
+export const ensureDirnameExistsSync = (filePath: string): void => {
   try {
-      const dirPath = path.dirname(filePath);
-      fs.mkdirSync(dirPath, { recursive: true });
+    const dirPath = path.dirname(filePath);
+    fs.mkdirSync(dirPath, { recursive: true });
   } catch (error) {
-      logger(`[ERROR]: Ensuring directory: ${error.message}`);
-      throw error;
+    logger(`[ERROR] Ensuring directory: ${(error as Error).message}`);
+    throw error;
   }
-}
+};
 
 // TODO duplicate in src/helpers
 type ObjectWithKeyName = {
@@ -74,4 +74,3 @@ export const transformArrayToDict = (
   });
   return res;
 };
-

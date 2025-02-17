@@ -16,7 +16,7 @@ export const getCaskInfo = async (caskName: string): Promise<IHomebrewApp> => {
 };
 
 export const getCaskInfoTemplate = (caskName: string): IHomebrewApp => {
-  console.debug('Executing getCaskInfoTemplate', caskName)
+  console.debug('Executing getCaskInfoTemplate', caskName);
   let description = '';
   if (caskName.startsWith('font-')) {
     description = caskName;
@@ -81,8 +81,6 @@ export const convertNamesToCasks = (caskNames: string[]): IHomebrewApp[] => {
   // fetch https://raw.githubusercontent.com/romankurnovskii/homebrew-awesome-brew/main/casks.json
   // ['releaseOnly']
   // match cask name to repo
-
-
 
   for (let caskName of caskNames) {
     caskName = caskName.trim();
