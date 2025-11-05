@@ -23,7 +23,7 @@ jobs:
 
       - name: Build Electron App
         run: |
-          npm run electron:build
+          npm run build
           pwd
           ls -la
         working-directory: .

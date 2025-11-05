@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>BrewMate</title>
+    <meta
+      name="description"
+      content="BrewMate - Homebrew App Manager for macOS"
+    />
+    <link rel="icon" type="image/x-icon" href="../../assets/favicon.ico" />
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="16x16"
+      href="../../assets/favicon-16x16.png"
+    />
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="32x32"
+      href="../../assets/favicon-32x32.png"
+    />
+    <link
+      rel="apple-touch-icon"
+      sizes="180x180"
+      href="../../assets/apple-touch-icon.png"
+    />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <!-- Search & Filter Bar -->
+    <div class="search-bar">
+      <div class="search-bar-top">
+        <div class="app-title">
+          <img
+            src="../../assets/favicon-32x32.png"
+            alt="BrewMate"
+            class="app-logo"
+          />
+          <span>BrewMate</span>
+        </div>
+        <div class="search-container">
+          <svg
+            class="search-icon"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+            ></path>
+          </svg>
+          <input
+            type="text"
+            id="searchInput"
+            placeholder="Search Casks or Formulas..."
+            autocomplete="off"
+          />
+        </div>
+      </div>
+      <div class="category-chips" id="categoryChips"></div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+      <div class="apps-grid" id="appsGrid">
+        <div class="loading">
+          <div class="loading-spinner"></div>
+          <div class="loading-message" id="loadingMessage">Loading apps...</div>
+        </div>
+      </div>
+
+      <div class="brew-commands">
+        <div class="type-filter" id="typeFilter">
+          <div class="type-filter-label">Filter by Type</div>
+          <button class="type-toggle active" data-type="All">All Types</button>
+          <button class="type-toggle" data-type="cask">Casks</button>
+          <button class="type-toggle" data-type="formula">Formulas</button>
+        </div>
+        <h3>Brew Commands</h3>
+        <button class="brew-command-button" data-command="brew update">
+          <span class="prompt">$</span> brew update
+        </button>
+        <button class="brew-command-button" data-command="brew upgrade">
+          <span class="prompt">$</span> brew upgrade
+        </button>
+        <button class="brew-command-button" data-command="brew list">
+          <span class="prompt">$</span> brew list
+        </button>
+        <button class="brew-command-button" data-command="brew doctor">
+          <span class="prompt">$</span> brew doctor
+        </button>
+        <button class="brew-command-button" data-command="brew cleanup">
+          <span class="prompt">$</span> brew cleanup
+        </button>
+      </div>
+    </div>
+
+    <!-- Terminal -->
+    <div class="terminal-container" id="terminalContainer">
+      <div class="terminal-header">
+        <span class="terminal-title">Terminal</span>
+        <button
+          class="terminal-toggle"
+          id="terminalToggle"
+          title="Toggle terminal (Cmd+J)"
+        >
+          <svg
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            id="terminalToggleIcon"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M19 9l-7 7-7-7"
+            ></path>
+          </svg>
+        </button>
+      </div>
+      <div id="terminalOutput"></div>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+      <p>
+        Press <span class="keyboard-shortcut">Cmd+J</span> to toggle terminal.
+        <span id="appCount">0</span> apps shown.
+        <span
+          id="logPath"
+          style="margin-left: 16px; font-size: 11px; opacity: 0.6"
+        ></span>
+        <span
+          id="versionInfo"
+          style="margin-left: 16px; font-size: 11px; opacity: 0.6"
+        ></span>
+      </p>
+    </div>
+
+    <script src="./renderer.js"></script>
+  </body>
+</html>

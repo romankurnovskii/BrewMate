@@ -1,27 +1,36 @@
-.DS_Store
-.env
-.vs/
+# Dependencies
+node_modules/
+dist/
+dist-app/
+out/
+
+# Build artifacts
+build/icon.iconset/
+
+# Test coverage
+coverage/
+*.lcov
+
+# IDE
 .vscode/
 .idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
 
 # Logs
-logs
 *.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
 
-# Runtime data
-pids
-*.pid
-*.seed
+.env
+.env.prod
+.credentials/
 
-# Coverage directory used by tools like istanbul
-coverage
-.eslintcache
-
-ts-gen
-
-/dist/
-/build/
-
-node_modules
-.npmrc
-**/package-lock.json
+build/
+docs/

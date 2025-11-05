@@ -6,7 +6,7 @@ BrewMate is a macOS GUI application that makes it easy to search for, install, a
 
 Includes third party apps + from [awesome-brew](https://github.com/romankurnovskii/homebrew-awesome-brew/)
 
-![BrewMate Screenshot 1](assets/mainwindow.gif)
+![BrewMate Screenshot 1](assets/mainwindow.png)
 
 ## Features
 
@@ -32,6 +32,7 @@ Before you begin, ensure you have met the following requirements:
 # Install
 
 ### Option 1
+
 1. Download the latest DMG file from the [releases page](https://github.com/romankurnovskii/BrewMate/releases).
 2. Double-click the DMG file to open it.
 3. Drag the BrewMate app to your Applications folder.
@@ -51,7 +52,7 @@ In terminal:
 ```sh
 brew tap romankurnovskii/awesome-brew
 brew update
-brew install --cask --no-quarantine brewmate 
+brew install --cask --no-quarantine brewmate
 ```
 
 ## First time launch
@@ -73,7 +74,6 @@ brew install --cask --no-quarantine brewmate
 3. Build the app: `npm run electron:build`
 4. The built app will be located in the `dist` folder.
 5. For **development** run `npm run electron:dev`
-
 
 ## Available Scripts in addition to the existing ones
 
