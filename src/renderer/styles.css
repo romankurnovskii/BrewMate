@@ -47,13 +47,6 @@ body {
   gap: 12px;
 }
 
-.app-logo {
-  width: 32px;
-  height: 32px;
-  object-fit: contain;
-  flex-shrink: 0;
-}
-
 .search-container {
   position: relative;
   width: 100%;

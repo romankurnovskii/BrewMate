@@ -1,5 +1,6 @@
-import { ipcMain, IpcMainEvent } from 'electron';
+import { ipcMain, IpcMainEvent, app } from 'electron';
 import { spawn } from 'child_process';
+import * as path from 'path';
 import { fetchJSON } from '../utils/fetchData';
 import { loadFromCache, saveToCache } from '../utils/cache';
 import { getTerminalPromptInfo } from '../utils/terminal';
@@ -204,13 +205,56 @@ export function setupIpcHandlers(): void {
     event.reply('log-path', getLogFilePath());
   });
 
+  // Get asset path (for logo and other assets)
+  ipcMain.on('get-asset-path', (event: IpcMainEvent, assetName: string) => {
+    const fs = require('fs');
+
+    // Try multiple possible paths for assets
+    // Development: assets are in dist/assets/ (from dist/src/main/, go up to dist/, then into assets/)
+    // Packaged: assets are copied to Resources/assets/ or app.asar/assets/
+    const possiblePaths = [
+      path.join(__dirname, '../assets', assetName), // Development: dist/src/main -> dist/assets
+      path.join(process.resourcesPath, 'assets', assetName), // Packaged: Resources/assets
+      path.join(app.getAppPath(), 'assets', assetName), // Alternative packaged path
+      path.join(__dirname, '../../assets', assetName), // Fallback: try src/assets
+      path.join(__dirname, '../src/assets', assetName), // Another fallback
+    ];
+
+    let assetPath: string | null = null;
+    for (const testPath of possiblePaths) {
+      try {
+        if (fs.existsSync(testPath)) {
+          assetPath = testPath;
+          console.log(`[IPC] Found asset at: ${assetPath}`);
+          break;
+        }
+      } catch (e) {
+        // Continue to next path
+      }
+    }
+
+    // Convert to file:// URL for use in HTML
+    if (assetPath) {
+      // On Windows, we need to handle the path differently for file:// URLs
+      const normalizedPath = assetPath.replace(/\\/g, '/');
+      const fileUrl = `file://${normalizedPath}`;
+      event.reply('asset-path', { assetName, path: fileUrl });
+    } else {
+      console.warn(
+        `[IPC] Asset not found: ${assetName}. Tried paths:`,
+        possiblePaths,
+      );
+      event.reply('asset-path', { assetName, path: null });
+    }
+  });
+
   // Get version info
   ipcMain.on('get-version-info', (event: IpcMainEvent) => {
     const fs = require('fs');
     const path = require('path');
 
     // Get package.json from project root (dist is 2 levels up from dist/src/main)
-    const packageJsonPath = path.join(__dirname, '../../../package.json');
+    const packageJsonPath = path.join(__dirname, '../../package.json');
     let version = '0.0.0';
 
     try {

@@ -10,13 +10,12 @@
     "copy:static": "mkdir -p dist/src/renderer && mkdir -p dist/assets && cp src/renderer/index.html dist/src/renderer/ && cp src/renderer/styles.css dist/src/renderer/ && if [ -d src/assets ]; then cp -r src/assets/* dist/assets/; elif [ -d assets ]; then cp -r assets/* dist/assets/; fi",
     "start": "electron .",
     "start:dev": "NODE_ENV=development npm start",
-    "build:icon": "./scripts/convert-icon.sh",
-    "build:mas": "npm run build && npm run build:icon && electron-builder --mac --config.mac.target=mas --config.mac.entitlements=build/entitlements.mas.plist --config.mac.entitlementsInherit=build/entitlements.mas.inherit.plist --config.mac.hardenedRuntime=false --config.mac.type=distribution",
-    "build:mas:dir": "npm run build && npm run build:icon && electron-builder --mac --config.mac.target=dir --config.mac.entitlements=build/entitlements.mas.plist --config.mac.entitlementsInherit=build/entitlements.mas.inherit.plist --config.mac.hardenedRuntime=false --config.mac.type=distribution",
-    "build:mas:universal": "npm run build && npm run build:icon && electron-builder --mac --config.mac.target=mas --config.mac.arch=universal --config.mac.entitlements=build/entitlements.mas.plist --config.mac.entitlementsInherit=build/entitlements.mas.inherit.plist --config.mac.hardenedRuntime=false --config.mac.type=distribution",
-    "build:mac": "npm run build && npm run build:icon && electron-builder --mac",
-    "dist": "npm run build && npm run build:icon && electron-builder",
-    "dist:mac": "npm run build && npm run build:icon && electron-builder --mac",
+    "build:mas": "CSC_IDENTITY_AUTO_DISCOVERY=false npm run build && electron-builder --mac --config.mac.target=mas",
+    "build:mas:dir": "CSC_IDENTITY_AUTO_DISCOVERY=false npm run build && electron-builder --mac --config.mac.target=dir",
+    "build:mas:universal": "CSC_IDENTITY_AUTO_DISCOVERY=false npm run build && electron-builder --mac --universal --config.mac.target=mas",
+    "build:mac": "npm run build && electron-builder --mac",
+    "dist": "npm run build && electron-builder",
+    "dist:mac": "npm run build && electron-builder --mac",
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
@@ -34,51 +33,6 @@
     "prettier": "^3.6.2",
     "ts-jest": "^29.1.2",
     "typescript": "^5.3.3"
-  },
-  "build": {
-    "appId": "com.app.brewmate",
-    "productName": "BrewMate",
-    "copyright": "Copyright © 2025 Roman Kurnovskii",
-    "directories": {
-      "buildResources": "build",
-      "output": "dist-app"
-    },
-    "mac": {
-      "category": "public.app-category.utilities",
-      "target": [
-        {
-          "target": "dmg",
-          "arch": [
-            "x64",
-            "arm64"
-          ]
-        }
-      ],
-      "icon": "build/icon.icns",
-      "entitlements": "build/entitlements.mac.plist",
-      "entitlementsInherit": "build/entitlements.mac.inherit.plist",
-      "hardenedRuntime": true,
-      "gatekeeperAssess": false,
-      "minimumSystemVersion": "12.0"
-    },
-    "mas": {
-      "entitlements": "build/entitlements.mas.plist",
-      "entitlementsInherit": "build/entitlements.mas.inherit.plist",
-      "type": "distribution"
-    },
-    "files": [
-      "dist/**/*",
-      "package.json"
-    ],
-    "extraFiles": [
-      {
-        "from": "dist/assets",
-        "to": "assets",
-        "filter": [
-          "**/*"
-        ]
-      }
-    ]
   },
   "lint-staged": {
     "*.{ts,tsx,js,jsx,json,css,md}": [

@@ -1,5 +1,6 @@
 #!/bin/bash
-# Convert icon-raw.png to .icns file for macOS
+# Convert icon-raw.png to .icns file for macOS App Store
+# Uses icon-raw.png (non-transparent) for App Store builds
 
 ICON_SOURCE=""
 if [ -f "assets/icon-raw.png" ]; then
@@ -7,9 +8,11 @@ if [ -f "assets/icon-raw.png" ]; then
 elif [ -f "src/assets/icon-raw.png" ]; then
   ICON_SOURCE="src/assets/icon-raw.png"
 else
-  echo "Error: icon-raw.png not found"
+  echo "Error: icon-raw.png not found (required for App Store .icns file)"
   exit 1
 fi
+
+echo "Using $ICON_SOURCE for App Store icon (.icns)"
 
 ICONSET_DIR="build/icon.iconset"
 mkdir -p "$ICONSET_DIR"
