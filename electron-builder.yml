@@ -53,3 +53,5 @@ mas:
   type: distribution
   artifactName: ${productName}-${version}-${arch}.pkg
   identity: "Roman Kurnovskii (ZJBVSAC8G7)"
+  # Default to universal binary (recommended for App Store)
+  # Can override with --arm64 or --x64 flags
