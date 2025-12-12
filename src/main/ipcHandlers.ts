@@ -250,32 +250,30 @@ export function setupIpcHandlers(): void {
 
   // Get version info
   ipcMain.on('get-version-info', (event: IpcMainEvent) => {
-    const fs = require('fs');
-    const path = require('path');
+    // Use Electron's built-in method to get version - works in both dev and packaged apps
+    // This reads from package.json automatically
+    const version = app.getVersion();
 
-    // Get package.json from project root (dist is 2 levels up from dist/src/main)
-    const packageJsonPath = path.join(__dirname, '../../package.json');
-    let version = '0.0.0';
-
-    try {
-      const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'));
-      version = packageJson.version || '0.0.0';
-    } catch (error) {
-      console.error('[IPC] Failed to read package.json:', error);
-    }
-
-    // Try to get git commit hash
+    // Try to get git commit hash (only works in development, not in packaged apps)
     let commit: string | undefined;
     try {
       const { execSync } = require('child_process');
-      // Get project root (2 levels up from dist/src/main)
-      const projectRoot = path.join(__dirname, '../..');
+      const path = require('path');
+
+      // In development, use app.getAppPath() to get the project root
+      // In packaged apps, this won't work (git won't be available), but that's fine
+      const projectRoot = app.isPackaged
+        ? app.getAppPath()
+        : path.join(app.getAppPath(), '..');
+
       commit = execSync('git rev-parse HEAD', {
         encoding: 'utf8',
         cwd: projectRoot,
+        stdio: ['ignore', 'pipe', 'ignore'], // Suppress stderr to avoid noise
       }).trim();
     } catch (error) {
-      // Git not available or not in a git repo - ignore
+      // Git not available or not in a git repo - ignore silently
+      // This is expected in packaged apps
     }
 
     event.reply('version-info', { version, commit });

@@ -9,10 +9,12 @@ copyright: © 2025 Roman Kurnovskii
 asar: true
 
 files:
-  - "dist/**/*"
-  - "package.json"
+  - from: dist
+    to: .
+    filter:
+      - "**/*"
+  - package.json
   - "!**/node_modules/**/*"
-  - "!**/src/**/*"
   - "!**/*.{iml,o,hprof,orig,pyc,pyo,rbc,swp,csproj,sln,xproj}"
   - "!.editorconfig"
   - "!**/._*"
@@ -20,6 +22,9 @@ files:
   - "!**/{__pycache__,thumbs.db,.flowconfig,.idea,.vs,.nyc_output}"
   - "!**/{appveyor.yml,.travis.yml,circle.yml}"
   - "!**/{npm-debug.log,yarn.lock,.yarn-integrity,.yarn-metadata.json}"
+
+extraMetadata:
+  main: index.js
 
 extraFiles:
   - from: dist/assets
@@ -50,8 +55,12 @@ mas:
   entitlementsInherit: build/entitlements.mas.inherit.plist
   provisioningProfile: .credentials/BrewMate_Distribution.provisionprofile
   hardenedRuntime: false
-  type: distribution
+  # type: distribution
   artifactName: ${productName}-${version}-${arch}.pkg
   identity: "Roman Kurnovskii (ZJBVSAC8G7)"
+  # Build number (CFBundleVersion) - must increment for each MAS submission
+  # This must be unique and higher than the previous submission
+  # IMPORTANT: This overrides CFBundleVersion in Info.plist
+  bundleVersion: 5
   # Default to universal binary (recommended for App Store)
   # Can override with --arm64 or --x64 flags

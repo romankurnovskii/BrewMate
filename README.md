@@ -71,9 +71,63 @@ brew install --cask --no-quarantine brewmate
 
 1. Clone the repository: `git clone https://github.com/romankurnovskii/BrewMate.git`
 2. Install dependencies: `npm install`
-3. Build the app: `npm run electron:build`
-4. The built app will be located in the `dist` folder.
-5. For **development** run `npm run electron:dev`
+3. Build the app: `npm run build`
+4. For **development** run `npm start` or `npm run start:dev`
+
+## Build Types
+
+BrewMate supports two build types:
+
+### Local Test Build
+
+Build a version you can run and test on your Mac:
+
+```bash
+npm run build:mac
+```
+
+This creates a DMG in `dist-app/mac/` that you can install and run locally.
+
+### Mac App Store Build
+
+Build a version for App Store submission:
+
+```bash
+npm run build:mas
+```
+
+This creates a PKG in `dist-app/mas-universal/` for App Store submission.
+
+⚠️ **Important**: MAS builds **cannot be run locally** - they're only for App Store submission. If you need to test the app, use `build:mac` instead.
+
+## Testing & Validation Workflow
+
+Before submitting to the App Store:
+
+1. **Test locally** (on your ARM Mac):
+
+   ```bash
+   npm run build:mac
+   npm run test:local
+   ```
+
+2. **Build for App Store**:
+
+   ```bash
+   npm run build:mas
+   ```
+
+3. **Pre-submission validation**:
+
+   ```bash
+   npm run pre-submit
+   ```
+
+   This checks architecture, code signing, entitlements, and common rejection reasons.
+
+4. **Upload to App Store Connect** via Transporter app
+
+See [docs/BUILD_TYPES.md](docs/BUILD_TYPES.md) and [docs/SUBMISSION_CHECKLIST.md](docs/SUBMISSION_CHECKLIST.md) for more details.
 
 ## Available Scripts in addition to the existing ones
 

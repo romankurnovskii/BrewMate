@@ -345,8 +345,7 @@ function setupEventListeners(): void {
   ipcRenderer.on('log-path', (_event: any, logFilePath: string) => {
     console.log('[Renderer] Log file location:', logFilePath);
     if (logPath) {
-      // logPath.textContent = `Logs: ${logFilePath}`;
-      logPath.textContent = `Logs: /Users/brewmate/.brewmate/commands.log`;
+      logPath.textContent = `Logs: ${logFilePath}`;
     }
   });
 
