@@ -3,25 +3,23 @@ directories:
   buildResources: build
 
 appId: com.app.brewmate
-productName: BrewMate
+productName: Pantry
 copyright: © 2025 Roman Kurnovskii
 
 asar: true
 
 files:
-  - from: dist
-    to: .
-    filter:
-      - "**/*"
-  - package.json
-  - "!**/node_modules/**/*"
-  - "!**/*.{iml,o,hprof,orig,pyc,pyo,rbc,swp,csproj,sln,xproj}"
-  - "!.editorconfig"
-  - "!**/._*"
-  - "!**/{.DS_Store,.git,.hg,.svn,CVS,RCS,SCCS,.gitignore,.gitattributes}"
-  - "!**/{__pycache__,thumbs.db,.flowconfig,.idea,.vs,.nyc_output}"
-  - "!**/{appveyor.yml,.travis.yml,circle.yml}"
-  - "!**/{npm-debug.log,yarn.lock,.yarn-integrity,.yarn-metadata.json}"
+  - 'dist/**/*'
+  - 'package.json'
+  - '!**/node_modules/**/*'
+  - '!**/src/**/*'
+  - '!**/*.{iml,o,hprof,orig,pyc,pyo,rbc,swp,csproj,sln,xproj}'
+  - '!.editorconfig'
+  - '!**/._*'
+  - '!**/{.DS_Store,.git,.hg,.svn,CVS,RCS,SCCS,.gitignore,.gitattributes}'
+  - '!**/{__pycache__,thumbs.db,.flowconfig,.idea,.vs,.nyc_output}'
+  - '!**/{appveyor.yml,.travis.yml,circle.yml}'
+  - '!**/{npm-debug.log,yarn.lock,.yarn-integrity,.yarn-metadata.json}'
 
 extraMetadata:
   main: index.js
@@ -30,7 +28,7 @@ extraFiles:
   - from: dist/assets
     to: assets
     filter:
-      - "**/*"
+      - '**/*'
 
 mac:
   category: public.app-category.utilities
@@ -43,24 +41,21 @@ mac:
   type: distribution
   hardenedRuntime: true
   gatekeeperAssess: false
-  minimumSystemVersion: "12.0"
+  minimumSystemVersion: '12.0'
   entitlements: build/entitlements.mac.plist
   entitlementsInherit: build/entitlements.mac.inherit.plist
   artifactName: ${productName}-${version}-${arch}.${ext}
-  darkModeSupport: true
+  darkModeSupport: false
 
 # Mac App Store Distribution Build
 mas:
   entitlements: build/entitlements.mas.plist
   entitlementsInherit: build/entitlements.mas.inherit.plist
-  provisioningProfile: .credentials/BrewMate_Distribution.provisionprofile
+  provisioningProfile: .credentials/Pantry_Distribution.provisionprofile
   hardenedRuntime: false
-  # type: distribution
+  type: distribution
   artifactName: ${productName}-${version}-${arch}.pkg
-  identity: "Roman Kurnovskii (ZJBVSAC8G7)"
-  # Build number (CFBundleVersion) - must increment for each MAS submission
-  # This must be unique and higher than the previous submission
-  # IMPORTANT: This overrides CFBundleVersion in Info.plist
-  bundleVersion: 5
+  # Identity set via CSC_NAME / build-mas-universal.sh env
+  # Version auto-incremented by build script
   # Default to universal binary (recommended for App Store)
   # Can override with --arm64 or --x64 flags

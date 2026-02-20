@@ -62,7 +62,7 @@ let searchTerm = '';
 let terminalVisible = false;
 let commandToRun: string | null = null;
 let isLoading = true;
-let terminalPrompt = 'user@brewmate ~ %';
+let terminalPrompt = 'user@pantry ~ %';
 
 // Virtual scrolling state
 let visibleStartIndex = 0;
@@ -143,14 +143,14 @@ function init(): void {
   }
 
   // Initialize terminal output
-  terminalOutput.innerHTML = `Welcome to BrewMate terminal.\nLast login: ${new Date().toLocaleString()}\n`;
+  terminalOutput.innerHTML = `Welcome to Pantry terminal.\nLast login: ${new Date().toLocaleString()}\n`;
 
   // Load version info
   if (versionInfo && ipcRenderer) {
     ipcRenderer.send('get-version-info');
   }
 
-  console.log('Initializing BrewMate...');
+  console.log('Initializing Pantry...');
   setupEventListeners();
   loadData();
   renderCategories();
@@ -345,7 +345,7 @@ function setupEventListeners(): void {
   ipcRenderer.on('log-path', (_event: any, logFilePath: string) => {
     console.log('[Renderer] Log file location:', logFilePath);
     if (logPath) {
-      logPath.textContent = `Logs: ${logFilePath}`;
+      logPath.textContent = `Logs: /Users/pantry/.pantry/commands.log`;
     }
   });
 
@@ -397,8 +397,7 @@ function renderCategories(): void {
     const isInstalled = cat === 'Installed';
     const isActive = selectedCategory === cat;
     return `
-      <button class="category-chip ${isInstalled ? 'installed-category' : ''} ${
-        isActive ? 'active' : ''
+      <button class="category-chip ${isInstalled ? 'installed-category' : ''} ${isActive ? 'active' : ''
       }" 
               data-category="${cat}">
         ${cat}${isInstalled ? ' (' + installedApps.size + ')' : ''}
@@ -658,8 +657,8 @@ function renderAppCard(app: App, isInstalled: boolean): string {
         </div>
         <h3 class="app-title">${escapeHtml(app.name)}</h3>
         <p class="app-description">${escapeHtml(
-          app.description || 'No description available',
-        )}</p>
+    app.description || 'No description available',
+  )}</p>
       </div>
       <div class="app-actions">
         <button class="app-button ${isInstalled ? 'installed' : ''}" 
@@ -667,9 +666,8 @@ function renderAppCard(app: App, isInstalled: boolean): string {
                 data-type="${app.type}">
           ${isInstalled ? 'Delete' : 'Install'}
         </button>
-        ${
-          app.homepage
-            ? `
+        ${app.homepage
+      ? `
           <a href="${app.homepage}" target="_blank" class="external-link" title="Open homepage">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
               <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
@@ -678,8 +676,8 @@ function renderAppCard(app: App, isInstalled: boolean): string {
             </svg>
           </a>
         `
-            : ''
-        }
+      : ''
+    }
       </div>
     </div>
   `;
