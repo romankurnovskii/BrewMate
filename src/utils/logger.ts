@@ -2,7 +2,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
 
-const LOG_DIR = path.join(os.homedir(), '.brewmate');
+const LOG_DIR = path.join(os.homedir(), '.pantry');
 const LOG_FILE = path.join(LOG_DIR, 'commands.log');
 
 export function ensureLogDirectory(): void {

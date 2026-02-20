@@ -4,7 +4,7 @@ import * as os from 'os';
 import { CACHE_DURATION } from '../constants';
 import { App } from '../types';
 
-const CACHE_DIR = path.join(os.homedir(), '.brewmate');
+const CACHE_DIR = path.join(os.homedir(), '.pantry');
 const CACHE_FILE = path.join(CACHE_DIR, 'apps-cache.json');
 
 interface CacheData {

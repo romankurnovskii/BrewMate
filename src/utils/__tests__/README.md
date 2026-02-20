@@ -1,6 +1,6 @@
 # Test Suite Documentation
 
-This directory contains unit tests for the BrewMate utility functions.
+This directory contains unit tests for the Pantry utility functions.
 
 ## Test Structure
 

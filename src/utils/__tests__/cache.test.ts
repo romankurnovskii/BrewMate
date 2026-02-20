@@ -44,7 +44,7 @@ describe('cache utilities', () => {
     },
   ];
 
-  const cacheDir = path.join(os.homedir(), '.brewmate');
+  const cacheDir = path.join(os.homedir(), '.pantry');
   const cacheFile = path.join(cacheDir, 'apps-cache.json');
 
   beforeEach(() => {
