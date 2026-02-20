@@ -3,12 +3,17 @@
 # Uses icon-raw.png (non-transparent) for App Store builds
 
 ICON_SOURCE=""
+# Check for new icons in assets/ folder first (preferred)
 if [ -f "assets/icon-raw.png" ]; then
   ICON_SOURCE="assets/icon-raw.png"
+elif [ -f "assets/android-chrome-512x512.png" ]; then
+  ICON_SOURCE="assets/android-chrome-512x512.png"
+  echo "ℹ️  Using android-chrome-512x512.png as icon source"
 elif [ -f "src/assets/icon-raw.png" ]; then
   ICON_SOURCE="src/assets/icon-raw.png"
 else
-  echo "Error: icon-raw.png not found (required for App Store .icns file)"
+  echo "Error: No suitable icon source found"
+  echo "   Looking for: assets/icon-raw.png, assets/android-chrome-512x512.png, or src/assets/icon-raw.png"
   exit 1
 fi
 
