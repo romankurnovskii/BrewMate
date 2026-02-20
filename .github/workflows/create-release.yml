@@ -42,7 +42,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           files: |
-            ./dist/BrewMate-${{ env.VERSION }}-universal-mac.zip
+            ./dist/Pantry-${{ env.VERSION }}-universal-mac.zip
           draft: false
           name: ${{ env.VERSION }}
           tag_name: ${{ env.VERSION }}
@@ -50,7 +50,7 @@ jobs:
 
       - name: Generate SHA256 Checksum
         run: |
-          shasum -a 256 ./dist/BrewMate-${{ env.VERSION }}-universal-mac.zip | awk '{print $1}' >> shasumver
+          shasum -a 256 ./dist/Pantry-${{ env.VERSION }}-universal-mac.zip | awk '{print $1}' >> shasumver
           echo "SHA 256:" >> $GITHUB_STEP_SUMMARY
           cat shasumver >> $GITHUB_STEP_SUMMARY
 
@@ -59,9 +59,9 @@ jobs:
         with:
           repository: romankurnovskii/homebrew-cask
           path: homebrew-cask
-          token: ${{ secrets.TOKEN_HOMEBREW_CASK }} 
+          token: ${{ secrets.TOKEN_HOMEBREW_CASK }}
           # https://github.com/settings/tokens/
-          # https://github.com/romankurnovskii/BrewMate/settings/secrets/actions
+          # https://github.com/romankurnovskii/Pantry/settings/secrets/actions
 
       - name: Update Cask | Create Pull Request
         env:
@@ -70,7 +70,7 @@ jobs:
         run: |
           VERSION=$(jq -r .version package.json)
           BRANCH_NAME=update-version-${VERSION}
-          SHA256=$(shasum -a 256 ./dist/BrewMate-${VERSION}-universal-mac.zip | awk '{print $1}')
+          SHA256=$(shasum -a 256 ./dist/Pantry-${VERSION}-universal-mac.zip | awk '{print $1}')
 
           git -C homebrew-cask config user.name "R K"
           git -C homebrew-cask config user.email "email@example.com"
@@ -79,7 +79,7 @@ jobs:
           # Set new version
           sed -i '' "s/version .*/version '${VERSION}'/" homebrew-cask/Casks/brewmate.rb
           sed -i '' "s/sha256 .*/sha256 '${SHA256}'/" homebrew-cask/Casks/brewmate.rb
-    
+
           git -C homebrew-cask add .
           git -C homebrew-cask commit -m "update to version ${VERSION}"
 
@@ -101,7 +101,7 @@ jobs:
           --header 'content-type: application/json' \
           --data @- << EOF
           {
-            "title": "Update BrewMate to ${VERSION}",
+            "title": "Update Pantry to ${VERSION}",
             "body": " **${GITHUB_WORKFLOW}**. \n\n commit: _${GITHUB_SHA}_.",
             "head": "${BRANCH_NAME}", 
             "base": "main"

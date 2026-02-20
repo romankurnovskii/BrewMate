@@ -1,12 +1,12 @@
-# BrewMate
+# Pantry
 
-**BrewMate - Homebrew GUI**
+**Pantry - Homebrew GUI**
 
-BrewMate is a macOS GUI application that makes it easy to search for, install, and uninstall Homebrew casks. You can also see the top downloaded casks.
+Pantry is a macOS GUI application that makes it easy to search for, install, and uninstall Homebrew casks. You can also see the top downloaded casks.
 
 Includes third party apps + from [awesome-brew](https://github.com/romankurnovskii/homebrew-awesome-brew/)
 
-![BrewMate Screenshot 1](assets/mainwindow.png)
+![Pantry Screenshot 1](assets/mainwindow.png)
 
 ## Features
 
@@ -33,9 +33,9 @@ Before you begin, ensure you have met the following requirements:
 
 ### Option 1
 
-1. Download the latest DMG file from the [releases page](https://github.com/romankurnovskii/BrewMate/releases).
+1. Download the latest DMG file from the [releases page](https://github.com/romankurnovskii/Pantry/releases).
 2. Double-click the DMG file to open it.
-3. Drag the BrewMate app to your Applications folder.
+3. Drag the Pantry app to your Applications folder.
 
 ### Option 2
 
@@ -58,7 +58,7 @@ brew install --cask --no-quarantine brewmate
 ## First time launch
 
 1. Navigate to your "Applications" folder.
-1. Find the app `BrewMate` and right-click on it.
+1. Find the app `Pantry` and right-click on it.
 1. Select "Open" from the context menu.
 1. When the security warning appears, click "Open" to confirm that you want to open the app.
 1. The app will now launch.
@@ -69,7 +69,7 @@ brew install --cask --no-quarantine brewmate
 
 # Development / Build
 
-1. Clone the repository: `git clone https://github.com/romankurnovskii/BrewMate.git`
+1. Clone the repository: `git clone https://github.com/romankurnovskii/Pantry.git`
 2. Install dependencies: `npm install`
 3. Build the app: `npm run build`
 4. For **development** run `npm start` or `npm run start:dev`
@@ -146,4 +146,4 @@ Your app is ready to be distributed!
 
 # License
 
-BrewMate is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+Pantry is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
