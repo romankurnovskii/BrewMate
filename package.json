@@ -24,7 +24,7 @@
     "postinstall": "electron-builder install-app-deps"
   },
   "devDependencies": {
-    "@electron/fuses": "^2.0.0",
+    "@electron/fuses": "^2.1.0",
     "@types/jest": "^29.5.12",
     "@types/node": "^24.10.0",
     "dotenv": "^17.2.3",
