@@ -371,8 +371,8 @@ function renderCategories(): void {
       <button class="category-chip ${isInstalled ? 'installed-category' : ''} ${
         isActive ? 'active' : ''
       }" 
-              data-category="${cat}">
-        ${cat}${isInstalled ? ' (' + installedApps.size + ')' : ''}
+              data-category="${escapeHtml(cat)}">
+        ${escapeHtml(cat)}${isInstalled ? ' (' + installedApps.size + ')' : ''}
       </button>
     `;
   }).join('');
@@ -659,7 +659,7 @@ function runCommand(command: string): void {
     toggleTerminal();
   }
 
-  terminalOutput.innerHTML += `<span class="terminal-prompt">${terminalPrompt}</span> ${escapeHtml(
+  terminalOutput.innerHTML += `<span class="terminal-prompt">${escapeHtml(terminalPrompt)}</span> ${escapeHtml(
     command
   )}\n`;
   terminalOutput.scrollTop = terminalOutput.scrollHeight;
