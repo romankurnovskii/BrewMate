@@ -94,16 +94,10 @@ function init(): void {
   categoryChips = document.getElementById('categoryChips') as HTMLElement;
   typeFilter = document.getElementById('typeFilter') as HTMLElement;
   appsGrid = document.getElementById('appsGrid') as HTMLElement;
-  terminalContainer = document.getElementById(
-    'terminalContainer',
-  ) as HTMLElement;
+  terminalContainer = document.getElementById('terminalContainer') as HTMLElement;
   terminalOutput = document.getElementById('terminalOutput') as HTMLElement;
-  terminalToggle = document.getElementById(
-    'terminalToggle',
-  ) as HTMLButtonElement;
-  terminalToggleIcon = document.getElementById(
-    'terminalToggleIcon',
-  ) as HTMLElement | null;
+  terminalToggle = document.getElementById('terminalToggle') as HTMLButtonElement;
+  terminalToggleIcon = document.getElementById('terminalToggleIcon') as HTMLElement | null;
   appCount = document.getElementById('appCount') as HTMLElement;
   loadingMessage = document.getElementById('loadingMessage') as HTMLElement;
   logPath = document.getElementById('logPath') as HTMLElement;
@@ -174,10 +168,7 @@ function setupEventListeners(): void {
     'scroll',
     () => {
       const currentScrollTop = appsGrid.scrollTop;
-      if (
-        Math.abs(currentScrollTop - lastScrollTop) >
-        VIRTUAL_SCROLL_CONFIG.scrollThreshold
-      ) {
+      if (Math.abs(currentScrollTop - lastScrollTop) > VIRTUAL_SCROLL_CONFIG.scrollThreshold) {
         lastScrollTop = currentScrollTop;
         if (scrollDebounceTimer) clearTimeout(scrollDebounceTimer);
         scrollDebounceTimer = setTimeout(() => {
@@ -185,7 +176,7 @@ function setupEventListeners(): void {
         }, VIRTUAL_SCROLL_CONFIG.scrollThrottleMs);
       }
     },
-    { passive: true },
+    { passive: true }
   );
 
   // Calculate items per row on resize
@@ -199,13 +190,8 @@ function setupEventListeners(): void {
   // Type filter buttons
   typeFilter.querySelectorAll('.type-toggle').forEach((btn) => {
     btn.addEventListener('click', () => {
-      selectedType = (btn as HTMLElement).dataset.type as
-        | 'All'
-        | 'cask'
-        | 'formula';
-      document
-        .querySelectorAll('.type-toggle')
-        .forEach((b) => b.classList.remove('active'));
+      selectedType = (btn as HTMLElement).dataset.type as 'All' | 'cask' | 'formula';
+      document.querySelectorAll('.type-toggle').forEach((b) => b.classList.remove('active'));
       btn.classList.add('active');
       visibleStartIndex = 0;
       appsGrid.scrollTop = 0;
@@ -238,9 +224,7 @@ function setupEventListeners(): void {
 
   // IPC listeners
   if (!ipcRenderer) {
-    console.error(
-      '[Renderer] Cannot setup IPC listeners - ipcRenderer not available',
-    );
+    console.error('[Renderer] Cannot setup IPC listeners - ipcRenderer not available');
     return;
   }
 
@@ -268,40 +252,31 @@ function setupEventListeners(): void {
       } else {
         filterApps();
       }
-    },
+    }
   );
   ipcRenderer.on(
     'install-complete',
-    (
-      _event: any,
-      { appName, success }: { appName: string; success: boolean },
-    ) => {
+    (_event: any, { appName, success }: { appName: string; success: boolean }) => {
       if (success) {
         installedApps.add(appName);
         renderCategories();
         filterApps();
       }
-    },
+    }
   );
   ipcRenderer.on(
     'uninstall-complete',
-    (
-      _event: any,
-      { appName, success }: { appName: string; success: boolean },
-    ) => {
+    (_event: any, { appName, success }: { appName: string; success: boolean }) => {
       if (success) {
         installedApps.delete(appName);
         renderCategories();
         filterApps();
       }
-    },
+    }
   );
   ipcRenderer.on(
     'loading-status',
-    (
-      _event: any,
-      { loading, message }: { loading: boolean; message?: string },
-    ) => {
+    (_event: any, { loading, message }: { loading: boolean; message?: string }) => {
       console.log('[Renderer] Loading status:', loading, message);
       isLoading = loading;
       if (loadingMessage) {
@@ -317,7 +292,7 @@ function setupEventListeners(): void {
         `;
         }
       }
-    },
+    }
   );
   ipcRenderer.on('all-apps-updated', (_event: any, apps: Array<App>) => {
     allApps = apps;
@@ -331,14 +306,10 @@ function setupEventListeners(): void {
     'terminal-prompt-info',
     (
       _event: any,
-      {
-        username,
-        hostname,
-        dir,
-      }: { username: string; hostname: string; dir: string },
+      { username, hostname, dir }: { username: string; hostname: string; dir: string }
     ) => {
       terminalPrompt = `${username}@${hostname} ${dir} %`;
-    },
+    }
   );
 
   // Get log file path on startup
@@ -360,7 +331,7 @@ function setupEventListeners(): void {
         }
         versionInfo.textContent = versionText;
       }
-    },
+    }
   );
 }
 
@@ -393,24 +364,21 @@ function loadData(): void {
 }
 
 function renderCategories(): void {
-  categoryChips.innerHTML = CATEGORIES.map((cat) => {
+  categoryChips.textContent = '';
+  CATEGORIES.forEach((cat) => {
     const isInstalled = cat === 'Installed';
     const isActive = selectedCategory === cat;
-    return `
-      <button class="category-chip ${isInstalled ? 'installed-category' : ''} ${isActive ? 'active' : ''
-      }" 
-              data-category="${cat}">
-        ${cat}${isInstalled ? ' (' + installedApps.size + ')' : ''}
-      </button>
-    `;
-  }).join('');
+    const btn = document.createElement('button');
+    btn.className = `category-chip ${isInstalled ? 'installed-category' : ''} ${isActive ? 'active' : ''}`;
+    btn.dataset.category = cat;
+    btn.textContent = cat + (isInstalled ? ` (${installedApps.size})` : '');
+    categoryChips.appendChild(btn);
+  });
 
   categoryChips.querySelectorAll('.category-chip').forEach((btn) => {
     btn.addEventListener('click', () => {
       selectedCategory = (btn as HTMLElement).dataset.category || 'All';
-      document
-        .querySelectorAll('.category-chip')
-        .forEach((b) => b.classList.remove('active'));
+      document.querySelectorAll('.category-chip').forEach((b) => b.classList.remove('active'));
       btn.classList.add('active');
       visibleStartIndex = 0;
       appsGrid.scrollTop = 0;
@@ -440,49 +408,25 @@ function getCategoryForApp(app: App): string {
   ) {
     return 'Photo/Video';
   }
-  if (
-    text.includes('design') ||
-    text.includes('graphic') ||
-    text.includes('draw')
-  ) {
+  if (text.includes('design') || text.includes('graphic') || text.includes('draw')) {
     return 'Graphic/Design';
   }
-  if (
-    text.includes('music') ||
-    text.includes('audio') ||
-    text.includes('sound')
-  ) {
+  if (text.includes('music') || text.includes('audio') || text.includes('sound')) {
     return 'Music';
   }
-  if (
-    text.includes('productivity') ||
-    text.includes('note') ||
-    text.includes('todo')
-  ) {
+  if (text.includes('productivity') || text.includes('note') || text.includes('todo')) {
     return 'Productivity';
   }
-  if (
-    text.includes('social') ||
-    text.includes('chat') ||
-    text.includes('message')
-  ) {
+  if (text.includes('social') || text.includes('chat') || text.includes('message')) {
     return 'Social';
   }
-  if (
-    text.includes('business') ||
-    text.includes('email') ||
-    text.includes('finance')
-  ) {
+  if (text.includes('business') || text.includes('email') || text.includes('finance')) {
     return 'Business';
   }
   if (text.includes('game') || text.includes('play')) {
     return 'Games';
   }
-  if (
-    text.includes('utility') ||
-    text.includes('tool') ||
-    text.includes('manager')
-  ) {
+  if (text.includes('utility') || text.includes('tool') || text.includes('manager')) {
     return 'Utilities';
   }
   return 'Other';
@@ -657,8 +601,8 @@ function renderAppCard(app: App, isInstalled: boolean): string {
         </div>
         <h3 class="app-title">${escapeHtml(app.name)}</h3>
         <p class="app-description">${escapeHtml(
-    app.description || 'No description available',
-  )}</p>
+          app.description || 'No description available'
+        )}</p>
       </div>
       <div class="app-actions">
         <button class="app-button ${isInstalled ? 'installed' : ''}" 
@@ -666,8 +610,9 @@ function renderAppCard(app: App, isInstalled: boolean): string {
                 data-type="${app.type}">
           ${isInstalled ? 'Delete' : 'Install'}
         </button>
-        ${app.homepage
-      ? `
+        ${
+          app.homepage
+            ? `
           <a href="${app.homepage}" target="_blank" class="external-link" title="Open homepage">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
               <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
@@ -676,8 +621,8 @@ function renderAppCard(app: App, isInstalled: boolean): string {
             </svg>
           </a>
         `
-      : ''
-    }
+            : ''
+        }
       </div>
     </div>
   `;
@@ -690,7 +635,7 @@ function toggleTerminal(): void {
     if (terminalToggleIcon && terminalToggleIcon.querySelector('path')) {
       (terminalToggleIcon.querySelector('path') as SVGPathElement).setAttribute(
         'd',
-        'M19 9l-7 7-7-7',
+        'M19 9l-7 7-7-7'
       );
     }
   } else {
@@ -698,7 +643,7 @@ function toggleTerminal(): void {
     if (terminalToggleIcon && terminalToggleIcon.querySelector('path')) {
       (terminalToggleIcon.querySelector('path') as SVGPathElement).setAttribute(
         'd',
-        'M5 15l7-7 7 7',
+        'M5 15l7-7 7 7'
       );
     }
   }
@@ -712,9 +657,11 @@ function runCommand(command: string): void {
     toggleTerminal();
   }
 
-  terminalOutput.innerHTML += `<span class="terminal-prompt">${terminalPrompt}</span> ${escapeHtml(
-    command,
-  )}\n`;
+  const promptSpan = document.createElement('span');
+  promptSpan.className = 'terminal-prompt';
+  promptSpan.textContent = terminalPrompt;
+  terminalOutput.appendChild(promptSpan);
+  terminalOutput.appendChild(document.createTextNode(` ${command}\n`));
   terminalOutput.scrollTop = terminalOutput.scrollHeight;
 
   ipcRenderer.send('execute-command', command);
