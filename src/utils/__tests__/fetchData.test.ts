@@ -15,6 +15,9 @@ describe('fetchData utilities', () => {
     it('should fetch and parse JSON successfully', (done) => {
       const mockData = { key: 'value', number: 123 };
       const mockResponse: any = {
+        headers: { 'content-encoding': 'identity' },
+        setEncoding: jest.fn(),
+        pipe: jest.fn().mockReturnThis(),
         on: jest.fn((event: string, callback: (data?: any) => void) => {
           if (event === 'data') {
             callback(Buffer.from(JSON.stringify(mockData)));
@@ -25,9 +28,10 @@ describe('fetchData utilities', () => {
         }),
       };
 
-      (mockHttps.get as jest.Mock).mockImplementation((url, callback) => {
-        if (callback) {
-          setTimeout(() => callback(mockResponse), 0);
+      (mockHttps.get as jest.Mock).mockImplementation((url, options, callback) => {
+        const cb = typeof options === 'function' ? options : callback;
+        if (cb) {
+          setTimeout(() => cb(mockResponse), 0);
         }
         return mockResponse;
       });
@@ -37,7 +41,10 @@ describe('fetchData utilities', () => {
           expect(result).toEqual(mockData);
           expect(mockHttps.get).toHaveBeenCalledWith(
             'https://example.com/api',
-            expect.any(Function),
+            expect.objectContaining({
+              headers: expect.objectContaining({ 'Accept-Encoding': 'gzip, deflate, br' }),
+            }),
+            expect.any(Function)
           );
           done();
         })
@@ -53,6 +60,9 @@ describe('fetchData utilities', () => {
       let endCallback: (() => void) | null = null;
 
       const mockResponse: any = {
+        headers: { 'content-encoding': 'identity' },
+        setEncoding: jest.fn(),
+        pipe: jest.fn().mockReturnThis(),
         on: jest.fn((event: string, callback: (data?: any) => void) => {
           if (event === 'data') {
             dataCallbacks.push(callback);
@@ -73,9 +83,10 @@ describe('fetchData utilities', () => {
         }),
       };
 
-      (mockHttps.get as jest.Mock).mockImplementation((url, callback) => {
-        if (callback) {
-          setTimeout(() => callback(mockResponse), 0);
+      (mockHttps.get as jest.Mock).mockImplementation((url, options, callback) => {
+        const cb = typeof options === 'function' ? options : callback;
+        if (cb) {
+          setTimeout(() => cb(mockResponse), 0);
         }
         return mockResponse;
       });
@@ -90,6 +101,9 @@ describe('fetchData utilities', () => {
 
     it('should reject on invalid JSON', (done) => {
       const mockResponse: any = {
+        headers: { 'content-encoding': 'identity' },
+        setEncoding: jest.fn(),
+        pipe: jest.fn().mockReturnThis(),
         on: jest.fn((event: string, callback: (data?: any) => void) => {
           if (event === 'data') {
             callback(Buffer.from('invalid json'));
@@ -100,9 +114,10 @@ describe('fetchData utilities', () => {
         }),
       };
 
-      (mockHttps.get as jest.Mock).mockImplementation((url, callback) => {
-        if (callback) {
-          setTimeout(() => callback(mockResponse), 0);
+      (mockHttps.get as jest.Mock).mockImplementation((url, options, callback) => {
+        const cb = typeof options === 'function' ? options : callback;
+        if (cb) {
+          setTimeout(() => cb(mockResponse), 0);
         }
         return mockResponse;
       });
@@ -142,6 +157,9 @@ describe('fetchData utilities', () => {
 
     it('should handle empty response', (done) => {
       const mockResponse: any = {
+        headers: { 'content-encoding': 'identity' },
+        setEncoding: jest.fn(),
+        pipe: jest.fn().mockReturnThis(),
         on: jest.fn((event: string, callback: (data?: any) => void) => {
           if (event === 'data') {
             callback(Buffer.from(''));
@@ -152,9 +170,10 @@ describe('fetchData utilities', () => {
         }),
       };
 
-      (mockHttps.get as jest.Mock).mockImplementation((url, callback) => {
-        if (callback) {
-          setTimeout(() => callback(mockResponse), 0);
+      (mockHttps.get as jest.Mock).mockImplementation((url, options, callback) => {
+        const cb = typeof options === 'function' ? options : callback;
+        if (cb) {
+          setTimeout(() => cb(mockResponse), 0);
         }
         return mockResponse;
       });
@@ -177,15 +196,18 @@ describe('fetchData utilities', () => {
         })),
       };
       const mockResponse: any = {
+        headers: { 'content-encoding': 'identity' },
+        setEncoding: jest.fn(),
+        pipe: jest.fn().mockReturnThis(),
         on: jest.fn((event: string, callback: (data?: any) => void) => {
           if (event === 'data') {
             // Call data callback synchronously
             callback(Buffer.from(JSON.stringify(largeData)));
             // Then call end callback
             setTimeout(() => {
-              const endCallback = (
-                mockResponse.on as jest.Mock
-              ).mock.calls.find((call: any[]) => call[0] === 'end')?.[1];
+              const endCallback = (mockResponse.on as jest.Mock).mock.calls.find(
+                (call: any[]) => call[0] === 'end'
+              )?.[1];
               if (endCallback) {
                 endCallback();
               }
@@ -197,9 +219,10 @@ describe('fetchData utilities', () => {
         }),
       };
 
-      (mockHttps.get as jest.Mock).mockImplementation((url, callback) => {
-        if (callback) {
-          setTimeout(() => callback(mockResponse), 0);
+      (mockHttps.get as jest.Mock).mockImplementation((url, options, callback) => {
+        const cb = typeof options === 'function' ? options : callback;
+        if (cb) {
+          setTimeout(() => cb(mockResponse), 0);
         }
         return mockResponse;
       });
@@ -219,6 +242,9 @@ describe('fetchData utilities', () => {
       // Create a mock response factory
       const createMockResponse = () => {
         const mockResponse: any = {
+          headers: { 'content-encoding': 'identity' },
+          setEncoding: jest.fn(),
+          pipe: jest.fn().mockReturnThis(),
           on: jest.fn((event: string, callback: (data?: any) => void) => {
             if (event === 'data') {
               // Call data callback synchronously
@@ -240,11 +266,12 @@ describe('fetchData utilities', () => {
       ];
 
       // Mock get to return a new response for each call
-      (mockHttps.get as jest.Mock).mockImplementation((url, callback) => {
+      (mockHttps.get as jest.Mock).mockImplementation((url, options, callback) => {
+        const cb = typeof options === 'function' ? options : callback;
         const mockResponse = createMockResponse();
         // Call the callback immediately with the mock response
-        if (callback) {
-          setTimeout(() => callback(mockResponse), 0);
+        if (cb) {
+          setTimeout(() => cb(mockResponse), 0);
         }
         return mockResponse;
       });
