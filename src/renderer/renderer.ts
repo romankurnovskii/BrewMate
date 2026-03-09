@@ -136,8 +136,8 @@ function init(): void {
     return;
   }
 
-  // Initialize terminal output
-  terminalOutput.innerHTML = `Welcome to Pantry terminal.\nLast login: ${new Date().toLocaleString()}\n`;
+  // Initialize terminal output safely
+  terminalOutput.textContent = `Welcome to Pantry terminal.\nLast login: ${new Date().toLocaleString()}\n`;
 
   // Load version info
   if (versionInfo && ipcRenderer) {
@@ -230,7 +230,7 @@ function setupEventListeners(): void {
 
   ipcRenderer.on('toggle-terminal', toggleTerminal);
   ipcRenderer.on('terminal-output', (_event: any, data: string) => {
-    terminalOutput.innerHTML += escapeHtml(data);
+    terminalOutput.appendChild(document.createTextNode(data));
     terminalOutput.scrollTop = terminalOutput.scrollHeight;
   });
   ipcRenderer.on('all-apps', (_event: any, apps: Array<App>) => {
@@ -364,28 +364,29 @@ function loadData(): void {
 }
 
 function renderCategories(): void {
-  categoryChips.innerHTML = CATEGORIES.map((cat) => {
+  categoryChips.textContent = ''; // Clear existing chips safely
+
+  CATEGORIES.forEach((cat) => {
     const isInstalled = cat === 'Installed';
     const isActive = selectedCategory === cat;
-    return `
-      <button class="category-chip ${isInstalled ? 'installed-category' : ''} ${
-        isActive ? 'active' : ''
-      }" 
-              data-category="${escapeHtml(cat)}">
-        ${escapeHtml(cat)}${isInstalled ? ' (' + installedApps.size + ')' : ''}
-      </button>
-    `;
-  }).join('');
 
-  categoryChips.querySelectorAll('.category-chip').forEach((btn) => {
+    const btn = document.createElement('button');
+    btn.className = `category-chip ${isInstalled ? 'installed-category' : ''} ${
+      isActive ? 'active' : ''
+    }`;
+    btn.dataset.category = cat;
+    btn.textContent = `${cat}${isInstalled ? ' (' + installedApps.size + ')' : ''}`;
+
     btn.addEventListener('click', () => {
-      selectedCategory = (btn as HTMLElement).dataset.category || 'All';
+      selectedCategory = cat;
       document.querySelectorAll('.category-chip').forEach((b) => b.classList.remove('active'));
       btn.classList.add('active');
       visibleStartIndex = 0;
       appsGrid.scrollTop = 0;
       filterApps();
     });
+
+    categoryChips.appendChild(btn);
   });
 }
 
@@ -659,9 +660,12 @@ function runCommand(command: string): void {
     toggleTerminal();
   }
 
-  terminalOutput.innerHTML += `<span class="terminal-prompt">${escapeHtml(terminalPrompt)}</span> ${escapeHtml(
-    command
-  )}\n`;
+  const promptSpan = document.createElement('span');
+  promptSpan.className = 'terminal-prompt';
+  promptSpan.textContent = terminalPrompt;
+
+  terminalOutput.appendChild(promptSpan);
+  terminalOutput.appendChild(document.createTextNode(` ${command}\n`));
   terminalOutput.scrollTop = terminalOutput.scrollHeight;
 
   ipcRenderer.send('execute-command', command);
