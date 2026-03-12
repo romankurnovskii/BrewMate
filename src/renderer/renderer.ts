@@ -284,12 +284,20 @@ function setupEventListeners(): void {
       }
       if (loading) {
         if (!appsGrid.querySelector('.loading')) {
-          appsGrid.innerHTML = `
-          <div class="loading">
-            <div class="loading-spinner"></div>
-            <div class="loading-message">${message || 'Loading apps...'}</div>
-          </div>
-        `;
+          appsGrid.innerHTML = '';
+          const loadingDiv = document.createElement('div');
+          loadingDiv.className = 'loading';
+
+          const spinnerDiv = document.createElement('div');
+          spinnerDiv.className = 'loading-spinner';
+
+          const messageDiv = document.createElement('div');
+          messageDiv.className = 'loading-message';
+          messageDiv.textContent = message || 'Loading apps...';
+
+          loadingDiv.appendChild(spinnerDiv);
+          loadingDiv.appendChild(messageDiv);
+          appsGrid.appendChild(loadingDiv);
         }
       }
     }
@@ -659,9 +667,14 @@ function runCommand(command: string): void {
     toggleTerminal();
   }
 
-  terminalOutput.innerHTML += `<span class="terminal-prompt">${terminalPrompt}</span> ${escapeHtml(
-    command
-  )}\n`;
+  const promptSpan = document.createElement('span');
+  promptSpan.className = 'terminal-prompt';
+  promptSpan.textContent = terminalPrompt;
+
+  const commandText = document.createTextNode(` ${command}\n`);
+
+  terminalOutput.appendChild(promptSpan);
+  terminalOutput.appendChild(commandText);
   terminalOutput.scrollTop = terminalOutput.scrollHeight;
 
   ipcRenderer.send('execute-command', command);
