@@ -1,0 +1,3 @@
+## 2023-11-20 - [Optimize large JSON fetching]
+**Learning:** Homebrew JSON APIs (`formula.json`, `cask.json`) are extremely large (up to 30MB+ uncompressed), causing significant memory pressure and long network transfer times if fetched without compression.
+**Action:** Always use HTTP compression (e.g., `Accept-Encoding: gzip, deflate, br`) combined with stream decompression (e.g. `zlib`) when fetching these specific endpoints to drastically reduce network transfer and memory overhead.
