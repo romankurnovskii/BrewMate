@@ -373,18 +373,21 @@ function loadData(): void {
 }
 
 function renderCategories(): void {
-  categoryChips.innerHTML = CATEGORIES.map((cat) => {
+  categoryChips.innerHTML = '';
+  CATEGORIES.forEach((cat) => {
     const isInstalled = cat === 'Installed';
     const isActive = selectedCategory === cat;
-    return `
-      <button class="category-chip ${isInstalled ? 'installed-category' : ''} ${
-        isActive ? 'active' : ''
-      }" 
-              data-category="${cat}">
-        ${cat}${isInstalled ? ' (' + installedApps.size + ')' : ''}
-      </button>
-    `;
-  }).join('');
+
+    const btn = document.createElement('button');
+    let classNames = 'category-chip';
+    if (isInstalled) classNames += ' installed-category';
+    if (isActive) classNames += ' active';
+    btn.className = classNames;
+    btn.dataset.category = cat;
+    btn.textContent = `${cat}${isInstalled ? ' (' + installedApps.size + ')' : ''}`;
+
+    categoryChips.appendChild(btn);
+  });
 
   categoryChips.querySelectorAll('.category-chip').forEach((btn) => {
     btn.addEventListener('click', () => {
@@ -520,27 +523,42 @@ function updateVisibleItems(): void {
 function renderApps(): void {
   // Clear the grid first to prevent showing old apps
   if (isLoading && allApps.length === 0) {
-    appsGrid.innerHTML = `
-      <div class="loading">
-        <div class="loading-spinner"></div>
-        <div class="loading-message">Loading apps from Homebrew...</div>
-      </div>
-    `;
+    appsGrid.innerHTML = '';
+    const loadingDiv = document.createElement('div');
+    loadingDiv.className = 'loading';
+
+    const spinnerDiv = document.createElement('div');
+    spinnerDiv.className = 'loading-spinner';
+
+    const messageDiv = document.createElement('div');
+    messageDiv.className = 'loading-message';
+    messageDiv.textContent = 'Loading apps from Homebrew...';
+
+    loadingDiv.appendChild(spinnerDiv);
+    loadingDiv.appendChild(messageDiv);
+
+    appsGrid.appendChild(loadingDiv);
     return;
   }
 
   // Show empty state when no filtered apps (but apps are loaded)
   if (filteredApps.length === 0 && allApps.length > 0) {
-    appsGrid.innerHTML =
-      '<div class="empty-state">No apps found matching your criteria.</div>';
+    appsGrid.innerHTML = '';
+    const emptyStateDiv = document.createElement('div');
+    emptyStateDiv.className = 'empty-state';
+    emptyStateDiv.textContent = 'No apps found matching your criteria.';
+    appsGrid.appendChild(emptyStateDiv);
     // Reset scroll position
     appsGrid.scrollTop = 0;
     return;
   }
 
   if (filteredApps.length === 0 && allApps.length === 0 && !isLoading) {
-    appsGrid.innerHTML =
-      '<div class="empty-state">No apps available. Please check your connection.</div>';
+    appsGrid.innerHTML = '';
+    const emptyStateDiv = document.createElement('div');
+    emptyStateDiv.className = 'empty-state';
+    emptyStateDiv.textContent = 'No apps available. Please check your connection.';
+    appsGrid.appendChild(emptyStateDiv);
     appsGrid.scrollTop = 0;
     return;
   }
@@ -555,22 +573,41 @@ function renderApps(): void {
   const bottomSpacerHeight = Math.max(0, (totalRows - endRow) * rowHeight);
   const totalHeight = totalRows * rowHeight;
 
-  const appsHTML = visibleApps
-    .map((app) => {
-      const isInstalled = installedApps.has(app.name);
-      return renderAppCard(app, isInstalled);
-    })
-    .join('');
+  const outerDiv = document.createElement('div');
+  outerDiv.style.height = `${totalHeight}px`;
+  outerDiv.style.position = 'relative';
 
-  appsGrid.innerHTML = `
-    <div style="height: ${totalHeight}px; position: relative;">
-      <div class="apps-grid-spacer" style="height: ${topSpacerHeight}px;"></div>
-      <div class="apps-grid-container">
-        ${appsHTML}
-      </div>
-      <div class="apps-grid-spacer" style="height: ${bottomSpacerHeight}px;"></div>
-    </div>
-  `;
+  const topSpacer = document.createElement('div');
+  topSpacer.className = 'apps-grid-spacer';
+  topSpacer.style.height = `${topSpacerHeight}px`;
+
+  const gridContainer = document.createElement('div');
+  gridContainer.className = 'apps-grid-container';
+
+  visibleApps.forEach((app) => {
+    const isInstalled = installedApps.has(app.name);
+    const cardHTML = renderAppCard(app, isInstalled);
+
+    // Create a temporary container to parse the HTML and append its first child
+    // (This is safer than assigning innerHTML on appsGrid directly, though ideally
+    // we would migrate renderAppCard to fully use document.createElement too)
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = cardHTML;
+    if (tempDiv.firstElementChild) {
+      gridContainer.appendChild(tempDiv.firstElementChild);
+    }
+  });
+
+  const bottomSpacer = document.createElement('div');
+  bottomSpacer.className = 'apps-grid-spacer';
+  bottomSpacer.style.height = `${bottomSpacerHeight}px`;
+
+  outerDiv.appendChild(topSpacer);
+  outerDiv.appendChild(gridContainer);
+  outerDiv.appendChild(bottomSpacer);
+
+  appsGrid.innerHTML = '';
+  appsGrid.appendChild(outerDiv);
 
   appsGrid.querySelectorAll('.app-button').forEach((btn) => {
     btn.addEventListener('click', (e) => {
