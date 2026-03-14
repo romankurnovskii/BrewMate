@@ -284,12 +284,21 @@ function setupEventListeners(): void {
       }
       if (loading) {
         if (!appsGrid.querySelector('.loading')) {
-          appsGrid.innerHTML = `
-          <div class="loading">
-            <div class="loading-spinner"></div>
-            <div class="loading-message">${message || 'Loading apps...'}</div>
-          </div>
-        `;
+          const loadingDiv = document.createElement('div');
+          loadingDiv.className = 'loading';
+
+          const spinnerDiv = document.createElement('div');
+          spinnerDiv.className = 'loading-spinner';
+
+          const messageDiv = document.createElement('div');
+          messageDiv.className = 'loading-message';
+          messageDiv.textContent = message || 'Loading apps...';
+
+          loadingDiv.appendChild(spinnerDiv);
+          loadingDiv.appendChild(messageDiv);
+
+          appsGrid.innerHTML = '';
+          appsGrid.appendChild(loadingDiv);
         }
       }
     }
