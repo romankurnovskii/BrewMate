@@ -1,0 +1,3 @@
+## 2024-05-24 - Frontend Filter Loop Optimization
+**Learning:** In frontend environments dealing with large datasets (like thousands of Homebrew apps), invariant operations like `searchTerm.toLowerCase()` inside a `.filter` or loop create significant unnecessary overhead (O(N) redundant string allocation and transformation).
+**Action:** Always move invariant transformations outside the loop. Additionally, when extracting values like `searchTerm` that may be nullish depending on global state, apply a defensive fallback (e.g. `(searchTerm || '').toLowerCase()`) to prevent runtime errors in the renderer process.
