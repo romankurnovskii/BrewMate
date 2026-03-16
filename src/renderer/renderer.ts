@@ -502,6 +502,11 @@ function filterApps(): void {
     // Reset filtered apps before filtering
     filteredApps = [];
 
+    // ⚡ Bolt: Move invariant searchTerm.toLowerCase() outside the filter loop
+    // to avoid recomputing it for every single app (O(N) operations -> 1).
+    // Also use defensive null-checks (searchTerm || '') per memory constraints.
+    const searchLower = (searchTerm || '').toLowerCase();
+
     filteredApps = allApps.filter((app) => {
       const matchesType = selectedType === 'All' || app.type === selectedType;
 
@@ -513,9 +518,8 @@ function filterApps(): void {
       }
 
       const matchesSearch =
-        !searchTerm ||
+        !searchLower ||
         (() => {
-          const searchLower = searchTerm.toLowerCase();
           const name = (app.name || '').toLowerCase();
           const desc = (app.description || '').toLowerCase();
           const homepage = (app.homepage || '').toLowerCase();
