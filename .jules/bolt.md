@@ -1,0 +1,3 @@
+## 2024-03-28 - Compressed HTTP Fetching
+**Learning:** Homebrew JSON APIs are massive, leading to high transfer times and payload sizes. Using standard HTTP fetching transfers these files uncompressed by default in Node.js, unlike browsers which automatically add `Accept-Encoding: gzip, deflate, br`.
+**Action:** When working with large HTTP payloads in Node.js (like `src/utils/fetchData.ts`), explicitly specify `Accept-Encoding: gzip, deflate, br` and handle the corresponding decompressed streams via `zlib` to drastically reduce network transfer times and bandwidth consumption. Also, remember to mock `https.get` defensively since `https.get(url, options, callback)` changes the signature.

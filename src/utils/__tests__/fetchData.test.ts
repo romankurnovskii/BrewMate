@@ -25,9 +25,10 @@ describe('fetchData utilities', () => {
         }),
       };
 
-      (mockHttps.get as jest.Mock).mockImplementation((url, callback) => {
-        if (callback) {
-          setTimeout(() => callback(mockResponse), 0);
+      (mockHttps.get as jest.Mock).mockImplementation((url, options, callback) => {
+        const cb = callback || options;
+        if (typeof cb === 'function') {
+          setTimeout(() => cb(mockResponse), 0);
         }
         return mockResponse;
       });
@@ -37,7 +38,8 @@ describe('fetchData utilities', () => {
           expect(result).toEqual(mockData);
           expect(mockHttps.get).toHaveBeenCalledWith(
             'https://example.com/api',
-            expect.any(Function),
+            { headers: { 'Accept-Encoding': 'gzip, deflate, br' } },
+            expect.any(Function)
           );
           done();
         })
@@ -73,9 +75,10 @@ describe('fetchData utilities', () => {
         }),
       };
 
-      (mockHttps.get as jest.Mock).mockImplementation((url, callback) => {
-        if (callback) {
-          setTimeout(() => callback(mockResponse), 0);
+      (mockHttps.get as jest.Mock).mockImplementation((url, options, callback) => {
+        const cb = callback || options;
+        if (typeof cb === 'function') {
+          setTimeout(() => cb(mockResponse), 0);
         }
         return mockResponse;
       });
@@ -100,9 +103,10 @@ describe('fetchData utilities', () => {
         }),
       };
 
-      (mockHttps.get as jest.Mock).mockImplementation((url, callback) => {
-        if (callback) {
-          setTimeout(() => callback(mockResponse), 0);
+      (mockHttps.get as jest.Mock).mockImplementation((url, options, callback) => {
+        const cb = callback || options;
+        if (typeof cb === 'function') {
+          setTimeout(() => cb(mockResponse), 0);
         }
         return mockResponse;
       });
@@ -152,9 +156,10 @@ describe('fetchData utilities', () => {
         }),
       };
 
-      (mockHttps.get as jest.Mock).mockImplementation((url, callback) => {
-        if (callback) {
-          setTimeout(() => callback(mockResponse), 0);
+      (mockHttps.get as jest.Mock).mockImplementation((url, options, callback) => {
+        const cb = callback || options;
+        if (typeof cb === 'function') {
+          setTimeout(() => cb(mockResponse), 0);
         }
         return mockResponse;
       });
@@ -183,9 +188,9 @@ describe('fetchData utilities', () => {
             callback(Buffer.from(JSON.stringify(largeData)));
             // Then call end callback
             setTimeout(() => {
-              const endCallback = (
-                mockResponse.on as jest.Mock
-              ).mock.calls.find((call: any[]) => call[0] === 'end')?.[1];
+              const endCallback = (mockResponse.on as jest.Mock).mock.calls.find(
+                (call: any[]) => call[0] === 'end'
+              )?.[1];
               if (endCallback) {
                 endCallback();
               }
@@ -197,9 +202,10 @@ describe('fetchData utilities', () => {
         }),
       };
 
-      (mockHttps.get as jest.Mock).mockImplementation((url, callback) => {
-        if (callback) {
-          setTimeout(() => callback(mockResponse), 0);
+      (mockHttps.get as jest.Mock).mockImplementation((url, options, callback) => {
+        const cb = callback || options;
+        if (typeof cb === 'function') {
+          setTimeout(() => cb(mockResponse), 0);
         }
         return mockResponse;
       });
@@ -240,11 +246,12 @@ describe('fetchData utilities', () => {
       ];
 
       // Mock get to return a new response for each call
-      (mockHttps.get as jest.Mock).mockImplementation((url, callback) => {
+      (mockHttps.get as jest.Mock).mockImplementation((url, options, callback) => {
+        const cb = callback || options;
         const mockResponse = createMockResponse();
         // Call the callback immediately with the mock response
-        if (callback) {
-          setTimeout(() => callback(mockResponse), 0);
+        if (typeof cb === 'function') {
+          setTimeout(() => cb(mockResponse), 0);
         }
         return mockResponse;
       });
