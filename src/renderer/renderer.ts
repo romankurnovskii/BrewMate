@@ -137,7 +137,7 @@ function init(): void {
   }
 
   // Initialize terminal output
-  terminalOutput.innerHTML = `Welcome to Pantry terminal.\nLast login: ${new Date().toLocaleString()}\n`;
+  terminalOutput.textContent = `Welcome to Pantry terminal.\nLast login: ${new Date().toLocaleString()}\n`;
 
   // Load version info
   if (versionInfo && ipcRenderer) {
@@ -284,12 +284,17 @@ function setupEventListeners(): void {
       }
       if (loading) {
         if (!appsGrid.querySelector('.loading')) {
-          appsGrid.innerHTML = `
-          <div class="loading">
-            <div class="loading-spinner"></div>
-            <div class="loading-message">${message || 'Loading apps...'}</div>
-          </div>
-        `;
+          appsGrid.textContent = '';
+          const loadingDiv = document.createElement('div');
+          loadingDiv.className = 'loading';
+          const spinner = document.createElement('div');
+          spinner.className = 'loading-spinner';
+          const msg = document.createElement('div');
+          msg.className = 'loading-message';
+          msg.textContent = message || 'Loading apps...';
+          loadingDiv.appendChild(spinner);
+          loadingDiv.appendChild(msg);
+          appsGrid.appendChild(loadingDiv);
         }
       }
     }
@@ -364,18 +369,16 @@ function loadData(): void {
 }
 
 function renderCategories(): void {
-  categoryChips.innerHTML = CATEGORIES.map((cat) => {
+  categoryChips.textContent = '';
+  CATEGORIES.forEach((cat) => {
     const isInstalled = cat === 'Installed';
     const isActive = selectedCategory === cat;
-    return `
-      <button class="category-chip ${isInstalled ? 'installed-category' : ''} ${
-        isActive ? 'active' : ''
-      }" 
-              data-category="${cat}">
-        ${cat}${isInstalled ? ' (' + installedApps.size + ')' : ''}
-      </button>
-    `;
-  }).join('');
+    const btn = document.createElement('button');
+    btn.className = `category-chip ${isInstalled ? 'installed-category' : ''} ${isActive ? 'active' : ''}`;
+    btn.dataset.category = cat;
+    btn.textContent = `${cat}${isInstalled ? ' (' + installedApps.size + ')' : ''}`;
+    categoryChips.appendChild(btn);
+  });
 
   categoryChips.querySelectorAll('.category-chip').forEach((btn) => {
     btn.addEventListener('click', () => {
@@ -511,27 +514,38 @@ function updateVisibleItems(): void {
 function renderApps(): void {
   // Clear the grid first to prevent showing old apps
   if (isLoading && allApps.length === 0) {
-    appsGrid.innerHTML = `
-      <div class="loading">
-        <div class="loading-spinner"></div>
-        <div class="loading-message">Loading apps from Homebrew...</div>
-      </div>
-    `;
+    appsGrid.textContent = '';
+    const loadingDiv = document.createElement('div');
+    loadingDiv.className = 'loading';
+    const spinner = document.createElement('div');
+    spinner.className = 'loading-spinner';
+    const msg = document.createElement('div');
+    msg.className = 'loading-message';
+    msg.textContent = 'Loading apps from Homebrew...';
+    loadingDiv.appendChild(spinner);
+    loadingDiv.appendChild(msg);
+    appsGrid.appendChild(loadingDiv);
     return;
   }
 
   // Show empty state when no filtered apps (but apps are loaded)
   if (filteredApps.length === 0 && allApps.length > 0) {
-    appsGrid.innerHTML =
-      '<div class="empty-state">No apps found matching your criteria.</div>';
+    appsGrid.textContent = '';
+    const emptyDiv = document.createElement('div');
+    emptyDiv.className = 'empty-state';
+    emptyDiv.textContent = 'No apps found matching your criteria.';
+    appsGrid.appendChild(emptyDiv);
     // Reset scroll position
     appsGrid.scrollTop = 0;
     return;
   }
 
   if (filteredApps.length === 0 && allApps.length === 0 && !isLoading) {
-    appsGrid.innerHTML =
-      '<div class="empty-state">No apps available. Please check your connection.</div>';
+    appsGrid.textContent = '';
+    const emptyDiv = document.createElement('div');
+    emptyDiv.className = 'empty-state';
+    emptyDiv.textContent = 'No apps available. Please check your connection.';
+    appsGrid.appendChild(emptyDiv);
     appsGrid.scrollTop = 0;
     return;
   }
@@ -546,22 +560,41 @@ function renderApps(): void {
   const bottomSpacerHeight = Math.max(0, (totalRows - endRow) * rowHeight);
   const totalHeight = totalRows * rowHeight;
 
-  const appsHTML = visibleApps
-    .map((app) => {
-      const isInstalled = installedApps.has(app.name);
-      return renderAppCard(app, isInstalled);
-    })
-    .join('');
+  appsGrid.textContent = '';
 
-  appsGrid.innerHTML = `
-    <div style="height: ${totalHeight}px; position: relative;">
-      <div class="apps-grid-spacer" style="height: ${topSpacerHeight}px;"></div>
-      <div class="apps-grid-container">
-        ${appsHTML}
-      </div>
-      <div class="apps-grid-spacer" style="height: ${bottomSpacerHeight}px;"></div>
-    </div>
-  `;
+  const wrapperDiv = document.createElement('div');
+  wrapperDiv.style.height = `${totalHeight}px`;
+  wrapperDiv.style.position = 'relative';
+
+  const topSpacer = document.createElement('div');
+  topSpacer.className = 'apps-grid-spacer';
+  topSpacer.style.height = `${topSpacerHeight}px`;
+  wrapperDiv.appendChild(topSpacer);
+
+  const containerDiv = document.createElement('div');
+  containerDiv.className = 'apps-grid-container';
+
+  visibleApps.forEach((app) => {
+    const isInstalled = installedApps.has(app.name);
+
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(renderAppCard(app, isInstalled), 'text/html');
+
+    // Append the parsed app-card element safely without `innerHTML`
+    const appCardNode = doc.body.firstChild;
+    if (appCardNode) {
+      containerDiv.appendChild(appCardNode);
+    }
+  });
+
+  wrapperDiv.appendChild(containerDiv);
+
+  const bottomSpacer = document.createElement('div');
+  bottomSpacer.className = 'apps-grid-spacer';
+  bottomSpacer.style.height = `${bottomSpacerHeight}px`;
+  wrapperDiv.appendChild(bottomSpacer);
+
+  appsGrid.appendChild(wrapperDiv);
 
   appsGrid.querySelectorAll('.app-button').forEach((btn) => {
     btn.addEventListener('click', (e) => {
