@@ -4,6 +4,7 @@ export interface App {
   homepage: string;
   version: string;
   type: 'cask' | 'formula';
+  _categoryCache?: string;
 }
 
 export interface InstalledApp {
