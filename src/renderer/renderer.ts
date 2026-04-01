@@ -39,6 +39,7 @@ interface App {
   homepage: string;
   version: string;
   type: 'cask' | 'formula';
+  _category?: string;
 }
 
 // Immediate console log to verify script is loading
