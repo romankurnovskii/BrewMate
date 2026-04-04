@@ -1,0 +1,3 @@
+## 2024-04-04 - [Optimization Pattern: Lazy computation in filter loops]
+**Learning:** For large datasets (like Pantry's ~100k `allApps`), creating inline closures/IIFEs inside `.filter()` loops blocks the UI thread significantly on keystroke searches. Filtering logic previously suffered from recomputing the string values (lowercasing strings) on every tick and evaluation in `filterApps()`.
+**Action:** Move invariant transformations (e.g., `searchTerm.toLowerCase()`) outside the loop, order early returns by condition speed (direct property checks > set lookups > string includes), and memoize/cache expensive computed properties (like calculated categories or string properties) directly onto the app items lazily.
