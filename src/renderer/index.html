@@ -3,29 +3,12 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Pantry</title>
-    <meta
-      name="description"
-      content="Pantry - A modern package manager GUI for macOS"
-    />
+    <title>BrewMate</title>
+    <meta name="description" content="BrewMate - A modern package manager GUI for macOS" />
     <link rel="icon" type="image/x-icon" href="../assets/favicon.ico" />
-    <link
-      rel="icon"
-      type="image/png"
-      sizes="16x16"
-      href="../assets/favicon-16x16.png"
-    />
-    <link
-      rel="icon"
-      type="image/png"
-      sizes="32x32"
-      href="../assets/favicon-32x32.png"
-    />
-    <link
-      rel="apple-touch-icon"
-      sizes="180x180"
-      href="../assets/apple-touch-icon.png"
-    />
+    <link rel="icon" type="image/png" sizes="16x16" href="../assets/favicon-16x16.png" />
+    <link rel="icon" type="image/png" sizes="32x32" href="../assets/favicon-32x32.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="../assets/apple-touch-icon.png" />
     <link rel="stylesheet" href="./styles.css" />
   </head>
   <body>
@@ -33,15 +16,10 @@
     <div class="search-bar">
       <div class="search-bar-top">
         <div class="app-title">
-          <span>Pantry</span>
+          <span>BrewMate</span>
         </div>
         <div class="search-container">
-          <svg
-            class="search-icon"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
+          <svg class="search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path
               stroke-linecap="round"
               stroke-linejoin="round"
@@ -99,17 +77,8 @@
     <div class="terminal-container" id="terminalContainer">
       <div class="terminal-header">
         <span class="terminal-title">Terminal</span>
-        <button
-          class="terminal-toggle"
-          id="terminalToggle"
-          title="Toggle terminal (Cmd+J)"
-        >
-          <svg
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-            id="terminalToggleIcon"
-          >
+        <button class="terminal-toggle" id="terminalToggle" title="Toggle terminal (Cmd+J)">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" id="terminalToggleIcon">
             <path
               stroke-linecap="round"
               stroke-linejoin="round"
@@ -127,14 +96,8 @@
       <p>
         Press <span class="keyboard-shortcut">Cmd+J</span> to toggle terminal.
         <span id="appCount">0</span> apps shown.
-        <span
-          id="logPath"
-          style="margin-left: 16px; font-size: 11px; opacity: 0.6"
-        ></span>
-        <span
-          id="versionInfo"
-          style="margin-left: 16px; font-size: 11px; opacity: 0.6"
-        ></span>
+        <span id="logPath" style="margin-left: 16px; font-size: 11px; opacity: 0.6"></span>
+        <span id="versionInfo" style="margin-left: 16px; font-size: 11px; opacity: 0.6"></span>
       </p>
     </div>
 

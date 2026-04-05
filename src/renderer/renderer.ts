@@ -1,6 +1,4 @@
-// Access Electron APIs (nodeIntegration: true)
-// Use require at runtime since we're in renderer with nodeIntegration: true
-declare var require: any;
+// Uses window.electronAPI exposed via contextBridge
 
 // Inline constants to avoid CommonJS exports issue
 const CATEGORIES = [
@@ -44,13 +42,8 @@ interface App {
 // Immediate console log to verify script is loading
 console.log('[Renderer] renderer.ts script loaded');
 
-let ipcRenderer: any;
-try {
-  ipcRenderer = require('electron').ipcRenderer;
-  console.log('[Renderer] ipcRenderer loaded:', !!ipcRenderer);
-} catch (error) {
-  console.error('[Renderer] Failed to load ipcRenderer:', error);
-}
+const ipcRenderer = (window as any).electronAPI;
+console.log('[Renderer] ipcRenderer loaded:', !!ipcRenderer);
 
 // State
 let allApps: Array<App> = [];
@@ -62,7 +55,7 @@ let searchTerm = '';
 let terminalVisible = false;
 let commandToRun: string | null = null;
 let isLoading = true;
-let terminalPrompt = 'user@pantry ~ %';
+let terminalPrompt = 'user@brewmate ~ %';
 
 // Virtual scrolling state
 let visibleStartIndex = 0;
@@ -143,14 +136,14 @@ function init(): void {
   }
 
   // Initialize terminal output
-  terminalOutput.innerHTML = `Welcome to Pantry terminal.\nLast login: ${new Date().toLocaleString()}\n`;
+  terminalOutput.innerHTML = `Welcome to BrewMate terminal.\nLast login: ${new Date().toLocaleString()}\n`;
 
   // Load version info
   if (versionInfo && ipcRenderer) {
     ipcRenderer.send('get-version-info');
   }
 
-  console.log('Initializing Pantry...');
+  console.log('Initializing BrewMate...');
   setupEventListeners();
   loadData();
   renderCategories();
@@ -345,7 +338,7 @@ function setupEventListeners(): void {
   ipcRenderer.on('log-path', (_event: any, logFilePath: string) => {
     console.log('[Renderer] Log file location:', logFilePath);
     if (logPath) {
-      logPath.textContent = `Logs: /Users/pantry/.pantry/commands.log`;
+      logPath.textContent = `Logs: ${logFilePath}`;
     }
   });
 

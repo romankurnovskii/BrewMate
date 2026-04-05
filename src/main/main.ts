@@ -9,10 +9,11 @@ function createWindow(): void {
   mainWindow = new BrowserWindow({
     width: 1400,
     height: 900,
-    title: 'Pantry',
+    title: 'BrewMate',
     webPreferences: {
-      nodeIntegration: true,
-      contextIsolation: false,
+      nodeIntegration: false,
+      contextIsolation: true,
+      preload: path.join(__dirname, '../preload/preload.js'),
     },
   });
 
@@ -57,11 +58,11 @@ function createWindow(): void {
 
 function initializeApp(): void {
   // Set app name
-  app.setName('Pantry');
+  app.setName('BrewMate');
 
   // Log app startup
-  logCommand('Pantry started', undefined, undefined);
-  console.log('[Main] Pantry starting...');
+  logCommand('BrewMate started', undefined, undefined);
+  console.log('[Main] BrewMate starting...');
 
   // Setup IPC handlers BEFORE creating window
   console.log('[Main] Setting up IPC handlers...');
