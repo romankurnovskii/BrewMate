@@ -32,5 +32,9 @@ yarn-error.log*
 .env.prod
 .credentials/
 
+.agents/
+.continue/
+.vscode/
 build/
 docs/
+.dev/

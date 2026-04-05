@@ -2,7 +2,7 @@
 set -e
 
 echo "═══════════════════════════════════════════════════════════════"
-echo "  Building Pantry for Mac App Store (Universal Binary)"
+echo "  Building BrewMate for Mac App Store (Universal Binary)"
 echo "═══════════════════════════════════════════════════════════════"
 echo ""
 
@@ -14,10 +14,22 @@ else
 	echo "⚠️  Warning: .env file not found"
 fi
 
-# Check for required certificates
+# Check for required certificates or use provided environment variables
 echo "🔍 Checking for Mac App Store certificates..."
-APP_CERT_FULL=$(security find-identity -v -p codesigning | grep '3rd Party Mac Developer Application:' | head -n1 | grep -o '"[^"]*"$' | tr -d '"')
-INST_CERT_FULL=$(security find-identity -v | grep '3rd Party Mac Developer Installer:' | head -n1 | grep -o '"[^"]*"$' | tr -d '"')
+
+if [ -n "$APPLE_SIGNING_IDENTITY" ]; then
+	APP_CERT_FULL="$APPLE_SIGNING_IDENTITY"
+	echo "✅ Using provided APPLE_SIGNING_IDENTITY: $APP_CERT_FULL"
+else
+	APP_CERT_FULL=$(security find-identity -v -p codesigning | grep '3rd Party Mac Developer Application:' | head -n1 | grep -o '"[^"]*"$' | tr -d '"')
+fi
+
+if [ -n "$APPLE_INSTALLER_IDENTITY" ]; then
+	INST_CERT_FULL="$APPLE_INSTALLER_IDENTITY"
+	echo "✅ Using provided APPLE_INSTALLER_IDENTITY: $INST_CERT_FULL"
+else
+	INST_CERT_FULL=$(security find-identity -v | grep '3rd Party Mac Developer Installer:' | head -n1 | grep -o '"[^"]*"$' | tr -d '"')
+fi
 
 # Extract just the name part (after the colon and space)
 APP_CERT=$(echo "$APP_CERT_FULL" | sed 's/3rd Party Mac Developer Application: //')
@@ -44,25 +56,29 @@ echo ""
 echo "🔨 Starting build process..."
 echo ""
 
-# Auto-increment version in package.json
-echo "📝 Auto-incrementing version in package.json..."
-CURRENT_VERSION=$(node -p "require('./package.json').version")
-# Increment patch version (1.0.5 -> 1.0.6)
-NEW_VERSION=$(node -e "
-  const v = '$CURRENT_VERSION'.split('.');
-  v[2] = parseInt(v[2] || 0) + 1;
-  console.log(v.join('.'));
-")
+# Skip auto-increment if SKIP_VERSION_BUMP is set (useful for CI)
+if [ "$SKIP_VERSION_BUMP" != "true" ]; then
+	echo "📝 Auto-incrementing version in package.json..."
+	CURRENT_VERSION=$(node -p "require('./package.json').version")
+	# Increment patch version (1.0.5 -> 1.0.6)
+	NEW_VERSION=$(node -e "
+	  const v = '$CURRENT_VERSION'.split('.');
+	  v[2] = parseInt(v[2] || 0) + 1;
+	  console.log(v.join('.'));
+	")
 
-# Update package.json with new version
-node -e "
-  const fs = require('fs');
-  const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
-  pkg.version = '$NEW_VERSION';
-  fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2) + '\n');
-"
+	# Update package.json with new version
+	node -e "
+	  const fs = require('fs');
+	  const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
+	  pkg.version = '$NEW_VERSION';
+	  fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2) + '\n');
+	"
 
-echo "   Version updated: $CURRENT_VERSION → $NEW_VERSION"
+	echo "   Version updated: $CURRENT_VERSION → $NEW_VERSION"
+else
+	echo "⏭️  Skipping version auto-increment (SKIP_VERSION_BUMP=true)"
+fi
 echo ""
 
 # Set identity variables for electron-builder (WITHOUT prefix)
@@ -95,7 +111,7 @@ VERSION=$(node -p "require('./package.json').version")
 echo "   Version: $VERSION"
 echo ""
 
-electron-builder build --mac mas:universal --config electron-builder.yml
+npx electron-builder build --mac mas:universal --config electron-builder.yml
 
 # Check if build was successful
 if [ $? -eq 0 ]; then
@@ -106,7 +122,7 @@ if [ $? -eq 0 ]; then
 	echo ""
 
 	# Find the package file
-	PKG_FILE=$(find dist-app -name "Pantry-*.pkg" -type f | head -1)
+	PKG_FILE=$(find dist-app -name "BrewMate-*.pkg" -type f | head -1)
 
 	if [ -n "$PKG_FILE" ]; then
 		PKG_SIZE=$(du -h "$PKG_FILE" | cut -f1)
@@ -149,7 +165,7 @@ else
 	echo ""
 	echo "Please check the error messages above and verify:"
 	echo "1. All certificates are installed correctly"
-	echo "2. Provisioning profile exists: .credentials/Pantry_Distribution.provisionprofile"
+	echo "2. Provisioning profile exists: .credentials/BrewMate_Distribution.provisionprofile"
 	echo "3. Icon exists: build/icon.icns"
 	echo "4. Entitlements files exist in build/ directory"
 	echo ""

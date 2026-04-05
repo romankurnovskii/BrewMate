@@ -2,7 +2,7 @@
 # Script to set up keychain profile for notarization
 # Based on: https://www.electronforge.io/guides/code-signing/code-signing-macos
 
-echo "Setting up keychain profile for Pantry notarization..."
+echo "Setting up keychain profile for BrewMate notarization..."
 echo ""
 echo "You have two options:"
 echo "1. App-Specific Password (recommended)"
@@ -28,7 +28,7 @@ if [ "$use_app_password" = "y" ]; then
 
 	# Team ID from your certificate (ZJBVSAC8G7)
 	TEAM_ID="ZJBVSAC8G7"
-	PROFILE_NAME="pantry-profile"
+	PROFILE_NAME="brewmate-profile"
 
 	echo ""
 	echo "Storing credentials in keychain..."
@@ -56,7 +56,7 @@ else
 	echo "4. Note the Key ID and Issuer ID"
 	echo ""
 	echo "Then run:"
-	echo "  xcrun notarytool store-credentials pantry-profile \\"
+	echo "  xcrun notarytool store-credentials brewmate-profile \\"
 	echo "    --key-path /path/to/AuthKey_XXXXX.p8 \\"
 	echo "    --key-id YOUR_KEY_ID \\"
 	echo "    --issuer YOUR_ISSUER_UUID"

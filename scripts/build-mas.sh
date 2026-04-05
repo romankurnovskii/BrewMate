@@ -65,11 +65,11 @@ fi
 
 echo ""
 echo "SUCCESS! Your MAS package is ready:"
-echo "   dist-app/mas-universal/Pantry.pkg"
+echo "   dist-app/mas-universal/BrewMate.pkg"
 echo ""
 
 # Find the actual package file
-ACTUAL_PKG=$(find dist-app -name "Pantry-*-*.pkg" -type f | grep -E "(universal|arm64|x64)" | sort -r | head -1)
+ACTUAL_PKG=$(find dist-app -name "BrewMate-*-*.pkg" -type f | grep -E "(universal|arm64|x64)" | sort -r | head -1)
 if [ -n "$ACTUAL_PKG" ]; then
   PKG_SIZE=$(du -h "$ACTUAL_PKG" | cut -f1)
   echo "📦 Package: $ACTUAL_PKG"

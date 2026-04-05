@@ -3,7 +3,7 @@ directories:
   buildResources: build
 
 appId: com.app.brewmate
-productName: Pantry
+productName: BrewMate
 copyright: © 2025 Roman Kurnovskii
 
 asar: true
@@ -22,7 +22,7 @@ files:
   - '!**/{npm-debug.log,yarn.lock,.yarn-integrity,.yarn-metadata.json}'
 
 extraMetadata:
-  main: index.js
+  main: dist/index.js
 
 extraFiles:
   - from: dist/assets
@@ -51,11 +51,7 @@ mac:
 mas:
   entitlements: build/entitlements.mas.plist
   entitlementsInherit: build/entitlements.mas.inherit.plist
-  provisioningProfile: .credentials/Pantry_Distribution.provisionprofile
+  provisioningProfile: .credentials/BrewMate_Distribution.provisionprofile
   hardenedRuntime: false
   type: distribution
   artifactName: ${productName}-${version}-${arch}.pkg
-  # Identity set via CSC_NAME / build-mas-universal.sh env
-  # Version auto-incremented by build script
-  # Default to universal binary (recommended for App Store)
-  # Can override with --arm64 or --x64 flags
