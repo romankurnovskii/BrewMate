@@ -35,7 +35,11 @@ function createWindow(): void {
   // Register Cmd-J shortcut - setup immediately and also after load
   const setupCmdJ = () => {
     mainWindow?.webContents.on('before-input-event', (event, input) => {
-      if (input.key === 'j' && (input.meta || input.control) && input.type === 'keyDown') {
+      if (
+        input.key === 'j' &&
+        (input.meta || input.control) &&
+        input.type === 'keyDown'
+      ) {
         event.preventDefault();
         console.log('[Main] Cmd+J pressed, toggling terminal');
         mainWindow?.webContents.send('toggle-terminal');

@@ -53,7 +53,7 @@ describe('path utilities', () => {
 
       const paths = env.PATH!.split(':');
       const brewPathCount = paths.filter(
-        (p) => p === '/opt/homebrew/bin' || p === '/usr/local/bin'
+        (p) => p === '/opt/homebrew/bin' || p === '/usr/local/bin',
       ).length;
 
       // Each brew path should appear only once
@@ -84,7 +84,9 @@ describe('path utilities', () => {
       expect(paths).toContain('/usr/local/sbin');
 
       // Should keep existing one (no duplicate)
-      const homebrewCount = paths.filter((p) => p === '/opt/homebrew/bin').length;
+      const homebrewCount = paths.filter(
+        (p) => p === '/opt/homebrew/bin',
+      ).length;
       expect(homebrewCount).toBe(1);
     });
 

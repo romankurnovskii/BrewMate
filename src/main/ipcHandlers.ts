@@ -7,7 +7,10 @@ import { getTerminalPromptInfo } from '../utils/terminal';
 import { getInstalledApps } from '../utils/brew';
 import { logCommand, getLogFilePath } from '../utils/logger';
 import { getEnvWithBrewPath } from '../utils/path';
-import { HOMEBREW_CASKS_JSON_URL, HOMEBREW_FORMULAS_JSON_URL } from '../constants';
+import {
+  HOMEBREW_CASKS_JSON_URL,
+  HOMEBREW_FORMULAS_JSON_URL,
+} from '../constants';
 import { App, LoadingStatus } from '../types';
 
 export function setupIpcHandlers(): void {
@@ -32,7 +35,7 @@ export function setupIpcHandlers(): void {
       const cachedData = loadFromCache();
       console.log(
         '[IPC] Cache check:',
-        cachedData ? `Found ${cachedData.length} apps` : 'No cache'
+        cachedData ? `Found ${cachedData.length} apps` : 'No cache',
       );
 
       // Send cached data immediately if available
@@ -114,76 +117,82 @@ export function setupIpcHandlers(): void {
   });
 
   // Install app
-  ipcMain.on('install-app', (event: IpcMainEvent, appName: string, appType: string) => {
-    const command =
-      appType === 'cask'
-        ? `brew install --cask --no-quarantine --force ${appName}`
-        : `brew install ${appName}`;
+  ipcMain.on(
+    'install-app',
+    (event: IpcMainEvent, appName: string, appType: string) => {
+      const command =
+        appType === 'cask'
+          ? `brew install --cask --no-quarantine --force ${appName}`
+          : `brew install ${appName}`;
 
-    console.log('[IPC] Installing app:', appName, appType);
-    let output = '';
-    logCommand(command);
-    console.log('[IPC] Command logged:', command);
+      console.log('[IPC] Installing app:', appName, appType);
+      let output = '';
+      logCommand(command);
+      console.log('[IPC] Command logged:', command);
 
-    const shell = spawn(command, [], {
-      shell: true,
-      cwd: process.env.HOME || process.cwd(),
-      env: getEnvWithBrewPath(),
-    });
+      const shell = spawn(command, [], {
+        shell: true,
+        cwd: process.env.HOME || process.cwd(),
+        env: getEnvWithBrewPath(),
+      });
 
-    shell.stdout.on('data', (data) => {
-      const dataStr = data.toString();
-      output += dataStr;
-      event.reply('terminal-output', dataStr);
-    });
+      shell.stdout.on('data', (data) => {
+        const dataStr = data.toString();
+        output += dataStr;
+        event.reply('terminal-output', dataStr);
+      });
 
-    shell.stderr.on('data', (data) => {
-      const dataStr = data.toString();
-      output += dataStr;
-      event.reply('terminal-output', dataStr);
-    });
+      shell.stderr.on('data', (data) => {
+        const dataStr = data.toString();
+        output += dataStr;
+        event.reply('terminal-output', dataStr);
+      });
 
-    shell.on('close', (code) => {
-      logCommand(command, output, code);
-      event.reply('install-complete', { appName, success: code === 0 });
-      event.reply('terminal-output', `\nProcess exited with code ${code}\n`);
-    });
-  });
+      shell.on('close', (code) => {
+        logCommand(command, output, code);
+        event.reply('install-complete', { appName, success: code === 0 });
+        event.reply('terminal-output', `\nProcess exited with code ${code}\n`);
+      });
+    },
+  );
 
   // Uninstall app
-  ipcMain.on('uninstall-app', (event: IpcMainEvent, appName: string, appType: string) => {
-    const command =
-      appType === 'cask'
-        ? `brew uninstall --cask --force ${appName}`
-        : `brew uninstall --force ${appName}`;
+  ipcMain.on(
+    'uninstall-app',
+    (event: IpcMainEvent, appName: string, appType: string) => {
+      const command =
+        appType === 'cask'
+          ? `brew uninstall --cask --force ${appName}`
+          : `brew uninstall --force ${appName}`;
 
-    let output = '';
-    logCommand(command);
+      let output = '';
+      logCommand(command);
 
-    const shell = spawn(command, [], {
-      shell: true,
-      cwd: process.env.HOME || process.cwd(),
-      env: getEnvWithBrewPath(),
-    });
+      const shell = spawn(command, [], {
+        shell: true,
+        cwd: process.env.HOME || process.cwd(),
+        env: getEnvWithBrewPath(),
+      });
 
-    shell.stdout.on('data', (data) => {
-      const dataStr = data.toString();
-      output += dataStr;
-      event.reply('terminal-output', dataStr);
-    });
+      shell.stdout.on('data', (data) => {
+        const dataStr = data.toString();
+        output += dataStr;
+        event.reply('terminal-output', dataStr);
+      });
 
-    shell.stderr.on('data', (data) => {
-      const dataStr = data.toString();
-      output += dataStr;
-      event.reply('terminal-output', dataStr);
-    });
+      shell.stderr.on('data', (data) => {
+        const dataStr = data.toString();
+        output += dataStr;
+        event.reply('terminal-output', dataStr);
+      });
 
-    shell.on('close', (code) => {
-      logCommand(command, output, code);
-      event.reply('uninstall-complete', { appName, success: code === 0 });
-      event.reply('terminal-output', `\nProcess exited with code ${code}\n`);
-    });
-  });
+      shell.on('close', (code) => {
+        logCommand(command, output, code);
+        event.reply('uninstall-complete', { appName, success: code === 0 });
+        event.reply('terminal-output', `\nProcess exited with code ${code}\n`);
+      });
+    },
+  );
 
   // Get terminal prompt info
   ipcMain.on('get-terminal-prompt', (event: IpcMainEvent) => {
@@ -231,7 +240,10 @@ export function setupIpcHandlers(): void {
       const fileUrl = `file://${normalizedPath}`;
       event.reply('asset-path', { assetName, path: fileUrl });
     } else {
-      console.warn(`[IPC] Asset not found: ${assetName}. Tried paths:`, possiblePaths);
+      console.warn(
+        `[IPC] Asset not found: ${assetName}. Tried paths:`,
+        possiblePaths,
+      );
       event.reply('asset-path', { assetName, path: null });
     }
   });

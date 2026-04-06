@@ -11,7 +11,11 @@ export function ensureLogDirectory(): void {
   }
 }
 
-export function logCommand(command: string, output?: string, exitCode?: number | null): void {
+export function logCommand(
+  command: string,
+  output?: string,
+  exitCode?: number | null,
+): void {
   try {
     ensureLogDirectory();
 

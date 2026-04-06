@@ -37,7 +37,7 @@ describe('fetchData utilities', () => {
           expect(result).toEqual(mockData);
           expect(mockHttps.get).toHaveBeenCalledWith(
             'https://example.com/api',
-            expect.any(Function)
+            expect.any(Function),
           );
           done();
         })
@@ -183,9 +183,9 @@ describe('fetchData utilities', () => {
             callback(Buffer.from(JSON.stringify(largeData)));
             // Then call end callback
             setTimeout(() => {
-              const endCallback = (mockResponse.on as jest.Mock).mock.calls.find(
-                (call: any[]) => call[0] === 'end'
-              )?.[1];
+              const endCallback = (
+                mockResponse.on as jest.Mock
+              ).mock.calls.find((call: any[]) => call[0] === 'end')?.[1];
               if (endCallback) {
                 endCallback();
               }

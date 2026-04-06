@@ -1,4 +1,5 @@
-export const HOMEBREW_FORMULAS_JSON_URL = 'https://formulae.brew.sh/api/formula.json';
+export const HOMEBREW_FORMULAS_JSON_URL =
+  'https://formulae.brew.sh/api/formula.json';
 export const HOMEBREW_CASKS_JSON_URL = 'https://formulae.brew.sh/api/cask.json';
 
 export const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours

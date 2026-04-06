@@ -65,16 +65,16 @@ describe('brew utilities', () => {
           { name: 'cask3', type: 'cask' },
           { name: 'formula1', type: 'formula' },
           { name: 'formula2', type: 'formula' },
-        ])
+        ]),
       );
 
       expect(mockExecAsync).toHaveBeenCalledWith(
         'brew list --casks',
-        expect.objectContaining({ env: expect.any(Object) })
+        expect.objectContaining({ env: expect.any(Object) }),
       );
       expect(mockExecAsync).toHaveBeenCalledWith(
         'brew list --formula',
-        expect.objectContaining({ env: expect.any(Object) })
+        expect.objectContaining({ env: expect.any(Object) }),
       );
     });
 
@@ -93,7 +93,7 @@ describe('brew utilities', () => {
       expect(mockGetEnvWithBrewPath).toHaveBeenCalled();
       expect(mockExecAsync).toHaveBeenCalledWith(
         expect.any(String),
-        expect.objectContaining({ env: mockEnv })
+        expect.objectContaining({ env: mockEnv }),
       );
     });
 
@@ -126,7 +126,7 @@ describe('brew utilities', () => {
           { name: 'cask1', type: 'cask' },
           { name: 'cask2', type: 'cask' },
           { name: 'formula1', type: 'formula' },
-        ])
+        ]),
       );
     });
 
@@ -179,7 +179,7 @@ describe('brew utilities', () => {
           { name: 'app-with-dashes', type: 'cask' },
           { name: 'app_with_underscores', type: 'cask' },
           { name: 'app.with.dots', type: 'cask' },
-        ])
+        ]),
       );
     });
   });
