@@ -42,7 +42,7 @@ Before you begin, ensure you have met the following requirements:
 In terminal:
 
 ```sh
-brew install romankurnovskii/awesome-brew/brewmate --cask --no-quarantine
+brew install romankurnovskii/awesome-brew/brewmate --cask
 ```
 
 ### Option 3
