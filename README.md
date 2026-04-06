@@ -80,23 +80,23 @@ BrewMate supports two build types:
 
 ### Local Test Build
 
-Build a version you can run and test on your Mac:
+Build a version you can run and test on your Mac (direct distribution):
 
 ```bash
 npm run build:mac
 ```
 
-This creates a DMG in `dist-app/mac/` that you can install and run locally.
+This creates a DMG in `dist-app/` that you can install and run locally.
 
 ### Mac App Store Build
 
-Build a version for App Store submission:
+Build a version for App Store submission (unsigned universal build):
 
 ```bash
 npm run build:mas
 ```
 
-This creates a PKG in `dist-app/mas-universal/` for App Store submission.
+This creates a PKG in `dist-app/` for App Store submission.
 
 ⚠️ **Important**: MAS builds **cannot be run locally** - they're only for App Store submission. If you need to test the app, use `build:mac` instead.
 
@@ -129,20 +129,27 @@ Before submitting to the App Store:
 
 See [docs/BUILD_TYPES.md](docs/BUILD_TYPES.md) and [docs/SUBMISSION_CHECKLIST.md](docs/SUBMISSION_CHECKLIST.md) for more details.
 
-## Available Scripts in addition to the existing ones
+## Available Scripts
 
-### `npm run electron:dev`
+### `npm run build:mac`
 
-Runs the app in the development mode.
+Builds the app for production with code signing (if certificates are available).
 
-The app will reload if you make edits in the `electron` directory.<br>
-You will also see any lint errors in the console.
+### `npm run test`
 
-### `npm run electron:build`
+Runs the test suite using Jest.
 
-Builds the app package for production to the `dist` folder.
+### `npm run start:dev`
 
-Your app is ready to be distributed!
+Runs the app in development mode with live reloading.
+
+## CI/CD & Automation
+
+BrewMate uses GitHub Actions for automated releases and App Store submission. For this to work, you must configure the following:
+
+- [GitHub Repository Secrets](docs/GITHUB_SECRETS.md)
+
+See [docs/BUILD_TYPES.md](docs/BUILD_TYPES.md) and [docs/SUBMISSION_CHECKLIST.md](docs/SUBMISSION_CHECKLIST.md) for more details.
 
 # License
 
