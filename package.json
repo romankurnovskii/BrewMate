@@ -16,6 +16,7 @@
     "build:mac:x64": "npm run build && electron-builder --mac --x64",
     "dist": "npm run build && electron-builder --mac",
     "dist:mac": "npm run build && electron-builder --mac",
+    "electron:build": "npm run build && electron-builder --mac zip dmg --universal",
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",

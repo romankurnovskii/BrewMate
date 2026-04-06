@@ -33,7 +33,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
         run: |
           npm run electron:build
-          ls -la
+          ls -la dist-app || true
         working-directory: .
 
       - name: Upload Assets to Release
@@ -42,7 +42,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           files: |
-            ./dist/BrewMate-${{ env.VERSION }}-universal-mac.zip
+            ./dist-app/BrewMate-${{ env.VERSION }}-universal.zip
+            ./dist-app/BrewMate-${{ env.VERSION }}-universal.dmg
           draft: false
           name: ${{ env.VERSION }}
           tag_name: ${{ env.VERSION }}
@@ -50,7 +51,7 @@ jobs:
 
       - name: Generate SHA256 Checksum
         run: |
-          shasum -a 256 ./dist/BrewMate-${{ env.VERSION }}-universal-mac.zip | awk '{print $1}' >> shasumver
+          shasum -a 256 ./dist-app/BrewMate-${{ env.VERSION }}-universal.zip | awk '{print $1}' >> shasumver
           echo "SHA 256:" >> $GITHUB_STEP_SUMMARY
           cat shasumver >> $GITHUB_STEP_SUMMARY
 
@@ -70,7 +71,7 @@ jobs:
         run: |
           VERSION=$(jq -r .version package.json)
           BRANCH_NAME=update-version-${VERSION}
-          SHA256=$(shasum -a 256 ./dist/BrewMate-${VERSION}-universal-mac.zip | awk '{print $1}')
+          SHA256=$(shasum -a 256 ./dist-app/BrewMate-${VERSION}-universal.zip | awk '{print $1}')
 
           git -C homebrew-cask config user.name "R K"
           git -C homebrew-cask config user.email "email@example.com"
