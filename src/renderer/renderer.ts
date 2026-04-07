@@ -37,6 +37,11 @@ interface App {
   homepage: string;
   version: string;
   type: 'cask' | 'formula';
+  // Cache properties for performance optimization (prevent repeated allocations)
+  _category?: string;
+  _nameLower?: string;
+  _descLower?: string;
+  _homepageLower?: string;
 }
 
 // Immediate console log to verify script is loading
@@ -87,16 +92,10 @@ function init(): void {
   categoryChips = document.getElementById('categoryChips') as HTMLElement;
   typeFilter = document.getElementById('typeFilter') as HTMLElement;
   appsGrid = document.getElementById('appsGrid') as HTMLElement;
-  terminalContainer = document.getElementById(
-    'terminalContainer',
-  ) as HTMLElement;
+  terminalContainer = document.getElementById('terminalContainer') as HTMLElement;
   terminalOutput = document.getElementById('terminalOutput') as HTMLElement;
-  terminalToggle = document.getElementById(
-    'terminalToggle',
-  ) as HTMLButtonElement;
-  terminalToggleIcon = document.getElementById(
-    'terminalToggleIcon',
-  ) as HTMLElement | null;
+  terminalToggle = document.getElementById('terminalToggle') as HTMLButtonElement;
+  terminalToggleIcon = document.getElementById('terminalToggleIcon') as HTMLElement | null;
   appCount = document.getElementById('appCount') as HTMLElement;
   loadingMessage = document.getElementById('loadingMessage') as HTMLElement;
   logPath = document.getElementById('logPath') as HTMLElement;
@@ -167,10 +166,7 @@ function setupEventListeners(): void {
     'scroll',
     () => {
       const currentScrollTop = appsGrid.scrollTop;
-      if (
-        Math.abs(currentScrollTop - lastScrollTop) >
-        VIRTUAL_SCROLL_CONFIG.scrollThreshold
-      ) {
+      if (Math.abs(currentScrollTop - lastScrollTop) > VIRTUAL_SCROLL_CONFIG.scrollThreshold) {
         lastScrollTop = currentScrollTop;
         if (scrollDebounceTimer) clearTimeout(scrollDebounceTimer);
         scrollDebounceTimer = setTimeout(() => {
@@ -178,7 +174,7 @@ function setupEventListeners(): void {
         }, VIRTUAL_SCROLL_CONFIG.scrollThrottleMs);
       }
     },
-    { passive: true },
+    { passive: true }
   );
 
   // Calculate items per row on resize
@@ -192,13 +188,8 @@ function setupEventListeners(): void {
   // Type filter buttons
   typeFilter.querySelectorAll('.type-toggle').forEach((btn) => {
     btn.addEventListener('click', () => {
-      selectedType = (btn as HTMLElement).dataset.type as
-        | 'All'
-        | 'cask'
-        | 'formula';
-      document
-        .querySelectorAll('.type-toggle')
-        .forEach((b) => b.classList.remove('active'));
+      selectedType = (btn as HTMLElement).dataset.type as 'All' | 'cask' | 'formula';
+      document.querySelectorAll('.type-toggle').forEach((b) => b.classList.remove('active'));
       btn.classList.add('active');
       visibleStartIndex = 0;
       appsGrid.scrollTop = 0;
@@ -231,9 +222,7 @@ function setupEventListeners(): void {
 
   // IPC listeners
   if (!ipcRenderer) {
-    console.error(
-      '[Renderer] Cannot setup IPC listeners - ipcRenderer not available',
-    );
+    console.error('[Renderer] Cannot setup IPC listeners - ipcRenderer not available');
     return;
   }
 
@@ -261,40 +250,31 @@ function setupEventListeners(): void {
       } else {
         filterApps();
       }
-    },
+    }
   );
   ipcRenderer.on(
     'install-complete',
-    (
-      _event: any,
-      { appName, success }: { appName: string; success: boolean },
-    ) => {
+    (_event: any, { appName, success }: { appName: string; success: boolean }) => {
       if (success) {
         installedApps.add(appName);
         renderCategories();
         filterApps();
       }
-    },
+    }
   );
   ipcRenderer.on(
     'uninstall-complete',
-    (
-      _event: any,
-      { appName, success }: { appName: string; success: boolean },
-    ) => {
+    (_event: any, { appName, success }: { appName: string; success: boolean }) => {
       if (success) {
         installedApps.delete(appName);
         renderCategories();
         filterApps();
       }
-    },
+    }
   );
   ipcRenderer.on(
     'loading-status',
-    (
-      _event: any,
-      { loading, message }: { loading: boolean; message?: string },
-    ) => {
+    (_event: any, { loading, message }: { loading: boolean; message?: string }) => {
       console.log('[Renderer] Loading status:', loading, message);
       isLoading = loading;
       if (loadingMessage) {
@@ -310,7 +290,7 @@ function setupEventListeners(): void {
         `;
         }
       }
-    },
+    }
   );
   ipcRenderer.on('all-apps-updated', (_event: any, apps: Array<App>) => {
     allApps = apps;
@@ -324,14 +304,10 @@ function setupEventListeners(): void {
     'terminal-prompt-info',
     (
       _event: any,
-      {
-        username,
-        hostname,
-        dir,
-      }: { username: string; hostname: string; dir: string },
+      { username, hostname, dir }: { username: string; hostname: string; dir: string }
     ) => {
       terminalPrompt = `${username}@${hostname} ${dir} %`;
-    },
+    }
   );
 
   // Get log file path on startup
@@ -353,7 +329,7 @@ function setupEventListeners(): void {
         }
         versionInfo.textContent = versionText;
       }
-    },
+    }
   );
 }
 
@@ -390,7 +366,8 @@ function renderCategories(): void {
     const isInstalled = cat === 'Installed';
     const isActive = selectedCategory === cat;
     return `
-      <button class="category-chip ${isInstalled ? 'installed-category' : ''} ${isActive ? 'active' : ''
+      <button class="category-chip ${isInstalled ? 'installed-category' : ''} ${
+        isActive ? 'active' : ''
       }" 
               data-category="${cat}">
         ${cat}${isInstalled ? ' (' + installedApps.size + ')' : ''}
@@ -401,9 +378,7 @@ function renderCategories(): void {
   categoryChips.querySelectorAll('.category-chip').forEach((btn) => {
     btn.addEventListener('click', () => {
       selectedCategory = (btn as HTMLElement).dataset.category || 'All';
-      document
-        .querySelectorAll('.category-chip')
-        .forEach((b) => b.classList.remove('active'));
+      document.querySelectorAll('.category-chip').forEach((b) => b.classList.remove('active'));
       btn.classList.add('active');
       visibleStartIndex = 0;
       appsGrid.scrollTop = 0;
@@ -413,9 +388,13 @@ function renderCategories(): void {
 }
 
 function getCategoryForApp(app: App): string {
-  const desc = (app.description || '').toLowerCase();
-  const name = (app.name || '').toLowerCase();
-  const text = desc + ' ' + name;
+  if (app._category) return app._category;
+
+  if (app._descLower === undefined) app._descLower = (app.description || '').toLowerCase();
+  if (app._nameLower === undefined) app._nameLower = (app.name || '').toLowerCase();
+
+  const text = app._descLower + ' ' + app._nameLower;
+  let category = 'Other';
 
   if (
     text.includes('developer') ||
@@ -423,62 +402,32 @@ function getCategoryForApp(app: App): string {
     text.includes('git') ||
     text.includes('terminal')
   ) {
-    return 'Developer Tools';
-  }
-  if (
+    category = 'Developer Tools';
+  } else if (
     text.includes('photo') ||
     text.includes('video') ||
     text.includes('image') ||
     text.includes('media')
   ) {
-    return 'Photo/Video';
+    category = 'Photo/Video';
+  } else if (text.includes('design') || text.includes('graphic') || text.includes('draw')) {
+    category = 'Graphic/Design';
+  } else if (text.includes('music') || text.includes('audio') || text.includes('sound')) {
+    category = 'Music';
+  } else if (text.includes('productivity') || text.includes('note') || text.includes('todo')) {
+    category = 'Productivity';
+  } else if (text.includes('social') || text.includes('chat') || text.includes('message')) {
+    category = 'Social';
+  } else if (text.includes('business') || text.includes('email') || text.includes('finance')) {
+    category = 'Business';
+  } else if (text.includes('game') || text.includes('play')) {
+    category = 'Games';
+  } else if (text.includes('utility') || text.includes('tool') || text.includes('manager')) {
+    category = 'Utilities';
   }
-  if (
-    text.includes('design') ||
-    text.includes('graphic') ||
-    text.includes('draw')
-  ) {
-    return 'Graphic/Design';
-  }
-  if (
-    text.includes('music') ||
-    text.includes('audio') ||
-    text.includes('sound')
-  ) {
-    return 'Music';
-  }
-  if (
-    text.includes('productivity') ||
-    text.includes('note') ||
-    text.includes('todo')
-  ) {
-    return 'Productivity';
-  }
-  if (
-    text.includes('social') ||
-    text.includes('chat') ||
-    text.includes('message')
-  ) {
-    return 'Social';
-  }
-  if (
-    text.includes('business') ||
-    text.includes('email') ||
-    text.includes('finance')
-  ) {
-    return 'Business';
-  }
-  if (text.includes('game') || text.includes('play')) {
-    return 'Games';
-  }
-  if (
-    text.includes('utility') ||
-    text.includes('tool') ||
-    text.includes('manager')
-  ) {
-    return 'Utilities';
-  }
-  return 'Other';
+
+  app._category = category;
+  return category;
 }
 
 function calculateItemsPerRow(): void {
@@ -495,31 +444,39 @@ function filterApps(): void {
     // Reset filtered apps before filtering
     filteredApps = [];
 
-    filteredApps = allApps.filter((app) => {
-      const matchesType = selectedType === 'All' || app.type === selectedType;
+    // Performance optimization: prevent redundant lowering and repeated allocations.
+    // Evaluating string combinations and allocations across ~100k items takes a large toll.
+    const searchLower = searchTerm ? searchTerm.toLowerCase() : '';
 
-      let matchesCategory = true;
-      if (selectedCategory === 'Installed') {
-        matchesCategory = installedApps.has(app.name);
-      } else if (selectedCategory !== 'All') {
-        matchesCategory = getCategoryForApp(app) === selectedCategory;
+    filteredApps = allApps.filter((app) => {
+      // Fast path: type match
+      if (selectedType !== 'All' && app.type !== selectedType) {
+        return false;
       }
 
-      const matchesSearch =
-        !searchTerm ||
-        (() => {
-          const searchLower = searchTerm.toLowerCase();
-          const name = (app.name || '').toLowerCase();
-          const desc = (app.description || '').toLowerCase();
-          const homepage = (app.homepage || '').toLowerCase();
-          return (
-            name.includes(searchLower) ||
-            desc.includes(searchLower) ||
-            homepage.includes(searchLower)
-          );
-        })();
+      // Medium path: category match
+      if (selectedCategory === 'Installed') {
+        if (!installedApps.has(app.name)) return false;
+      } else if (selectedCategory !== 'All') {
+        if (getCategoryForApp(app) !== selectedCategory) return false;
+      }
 
-      return matchesType && matchesCategory && matchesSearch;
+      // Slow path: search text match
+      if (searchLower) {
+        if (app._nameLower === undefined) app._nameLower = (app.name || '').toLowerCase();
+        if (app._descLower === undefined)
+          app._descLower = (app.description || '').toLowerCase();
+        if (app._homepageLower === undefined)
+          app._homepageLower = (app.homepage || '').toLowerCase();
+
+        return (
+          app._nameLower.includes(searchLower) ||
+          app._descLower.includes(searchLower) ||
+          app._homepageLower.includes(searchLower)
+        );
+      }
+
+      return true;
     });
 
     // Reset scroll position and visible items when filtering
@@ -650,8 +607,8 @@ function renderAppCard(app: App, isInstalled: boolean): string {
         </div>
         <h3 class="app-title">${escapeHtml(app.name)}</h3>
         <p class="app-description">${escapeHtml(
-    app.description || 'No description available',
-  )}</p>
+          app.description || 'No description available'
+        )}</p>
       </div>
       <div class="app-actions">
         <button class="app-button ${isInstalled ? 'installed' : ''}" 
@@ -659,8 +616,9 @@ function renderAppCard(app: App, isInstalled: boolean): string {
                 data-type="${app.type}">
           ${isInstalled ? 'Delete' : 'Install'}
         </button>
-        ${app.homepage
-      ? `
+        ${
+          app.homepage
+            ? `
           <a href="${app.homepage}" target="_blank" class="external-link" title="Open homepage">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
               <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
@@ -669,8 +627,8 @@ function renderAppCard(app: App, isInstalled: boolean): string {
             </svg>
           </a>
         `
-      : ''
-    }
+            : ''
+        }
       </div>
     </div>
   `;
@@ -683,7 +641,7 @@ function toggleTerminal(): void {
     if (terminalToggleIcon && terminalToggleIcon.querySelector('path')) {
       (terminalToggleIcon.querySelector('path') as SVGPathElement).setAttribute(
         'd',
-        'M19 9l-7 7-7-7',
+        'M19 9l-7 7-7-7'
       );
     }
   } else {
@@ -691,7 +649,7 @@ function toggleTerminal(): void {
     if (terminalToggleIcon && terminalToggleIcon.querySelector('path')) {
       (terminalToggleIcon.querySelector('path') as SVGPathElement).setAttribute(
         'd',
-        'M5 15l7-7 7 7',
+        'M5 15l7-7 7 7'
       );
     }
   }
@@ -706,7 +664,7 @@ function runCommand(command: string): void {
   }
 
   terminalOutput.innerHTML += `<span class="terminal-prompt">${terminalPrompt}</span> ${escapeHtml(
-    command,
+    command
   )}\n`;
   terminalOutput.scrollTop = terminalOutput.scrollHeight;
 
