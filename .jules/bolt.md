@@ -1,0 +1,3 @@
+## 2024-05-24 - [Frontend Filtering Optimization for ~100k Records]
+**Learning:** For extremely large client-side datasets (~100k Homebrew apps), creating inline string transformations (e.g., `toLowerCase()`) inside `.filter()` operations combined with nested IIFEs creates massive garbage collection pressure and blocks the UI thread during keystroke searches.
+**Action:** Always hoist invariant string transformations (like search terms) outside loop bodies. For large datasets, directly memoize expensive computed properties (like lowercase strings and category lookups) onto the data objects during their first pass, and order early returns by computational cost (property match > Set lookup > string `.includes()`).
