@@ -1,0 +1,3 @@
+## 2024-03-24 - [Avoid inline closures inside filter loops for large datasets]
+**Learning:** Inline closures (IIFEs) and repeated invariant calculations (like `searchTerm.toLowerCase()`) inside `.filter()` operations over very large datasets (~100k items) cause significant UI thread blocking.
+**Action:** Always move invariant transformations outside the loop and implement early returns ordered by check speed to prevent UI thread blocking.
