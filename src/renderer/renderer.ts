@@ -386,17 +386,20 @@ function loadData(): void {
 }
 
 function renderCategories(): void {
-  categoryChips.innerHTML = CATEGORIES.map((cat) => {
+  categoryChips.textContent = ''; // Clear previous contents safely
+  CATEGORIES.forEach((cat) => {
     const isInstalled = cat === 'Installed';
     const isActive = selectedCategory === cat;
-    return `
-      <button class="category-chip ${isInstalled ? 'installed-category' : ''} ${isActive ? 'active' : ''
-      }" 
-              data-category="${cat}">
-        ${cat}${isInstalled ? ' (' + installedApps.size + ')' : ''}
-      </button>
-    `;
-  }).join('');
+
+    const btn = document.createElement('button');
+    btn.className = `category-chip ${isInstalled ? 'installed-category' : ''} ${
+      isActive ? 'active' : ''
+    }`.trim();
+    btn.setAttribute('data-category', cat);
+    btn.textContent = `${cat}${isInstalled ? ' (' + installedApps.size + ')' : ''}`;
+
+    categoryChips.appendChild(btn);
+  });
 
   categoryChips.querySelectorAll('.category-chip').forEach((btn) => {
     btn.addEventListener('click', () => {
@@ -495,6 +498,11 @@ function filterApps(): void {
     // Reset filtered apps before filtering
     filteredApps = [];
 
+    // Optimize: Pre-calculate the lowercase search term outside the filter loop
+    // to avoid O(N) redundant string transformations where N is the number of apps.
+    // Use defensive fallback (searchTerm || '').toLowerCase() to prevent runtime errors.
+    const searchLower = (searchTerm || '').toLowerCase();
+
     filteredApps = allApps.filter((app) => {
       const matchesType = selectedType === 'All' || app.type === selectedType;
 
@@ -506,9 +514,8 @@ function filterApps(): void {
       }
 
       const matchesSearch =
-        !searchTerm ||
+        !searchLower ||
         (() => {
-          const searchLower = searchTerm.toLowerCase();
           const name = (app.name || '').toLowerCase();
           const desc = (app.description || '').toLowerCase();
           const homepage = (app.homepage || '').toLowerCase();
@@ -705,9 +712,13 @@ function runCommand(command: string): void {
     toggleTerminal();
   }
 
-  terminalOutput.innerHTML += `<span class="terminal-prompt">${terminalPrompt}</span> ${escapeHtml(
-    command,
-  )}\n`;
+  const promptSpan = document.createElement('span');
+  promptSpan.className = 'terminal-prompt';
+  promptSpan.textContent = terminalPrompt;
+
+  terminalOutput.appendChild(promptSpan);
+  terminalOutput.appendChild(document.createTextNode(` ${command}\n`));
+
   terminalOutput.scrollTop = terminalOutput.scrollHeight;
 
   ipcRenderer.send('execute-command', command);
