@@ -586,15 +586,10 @@ function renderApps(): void {
   const container = document.createElement('div');
   container.className = 'apps-grid-container';
 
-  // We have to use innerHTML on the container for the complex HTML string of app cards
-  // Note: renderAppCard strictly uses escapeHtml for user data so it is safe.
-  const appsHTML = visibleApps
-    .map((app) => {
-      const isInstalled = installedApps.has(app.name);
-      return renderAppCard(app, isInstalled);
-    })
-    .join('');
-  container.innerHTML = appsHTML;
+  visibleApps.forEach((app) => {
+    const isInstalled = installedApps.has(app.name);
+    container.appendChild(createAppCard(app, isInstalled));
+  });
 
   const bottomSpacer = document.createElement('div');
   bottomSpacer.className = 'apps-grid-spacer';
@@ -628,49 +623,72 @@ function renderApps(): void {
   });
 }
 
-function renderAppCard(app: App, isInstalled: boolean): string {
-  return `
-    <div class="app-card">
-      <div>
-        <div class="app-card-header">
-          <div class="app-icon">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+function createAppCard(app: App, isInstalled: boolean): HTMLDivElement {
+  const card = document.createElement('div');
+  card.className = 'app-card';
+
+  const contentDiv = document.createElement('div');
+
+  const headerDiv = document.createElement('div');
+  headerDiv.className = 'app-card-header';
+
+  const iconDiv = document.createElement('div');
+  iconDiv.className = 'app-icon';
+  iconDiv.innerHTML = `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
               <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
               <line x1="9" y1="3" x2="9" y2="21"></line>
               <line x1="15" y1="3" x2="15" y2="21"></line>
               <line x1="3" y1="9" x2="21" y2="9"></line>
               <line x1="3" y1="15" x2="21" y2="15"></line>
-            </svg>
-          </div>
-          <span class="app-version">v${app.version || 'N/A'}</span>
-        </div>
-        <h3 class="app-title">${escapeHtml(app.name)}</h3>
-        <p class="app-description">${escapeHtml(
-          app.description || 'No description available'
-        )}</p>
-      </div>
-      <div class="app-actions">
-        <button class="app-button ${isInstalled ? 'installed' : ''}" 
-                data-app="${app.name}" 
-                data-type="${app.type}">
-          ${isInstalled ? 'Delete' : 'Install'}
-        </button>
-        ${
-          app.homepage
-            ? `
-          <a href="${app.homepage}" target="_blank" class="external-link" title="Open homepage">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            </svg>`;
+
+  const versionSpan = document.createElement('span');
+  versionSpan.className = 'app-version';
+  versionSpan.textContent = `v${app.version || 'N/A'}`;
+
+  headerDiv.appendChild(iconDiv);
+  headerDiv.appendChild(versionSpan);
+
+  const titleH3 = document.createElement('h3');
+  titleH3.className = 'app-title';
+  titleH3.textContent = app.name;
+
+  const descP = document.createElement('p');
+  descP.className = 'app-description';
+  descP.textContent = app.description || 'No description available';
+
+  contentDiv.appendChild(headerDiv);
+  contentDiv.appendChild(titleH3);
+  contentDiv.appendChild(descP);
+
+  const actionsDiv = document.createElement('div');
+  actionsDiv.className = 'app-actions';
+
+  const actionBtn = document.createElement('button');
+  actionBtn.className = `app-button ${isInstalled ? 'installed' : ''}`;
+  actionBtn.dataset.app = app.name;
+  actionBtn.dataset.type = app.type;
+  actionBtn.textContent = isInstalled ? 'Delete' : 'Install';
+  actionsDiv.appendChild(actionBtn);
+
+  if (app.homepage) {
+    const link = document.createElement('a');
+    link.href = app.homepage;
+    link.target = '_blank';
+    link.className = 'external-link';
+    link.title = 'Open homepage';
+    link.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
               <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
               <polyline points="15 3 21 3 21 9"></polyline>
               <line x1="10" y1="14" x2="21" y2="3"></line>
-            </svg>
-          </a>
-        `
-            : ''
-        }
-      </div>
-    </div>
-  `;
+            </svg>`;
+    actionsDiv.appendChild(link);
+  }
+
+  card.appendChild(contentDiv);
+  card.appendChild(actionsDiv);
+
+  return card;
 }
 
 function toggleTerminal(): void {
