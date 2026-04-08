@@ -1,0 +1,3 @@
+## 2024-03-22 - Fast array filtering over large sets (~100k items) on the UI thread
+**Learning:** In Pantry, we filter the entire Homebrew application registry (~100k+ apps) synchronously on the main UI thread during search/category change (`filterApps`). Operations like creating IIFEs per iteration and running redundant `.toLowerCase()` inside `.filter()` can block the main thread.
+**Action:** Move invariant property calculations (like `.toLowerCase()`) outside of `Array.prototype.filter()` loops, and use early exits ordered by condition speed (direct property checks > set lookups > multiple string includes).
