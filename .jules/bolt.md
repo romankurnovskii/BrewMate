@@ -1,0 +1,3 @@
+## 2024-05-24 - Compression of Large Homebrew API JSON payloads
+**Learning:** Homebrew JSON APIs (`formula.json`, `cask.json`) are extremely large (up to 30MB+ uncompressed). Fetching them without compression causes high memory pressure and slow network transfer times when storing all chunks sequentially in memory.
+**Action:** Always fetch them using HTTP compression by passing `Accept-Encoding: gzip, deflate, br` header and using Node.js `zlib` stream pipes (`zlib.createBrotliDecompress()`, etc.) to decompress the response on the fly.
