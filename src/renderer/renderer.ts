@@ -37,6 +37,10 @@ interface App {
   homepage: string;
   version: string;
   type: 'cask' | 'formula';
+  _category?: string;
+  _nameLower?: string;
+  _descLower?: string;
+  _homepageLower?: string;
 }
 
 // Immediate console log to verify script is loading
@@ -413,6 +417,8 @@ function renderCategories(): void {
 }
 
 function getCategoryForApp(app: App): string {
+  if (app._category) return app._category;
+
   const desc = (app.description || '').toLowerCase();
   const name = (app.name || '').toLowerCase();
   const text = desc + ' ' + name;
@@ -423,7 +429,7 @@ function getCategoryForApp(app: App): string {
     text.includes('git') ||
     text.includes('terminal')
   ) {
-    return 'Developer Tools';
+    return (app._category = 'Developer Tools');
   }
   if (
     text.includes('photo') ||
@@ -431,54 +437,54 @@ function getCategoryForApp(app: App): string {
     text.includes('image') ||
     text.includes('media')
   ) {
-    return 'Photo/Video';
+    return (app._category = 'Photo/Video');
   }
   if (
     text.includes('design') ||
     text.includes('graphic') ||
     text.includes('draw')
   ) {
-    return 'Graphic/Design';
+    return (app._category = 'Graphic/Design');
   }
   if (
     text.includes('music') ||
     text.includes('audio') ||
     text.includes('sound')
   ) {
-    return 'Music';
+    return (app._category = 'Music');
   }
   if (
     text.includes('productivity') ||
     text.includes('note') ||
     text.includes('todo')
   ) {
-    return 'Productivity';
+    return (app._category = 'Productivity');
   }
   if (
     text.includes('social') ||
     text.includes('chat') ||
     text.includes('message')
   ) {
-    return 'Social';
+    return (app._category = 'Social');
   }
   if (
     text.includes('business') ||
     text.includes('email') ||
     text.includes('finance')
   ) {
-    return 'Business';
+    return (app._category = 'Business');
   }
   if (text.includes('game') || text.includes('play')) {
-    return 'Games';
+    return (app._category = 'Games');
   }
   if (
     text.includes('utility') ||
     text.includes('tool') ||
     text.includes('manager')
   ) {
-    return 'Utilities';
+    return (app._category = 'Utilities');
   }
-  return 'Other';
+  return (app._category = 'Other');
 }
 
 function calculateItemsPerRow(): void {
@@ -495,31 +501,33 @@ function filterApps(): void {
     // Reset filtered apps before filtering
     filteredApps = [];
 
-    filteredApps = allApps.filter((app) => {
-      const matchesType = selectedType === 'All' || app.type === selectedType;
+    const searchLower = (searchTerm || '').toLowerCase();
 
-      let matchesCategory = true;
+    filteredApps = allApps.filter((app) => {
+      // 1. Type check
+      if (selectedType !== 'All' && app.type !== selectedType) return false;
+
+      // 2. Category check
       if (selectedCategory === 'Installed') {
-        matchesCategory = installedApps.has(app.name);
+        if (!installedApps.has(app.name)) return false;
       } else if (selectedCategory !== 'All') {
-        matchesCategory = getCategoryForApp(app) === selectedCategory;
+        if (getCategoryForApp(app) !== selectedCategory) return false;
       }
 
-      const matchesSearch =
-        !searchTerm ||
-        (() => {
-          const searchLower = searchTerm.toLowerCase();
-          const name = (app.name || '').toLowerCase();
-          const desc = (app.description || '').toLowerCase();
-          const homepage = (app.homepage || '').toLowerCase();
-          return (
-            name.includes(searchLower) ||
-            desc.includes(searchLower) ||
-            homepage.includes(searchLower)
-          );
-        })();
+      // 3. Search check
+      if (searchLower) {
+        if (app._nameLower === undefined) app._nameLower = (app.name || '').toLowerCase();
+        if (app._descLower === undefined) app._descLower = (app.description || '').toLowerCase();
+        if (app._homepageLower === undefined) app._homepageLower = (app.homepage || '').toLowerCase();
 
-      return matchesType && matchesCategory && matchesSearch;
+        return (
+          app._nameLower.includes(searchLower) ||
+          app._descLower.includes(searchLower) ||
+          app._homepageLower.includes(searchLower)
+        );
+      }
+
+      return true;
     });
 
     // Reset scroll position and visible items when filtering
