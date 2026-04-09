@@ -1,0 +1,3 @@
+## 2024-04-09 - Large Dataset Caching on the UI Thread
+**Learning:** In `src/renderer/renderer.ts`, application filtering and categorization over `~100k` large `allApps` sets was causing UI thread blocking due to redundant `.toLowerCase()` conversions inside `.filter()` loops and IIFEs.
+**Action:** Always move invariant transformations outside of filter loops, order conditions by speed (direct checks > string manipulation), and defensively memoize/cache expensive computed string properties (`_nameLower`, `_category`) directly onto item objects to optimize filtering performance.
