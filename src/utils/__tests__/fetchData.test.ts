@@ -1,5 +1,6 @@
 import https from 'https';
 import { fetchJSON } from '../fetchData';
+import { PassThrough } from 'stream';
 
 // Mock https module
 jest.mock('https');
@@ -14,22 +15,21 @@ describe('fetchData utilities', () => {
   describe('fetchJSON', () => {
     it('should fetch and parse JSON successfully', (done) => {
       const mockData = { key: 'value', number: 123 };
-      const mockResponse: any = {
-        on: jest.fn((event: string, callback: (data?: any) => void) => {
-          if (event === 'data') {
-            callback(Buffer.from(JSON.stringify(mockData)));
-          } else if (event === 'end') {
-            callback();
-          }
-          return mockResponse;
-        }),
-      };
 
-      (mockHttps.get as jest.Mock).mockImplementation((url, callback) => {
-        if (callback) {
-          setTimeout(() => callback(mockResponse), 0);
+      const mockResponse = new PassThrough() as any;
+      mockResponse.headers = {};
+
+      (mockHttps.get as jest.Mock).mockImplementation((url, options, callback) => {
+        // Handle (url, callback) vs (url, options, callback)
+        const cb = callback || options;
+        if (typeof cb === 'function') {
+          setTimeout(() => {
+            cb(mockResponse);
+            mockResponse.emit('data', Buffer.from(JSON.stringify(mockData)));
+            mockResponse.emit('end');
+          }, 0);
         }
-        return mockResponse;
+        return { on: jest.fn() };
       });
 
       fetchJSON('https://example.com/api')
@@ -37,7 +37,12 @@ describe('fetchData utilities', () => {
           expect(result).toEqual(mockData);
           expect(mockHttps.get).toHaveBeenCalledWith(
             'https://example.com/api',
-            expect.any(Function),
+            expect.objectContaining({
+              headers: expect.objectContaining({
+                'Accept-Encoding': 'gzip, deflate, br',
+              }),
+            }),
+            expect.any(Function)
           );
           done();
         })
@@ -49,35 +54,21 @@ describe('fetchData utilities', () => {
       const jsonString = JSON.stringify(mockData);
       const chunks = [jsonString.substring(0, 10), jsonString.substring(10)];
 
-      let dataCallbacks: Array<(data: Buffer) => void> = [];
-      let endCallback: (() => void) | null = null;
+      const mockResponse = new PassThrough() as any;
+      mockResponse.headers = {};
 
-      const mockResponse: any = {
-        on: jest.fn((event: string, callback: (data?: any) => void) => {
-          if (event === 'data') {
-            dataCallbacks.push(callback);
-            // Simulate multiple chunks synchronously for test
-            setTimeout(() => {
-              chunks.forEach((chunk) => {
-                callback(Buffer.from(chunk));
-              });
-              // Call end after all data chunks
-              if (endCallback) {
-                setTimeout(endCallback, 0);
-              }
-            }, 0);
-          } else if (event === 'end') {
-            endCallback = callback;
-          }
-          return mockResponse;
-        }),
-      };
-
-      (mockHttps.get as jest.Mock).mockImplementation((url, callback) => {
-        if (callback) {
-          setTimeout(() => callback(mockResponse), 0);
+      (mockHttps.get as jest.Mock).mockImplementation((url, options, callback) => {
+        const cb = callback || options;
+        if (typeof cb === 'function') {
+          setTimeout(() => {
+            cb(mockResponse);
+            chunks.forEach((chunk) => {
+              mockResponse.emit('data', Buffer.from(chunk));
+            });
+            mockResponse.emit('end');
+          }, 0);
         }
-        return mockResponse;
+        return { on: jest.fn() };
       });
 
       fetchJSON('https://example.com/api')
@@ -86,25 +77,22 @@ describe('fetchData utilities', () => {
           done();
         })
         .catch(done);
-    }, 10000); // Increase timeout for this test
+    });
 
     it('should reject on invalid JSON', (done) => {
-      const mockResponse: any = {
-        on: jest.fn((event: string, callback: (data?: any) => void) => {
-          if (event === 'data') {
-            callback(Buffer.from('invalid json'));
-          } else if (event === 'end') {
-            callback();
-          }
-          return mockResponse;
-        }),
-      };
+      const mockResponse = new PassThrough() as any;
+      mockResponse.headers = {};
 
-      (mockHttps.get as jest.Mock).mockImplementation((url, callback) => {
-        if (callback) {
-          setTimeout(() => callback(mockResponse), 0);
+      (mockHttps.get as jest.Mock).mockImplementation((url, options, callback) => {
+        const cb = callback || options;
+        if (typeof cb === 'function') {
+          setTimeout(() => {
+            cb(mockResponse);
+            mockResponse.emit('data', Buffer.from('invalid json'));
+            mockResponse.emit('end');
+          }, 0);
         }
-        return mockResponse;
+        return { on: jest.fn() };
       });
 
       fetchJSON('https://example.com/api')
@@ -119,6 +107,7 @@ describe('fetchData utilities', () => {
 
     it('should reject on network error', (done) => {
       const mockError = new Error('Network error');
+
       const mockRequest: any = {
         on: jest.fn((event: string, callback: (error?: Error) => void) => {
           if (event === 'error') {
@@ -141,22 +130,19 @@ describe('fetchData utilities', () => {
     });
 
     it('should handle empty response', (done) => {
-      const mockResponse: any = {
-        on: jest.fn((event: string, callback: (data?: any) => void) => {
-          if (event === 'data') {
-            callback(Buffer.from(''));
-          } else if (event === 'end') {
-            callback();
-          }
-          return mockResponse;
-        }),
-      };
+      const mockResponse = new PassThrough() as any;
+      mockResponse.headers = {};
 
-      (mockHttps.get as jest.Mock).mockImplementation((url, callback) => {
-        if (callback) {
-          setTimeout(() => callback(mockResponse), 0);
+      (mockHttps.get as jest.Mock).mockImplementation((url, options, callback) => {
+        const cb = callback || options;
+        if (typeof cb === 'function') {
+          setTimeout(() => {
+            cb(mockResponse);
+            mockResponse.emit('data', Buffer.from(''));
+            mockResponse.emit('end');
+          }, 0);
         }
-        return mockResponse;
+        return { on: jest.fn() };
       });
 
       fetchJSON('https://example.com/api')
@@ -176,32 +162,20 @@ describe('fetchData utilities', () => {
           name: `Item ${i}`,
         })),
       };
-      const mockResponse: any = {
-        on: jest.fn((event: string, callback: (data?: any) => void) => {
-          if (event === 'data') {
-            // Call data callback synchronously
-            callback(Buffer.from(JSON.stringify(largeData)));
-            // Then call end callback
-            setTimeout(() => {
-              const endCallback = (
-                mockResponse.on as jest.Mock
-              ).mock.calls.find((call: any[]) => call[0] === 'end')?.[1];
-              if (endCallback) {
-                endCallback();
-              }
-            }, 0);
-          } else if (event === 'end') {
-            // Store end callback for later
-          }
-          return mockResponse;
-        }),
-      };
 
-      (mockHttps.get as jest.Mock).mockImplementation((url, callback) => {
-        if (callback) {
-          setTimeout(() => callback(mockResponse), 0);
+      const mockResponse = new PassThrough() as any;
+      mockResponse.headers = {};
+
+      (mockHttps.get as jest.Mock).mockImplementation((url, options, callback) => {
+        const cb = callback || options;
+        if (typeof cb === 'function') {
+          setTimeout(() => {
+            cb(mockResponse);
+            mockResponse.emit('data', Buffer.from(JSON.stringify(largeData)));
+            mockResponse.emit('end');
+          }, 0);
         }
-        return mockResponse;
+        return { on: jest.fn() };
       });
 
       fetchJSON('https://example.com/api')
@@ -215,38 +189,25 @@ describe('fetchData utilities', () => {
 
     it('should handle different URL formats', (done) => {
       const mockData = { test: 'data' };
-
-      // Create a mock response factory
-      const createMockResponse = () => {
-        const mockResponse: any = {
-          on: jest.fn((event: string, callback: (data?: any) => void) => {
-            if (event === 'data') {
-              // Call data callback synchronously
-              callback(Buffer.from(JSON.stringify(mockData)));
-            } else if (event === 'end') {
-              // Call end callback synchronously after data
-              setTimeout(callback, 0);
-            }
-            return mockResponse;
-          }),
-        };
-        return mockResponse;
-      };
-
       const testUrls = [
         'https://api.example.com/v1/data',
         'https://example.com/data.json',
         'https://subdomain.example.com/path/to/data',
       ];
 
-      // Mock get to return a new response for each call
-      (mockHttps.get as jest.Mock).mockImplementation((url, callback) => {
-        const mockResponse = createMockResponse();
-        // Call the callback immediately with the mock response
-        if (callback) {
-          setTimeout(() => callback(mockResponse), 0);
+      (mockHttps.get as jest.Mock).mockImplementation((url, options, callback) => {
+        const cb = callback || options;
+        const mockResponse = new PassThrough() as any;
+        mockResponse.headers = {};
+
+        if (typeof cb === 'function') {
+          setTimeout(() => {
+            cb(mockResponse);
+            mockResponse.emit('data', Buffer.from(JSON.stringify(mockData)));
+            mockResponse.emit('end');
+          }, 0);
         }
-        return mockResponse;
+        return { on: jest.fn() };
       });
 
       Promise.all(testUrls.map((url) => fetchJSON(url)))
@@ -258,6 +219,6 @@ describe('fetchData utilities', () => {
           done();
         })
         .catch(done);
-    }, 10000); // Increase timeout for this test
+    });
   });
 });
