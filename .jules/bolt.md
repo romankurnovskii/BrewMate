@@ -1,0 +1,3 @@
+## 2024-05-18 - App Filtering Performance Optimization
+**Learning:** In the renderer, `filterApps()` iterations over 100k+ `App` objects block the UI thread during keystroke searches because of repeated string creation and array/function allocations (specifically `toLowerCase()` calls and inline IIFEs within the `.filter` loop).
+**Action:** Move invariant transformations (e.g. `searchTerm.toLowerCase()`) outside the `.filter` loop, use early returns in condition checks instead of combining them with `&&`, and memoize/cache expensive string operations (`toLowerCase()`) and computed category properties directly onto the object instances (`App`).

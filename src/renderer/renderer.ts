@@ -37,6 +37,10 @@ interface App {
   homepage: string;
   version: string;
   type: 'cask' | 'formula';
+  _category?: string;
+  _nameLower?: string;
+  _descLower?: string;
+  _homepageLower?: string;
 }
 
 // Immediate console log to verify script is loading
@@ -413,72 +417,69 @@ function renderCategories(): void {
 }
 
 function getCategoryForApp(app: App): string {
-  const desc = (app.description || '').toLowerCase();
-  const name = (app.name || '').toLowerCase();
+  if (app._category) return app._category;
+
+  const desc = app._descLower ?? (app._descLower = (app.description || '').toLowerCase());
+  const name = app._nameLower ?? (app._nameLower = (app.name || '').toLowerCase());
   const text = desc + ' ' + name;
 
+  let cat = 'Other';
   if (
     text.includes('developer') ||
     text.includes('code') ||
     text.includes('git') ||
     text.includes('terminal')
   ) {
-    return 'Developer Tools';
-  }
-  if (
+    cat = 'Developer Tools';
+  } else if (
     text.includes('photo') ||
     text.includes('video') ||
     text.includes('image') ||
     text.includes('media')
   ) {
-    return 'Photo/Video';
-  }
-  if (
+    cat = 'Photo/Video';
+  } else if (
     text.includes('design') ||
     text.includes('graphic') ||
     text.includes('draw')
   ) {
-    return 'Graphic/Design';
-  }
-  if (
+    cat = 'Graphic/Design';
+  } else if (
     text.includes('music') ||
     text.includes('audio') ||
     text.includes('sound')
   ) {
-    return 'Music';
-  }
-  if (
+    cat = 'Music';
+  } else if (
     text.includes('productivity') ||
     text.includes('note') ||
     text.includes('todo')
   ) {
-    return 'Productivity';
-  }
-  if (
+    cat = 'Productivity';
+  } else if (
     text.includes('social') ||
     text.includes('chat') ||
     text.includes('message')
   ) {
-    return 'Social';
-  }
-  if (
+    cat = 'Social';
+  } else if (
     text.includes('business') ||
     text.includes('email') ||
     text.includes('finance')
   ) {
-    return 'Business';
-  }
-  if (text.includes('game') || text.includes('play')) {
-    return 'Games';
-  }
-  if (
+    cat = 'Business';
+  } else if (text.includes('game') || text.includes('play')) {
+    cat = 'Games';
+  } else if (
     text.includes('utility') ||
     text.includes('tool') ||
     text.includes('manager')
   ) {
-    return 'Utilities';
+    cat = 'Utilities';
   }
-  return 'Other';
+
+  app._category = cat;
+  return cat;
 }
 
 function calculateItemsPerRow(): void {
@@ -495,8 +496,11 @@ function filterApps(): void {
     // Reset filtered apps before filtering
     filteredApps = [];
 
+    const searchLower = searchTerm ? searchTerm.toLowerCase() : '';
+
     filteredApps = allApps.filter((app) => {
       const matchesType = selectedType === 'All' || app.type === selectedType;
+      if (!matchesType) return false;
 
       let matchesCategory = true;
       if (selectedCategory === 'Installed') {
@@ -504,22 +508,18 @@ function filterApps(): void {
       } else if (selectedCategory !== 'All') {
         matchesCategory = getCategoryForApp(app) === selectedCategory;
       }
+      if (!matchesCategory) return false;
 
-      const matchesSearch =
-        !searchTerm ||
-        (() => {
-          const searchLower = searchTerm.toLowerCase();
-          const name = (app.name || '').toLowerCase();
-          const desc = (app.description || '').toLowerCase();
-          const homepage = (app.homepage || '').toLowerCase();
-          return (
-            name.includes(searchLower) ||
-            desc.includes(searchLower) ||
-            homepage.includes(searchLower)
-          );
-        })();
+      if (!searchTerm) return true;
 
-      return matchesType && matchesCategory && matchesSearch;
+      const name = app._nameLower ?? (app._nameLower = (app.name || '').toLowerCase());
+      if (name.includes(searchLower)) return true;
+
+      const desc = app._descLower ?? (app._descLower = (app.description || '').toLowerCase());
+      if (desc.includes(searchLower)) return true;
+
+      const homepage = app._homepageLower ?? (app._homepageLower = (app.homepage || '').toLowerCase());
+      return homepage.includes(searchLower);
     });
 
     // Reset scroll position and visible items when filtering
