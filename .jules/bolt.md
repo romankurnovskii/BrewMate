@@ -1,0 +1,3 @@
+## 2024-05-24 - [Frontend Filtering Optimization]
+**Learning:** In Electron renderer processes dealing with very large datasets (like 100k+ Homebrew apps), creating inline functions (like closures or IIFEs) and performing redundant string transformations (`.toLowerCase()`) inside `.filter()` loops severely impacts main thread performance and blocks UI interactions during typing (search).
+**Action:** Order early returns by speed (property matching > set lookup > string inclusions). Hoist static operations (e.g. `searchTerm.toLowerCase()`) outside of the filter loop. Lazily compute and mutate the item object to cache expensive computed properties (`_nameLower`, `_descLower`, `_category`) on the first read, avoiding repetitive operations on subsequent keystrokes.
