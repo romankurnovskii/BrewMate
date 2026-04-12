@@ -37,6 +37,10 @@ interface App {
   homepage: string;
   version: string;
   type: 'cask' | 'formula';
+  _category?: string;
+  _nameLower?: string;
+  _descLower?: string;
+  _homepageLower?: string;
 }
 
 // Immediate console log to verify script is loading
@@ -495,31 +499,48 @@ function filterApps(): void {
     // Reset filtered apps before filtering
     filteredApps = [];
 
-    filteredApps = allApps.filter((app) => {
-      const matchesType = selectedType === 'All' || app.type === selectedType;
+    // Precompute lowercase search term outside the loop
+    const searchLower = searchTerm ? searchTerm.toLowerCase() : '';
 
-      let matchesCategory = true;
-      if (selectedCategory === 'Installed') {
-        matchesCategory = installedApps.has(app.name);
-      } else if (selectedCategory !== 'All') {
-        matchesCategory = getCategoryForApp(app) === selectedCategory;
+    filteredApps = allApps.filter((app) => {
+      // 1. Direct property checks (fastest)
+      if (selectedType !== 'All' && app.type !== selectedType) {
+        return false;
       }
 
-      const matchesSearch =
-        !searchTerm ||
-        (() => {
-          const searchLower = searchTerm.toLowerCase();
-          const name = (app.name || '').toLowerCase();
-          const desc = (app.description || '').toLowerCase();
-          const homepage = (app.homepage || '').toLowerCase();
-          return (
-            name.includes(searchLower) ||
-            desc.includes(searchLower) ||
-            homepage.includes(searchLower)
-          );
-        })();
+      // 2. Set lookups or cached category check
+      if (selectedCategory === 'Installed') {
+        if (!installedApps.has(app.name)) return false;
+      } else if (selectedCategory !== 'All') {
+        if (app._category === undefined) {
+          app._category = getCategoryForApp(app);
+        }
+        if (app._category !== selectedCategory) return false;
+      }
 
-      return matchesType && matchesCategory && matchesSearch;
+      // 3. String includes (slowest, only check if searchTerm exists)
+      if (searchLower) {
+        // Cache lowercased strings on the app object for future searches
+        if (app._nameLower === undefined) {
+          app._nameLower = (app.name || '').toLowerCase();
+        }
+        if (app._descLower === undefined) {
+          app._descLower = (app.description || '').toLowerCase();
+        }
+        if (app._homepageLower === undefined) {
+          app._homepageLower = (app.homepage || '').toLowerCase();
+        }
+
+        if (
+          !app._nameLower.includes(searchLower) &&
+          !app._descLower.includes(searchLower) &&
+          !app._homepageLower.includes(searchLower)
+        ) {
+          return false;
+        }
+      }
+
+      return true;
     });
 
     // Reset scroll position and visible items when filtering

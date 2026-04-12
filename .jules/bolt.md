@@ -1,0 +1,3 @@
+## 2024-11-20 - [Frontend Filtering Optimization]
+**Learning:** For large datasets (like Pantry's ~100k allApps), creating inline closures or running invariant string transformations (like `.toLowerCase()`) inside `.filter()` loops blocks the Electron UI thread, especially during keystroke searches.
+**Action:** Move invariant transformations outside the loop, order early returns by condition speed (direct property checks > set lookups > string includes), and memoize expensive computed properties directly onto the item objects (as optional properties defined in the interface) to ensure lightning-fast UI responsiveness.
