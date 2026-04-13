@@ -1,0 +1,3 @@
+## 2024-05-18 - Memoizing Filter Properties on Large Datasets
+**Learning:** For rendering very large datasets (like 100k+ Homebrew apps) locally in a UI, recreating strings per item (like `.toLowerCase()`) within `Array.prototype.filter()` on every user keystroke creates significant memory allocation pressure and blocks the main UI thread.
+**Action:** Always memoize invariant calculated values (like `.toLowerCase()` strings or computed categories) directly onto the object items during the first pass (or initialization). Pre-calculate invariant query terms outside the loop, and use early returns to avoid expensive checks when possible. This reduces operation complexity from $O(N)$ string creations to $O(1)$ post-warmup.
