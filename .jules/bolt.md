@@ -1,0 +1,3 @@
+## 2024-05-14 - Optimizing Renderer Filtering with Caching
+**Learning:** In Electron renderer processes dealing with large datasets (like Pantry's `allApps` with ~100k items), complex string operations (`toLowerCase()`, `includes()`) inside tight `.filter()` loops block the main UI thread, especially during keystroke searches.
+**Action:** Always memoize/cache expensive string computations directly onto the item objects (`_nameLower`, `_descLower`) when first computed. Hoist invariant transformations out of loops and order conditions by execution speed (e.g., type check > Set lookup > string search) to short-circuit earlier.
