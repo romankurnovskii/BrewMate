@@ -1,0 +1,3 @@
+## 2026-04-17 - Optimize Frontend Filtering Performance
+**Learning:** In Electron apps rendering thousands of items, moving lowercasing and object property checks out of a `.filter` map to lazy caching properties on the `App` object reduces UI blocking lag during keystrokes significantly. Splitting up a single condition into early-return checks (e.g. checking if name matches before doing `.toLowerCase().includes()` on a long description) gives massive short-circuiting speedups.
+**Action:** When filtering huge datasets dynamically, always hoist loop invariants out of the callback, lazy-cache computed strings onto the objects themselves, and order checks from cheapest/most-likely to most-expensive.
