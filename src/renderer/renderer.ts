@@ -362,18 +362,23 @@ function loadData(): void {
 }
 
 function renderCategories(): void {
-  categoryChips.innerHTML = CATEGORIES.map((cat) => {
+  const fragment = document.createDocumentFragment();
+
+  CATEGORIES.forEach((cat) => {
     const isInstalled = cat === 'Installed';
     const isActive = selectedCategory === cat;
-    return `
-      <button class="category-chip ${isInstalled ? 'installed-category' : ''} ${
-        isActive ? 'active' : ''
-      }" 
-              data-category="${cat}">
-        ${cat}${isInstalled ? ' (' + installedApps.size + ')' : ''}
-      </button>
-    `;
-  }).join('');
+
+    const btn = document.createElement('button');
+    btn.classList.add('category-chip');
+    if (isInstalled) btn.classList.add('installed-category');
+    if (isActive) btn.classList.add('active');
+    btn.dataset.category = cat;
+    btn.textContent = `${cat}${isInstalled ? ' (' + installedApps.size + ')' : ''}`;
+
+    fragment.appendChild(btn);
+  });
+
+  categoryChips.replaceChildren(fragment);
 
   categoryChips.querySelectorAll('.category-chip').forEach((btn) => {
     btn.addEventListener('click', () => {
@@ -655,9 +660,15 @@ function runCommand(command: string): void {
     toggleTerminal();
   }
 
-  terminalOutput.innerHTML += `<span class="terminal-prompt">${terminalPrompt}</span> ${escapeHtml(
-    command
-  )}\n`;
+  const promptSpan = document.createElement('span');
+  promptSpan.classList.add('terminal-prompt');
+  promptSpan.textContent = terminalPrompt;
+
+  const commandText = document.createTextNode(` ${command}\n`);
+
+  terminalOutput.appendChild(promptSpan);
+  terminalOutput.appendChild(commandText);
+
   terminalOutput.scrollTop = terminalOutput.scrollHeight;
 
   ipcRenderer.send('execute-command', command);
