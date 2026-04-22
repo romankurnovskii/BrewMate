@@ -14,18 +14,10 @@ jest.mock('fs', () => ({
 
 describe('cache utilities', () => {
   const mockFs = fs as jest.Mocked<typeof fs>;
-  const mockExistsSync = fs.existsSync as jest.MockedFunction<
-    typeof fs.existsSync
-  >;
-  const mockReadFileSync = fs.readFileSync as jest.MockedFunction<
-    typeof fs.readFileSync
-  >;
-  const mockWriteFileSync = fs.writeFileSync as jest.MockedFunction<
-    typeof fs.writeFileSync
-  >;
-  const mockMkdirSync = fs.mkdirSync as jest.MockedFunction<
-    typeof fs.mkdirSync
-  >;
+  const mockExistsSync = fs.existsSync as jest.MockedFunction<typeof fs.existsSync>;
+  const mockReadFileSync = fs.readFileSync as jest.MockedFunction<typeof fs.readFileSync>;
+  const mockWriteFileSync = fs.writeFileSync as jest.MockedFunction<typeof fs.writeFileSync>;
+  const mockMkdirSync = fs.mkdirSync as jest.MockedFunction<typeof fs.mkdirSync>;
 
   const mockApps: App[] = [
     {
@@ -92,7 +84,7 @@ describe('cache utilities', () => {
           timestamp: 1234567890,
           apps: mockApps,
         }),
-        'utf8',
+        'utf8'
       );
 
       mockDateNow.mockRestore();
@@ -104,7 +96,7 @@ describe('cache utilities', () => {
       expect(mockWriteFileSync).toHaveBeenCalledWith(
         cacheFile,
         expect.stringContaining('"apps":[]'),
-        'utf8',
+        'utf8'
       );
     });
   });
