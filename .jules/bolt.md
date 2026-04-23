@@ -1,0 +1,3 @@
+## 2024-10-24 - Synchronous UI thread bottleneck in large array filtering
+**Learning:** For extremely large datasets (like `allApps` with ~100k items) filtered synchronously on the UI thread during keystrokes, inline redundant transformations (like `searchTerm.toLowerCase()` inside a loop) and multiple independent string `.includes()` checks cause massive performance penalties and block the thread.
+**Action:** Optimize critical-path Array methods by: 1) extracting loop invariants outside the array method, 2) ordering filter return conditions from fastest (equality/set lookups) to slowest (concatenations/multiple `includes`), and 3) memoizing/caching expensive transformed properties (like lowercased variants or calculated categories) directly onto the iterated objects.
