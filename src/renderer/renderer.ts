@@ -37,6 +37,10 @@ interface App {
   homepage: string;
   version: string;
   type: 'cask' | 'formula';
+  _category?: string;
+  _nameLower?: string;
+  _descLower?: string;
+  _homeLower?: string;
 }
 
 // Immediate console log to verify script is loading
@@ -413,9 +417,20 @@ function renderCategories(): void {
 }
 
 function getCategoryForApp(app: App): string {
-  const desc = (app.description || '').toLowerCase();
-  const name = (app.name || '').toLowerCase();
-  const text = desc + ' ' + name;
+  if (app._category !== undefined) {
+    return app._category;
+  }
+
+  if (app._nameLower === undefined) {
+    app._nameLower = (app.name || '').toLowerCase();
+  }
+  if (app._descLower === undefined) {
+    app._descLower = (app.description || '').toLowerCase();
+  }
+
+  const text = app._descLower + ' ' + app._nameLower;
+
+  let category = 'Other';
 
   if (
     text.includes('developer') ||
@@ -423,62 +438,56 @@ function getCategoryForApp(app: App): string {
     text.includes('git') ||
     text.includes('terminal')
   ) {
-    return 'Developer Tools';
-  }
-  if (
+    category = 'Developer Tools';
+  } else if (
     text.includes('photo') ||
     text.includes('video') ||
     text.includes('image') ||
     text.includes('media')
   ) {
-    return 'Photo/Video';
-  }
-  if (
+    category = 'Photo/Video';
+  } else if (
     text.includes('design') ||
     text.includes('graphic') ||
     text.includes('draw')
   ) {
-    return 'Graphic/Design';
-  }
-  if (
+    category = 'Graphic/Design';
+  } else if (
     text.includes('music') ||
     text.includes('audio') ||
     text.includes('sound')
   ) {
-    return 'Music';
-  }
-  if (
+    category = 'Music';
+  } else if (
     text.includes('productivity') ||
     text.includes('note') ||
     text.includes('todo')
   ) {
-    return 'Productivity';
-  }
-  if (
+    category = 'Productivity';
+  } else if (
     text.includes('social') ||
     text.includes('chat') ||
     text.includes('message')
   ) {
-    return 'Social';
-  }
-  if (
+    category = 'Social';
+  } else if (
     text.includes('business') ||
     text.includes('email') ||
     text.includes('finance')
   ) {
-    return 'Business';
-  }
-  if (text.includes('game') || text.includes('play')) {
-    return 'Games';
-  }
-  if (
+    category = 'Business';
+  } else if (text.includes('game') || text.includes('play')) {
+    category = 'Games';
+  } else if (
     text.includes('utility') ||
     text.includes('tool') ||
     text.includes('manager')
   ) {
-    return 'Utilities';
+    category = 'Utilities';
   }
-  return 'Other';
+
+  app._category = category;
+  return category;
 }
 
 function calculateItemsPerRow(): void {
@@ -492,34 +501,45 @@ function filterApps(): void {
   }
 
   requestAnimationFrame(() => {
+    const searchLower = (searchTerm || '').toLowerCase();
+
     // Reset filtered apps before filtering
-    filteredApps = [];
-
     filteredApps = allApps.filter((app) => {
-      const matchesType = selectedType === 'All' || app.type === selectedType;
-
-      let matchesCategory = true;
-      if (selectedCategory === 'Installed') {
-        matchesCategory = installedApps.has(app.name);
-      } else if (selectedCategory !== 'All') {
-        matchesCategory = getCategoryForApp(app) === selectedCategory;
+      // Type match (fastest)
+      if (selectedType !== 'All' && app.type !== selectedType) {
+        return false;
       }
 
-      const matchesSearch =
-        !searchTerm ||
-        (() => {
-          const searchLower = searchTerm.toLowerCase();
-          const name = (app.name || '').toLowerCase();
-          const desc = (app.description || '').toLowerCase();
-          const homepage = (app.homepage || '').toLowerCase();
-          return (
-            name.includes(searchLower) ||
-            desc.includes(searchLower) ||
-            homepage.includes(searchLower)
-          );
-        })();
+      // Category match
+      if (selectedCategory !== 'All') {
+        if (selectedCategory === 'Installed') {
+          if (!installedApps.has(app.name)) return false;
+        } else {
+          if (getCategoryForApp(app) !== selectedCategory) return false;
+        }
+      }
 
-      return matchesType && matchesCategory && matchesSearch;
+      // Search match
+      if (searchLower) {
+        if (app._nameLower === undefined) {
+          app._nameLower = (app.name || '').toLowerCase();
+        }
+        if (app._nameLower.includes(searchLower)) return true;
+
+        if (app._descLower === undefined) {
+          app._descLower = (app.description || '').toLowerCase();
+        }
+        if (app._descLower.includes(searchLower)) return true;
+
+        if (app._homeLower === undefined) {
+          app._homeLower = (app.homepage || '').toLowerCase();
+        }
+        if (app._homeLower.includes(searchLower)) return true;
+
+        return false;
+      }
+
+      return true;
     });
 
     // Reset scroll position and visible items when filtering
