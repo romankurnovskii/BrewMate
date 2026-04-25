@@ -134,7 +134,11 @@ function init(): void {
   }
 
   // Initialize terminal output
-  terminalOutput.innerHTML = `Welcome to BrewMate terminal.\nLast login: ${new Date().toLocaleString()}\n`;
+  terminalOutput.replaceChildren(
+    document.createTextNode(
+      `Welcome to BrewMate terminal.\nLast login: ${new Date().toLocaleString()}\n`
+    )
+  );
 
   // Load version info
   if (versionInfo && ipcRenderer) {
@@ -227,7 +231,7 @@ function setupEventListeners(): void {
 
   ipcRenderer.on('toggle-terminal', toggleTerminal);
   ipcRenderer.on('terminal-output', (_event: any, data: string) => {
-    terminalOutput.innerHTML += escapeHtml(data);
+    terminalOutput.appendChild(document.createTextNode(data));
     terminalOutput.scrollTop = terminalOutput.scrollHeight;
   });
   ipcRenderer.on('all-apps', (_event: any, apps: Array<App>) => {
@@ -281,12 +285,20 @@ function setupEventListeners(): void {
       }
       if (loading) {
         if (!appsGrid.querySelector('.loading')) {
-          appsGrid.innerHTML = `
-          <div class="loading">
-            <div class="loading-spinner"></div>
-            <div class="loading-message">${message || 'Loading apps...'}</div>
-          </div>
-        `;
+          const loadingDiv = document.createElement('div');
+          loadingDiv.className = 'loading';
+
+          const spinnerDiv = document.createElement('div');
+          spinnerDiv.className = 'loading-spinner';
+
+          const messageDiv = document.createElement('div');
+          messageDiv.className = 'loading-message';
+          messageDiv.textContent = message || 'Loading apps...';
+
+          loadingDiv.appendChild(spinnerDiv);
+          loadingDiv.appendChild(messageDiv);
+
+          appsGrid.replaceChildren(loadingDiv);
         }
       }
     }
@@ -361,28 +373,27 @@ function loadData(): void {
 }
 
 function renderCategories(): void {
-  categoryChips.innerHTML = CATEGORIES.map((cat) => {
+  categoryChips.replaceChildren();
+
+  CATEGORIES.forEach((cat) => {
     const isInstalled = cat === 'Installed';
     const isActive = selectedCategory === cat;
-    return `
-      <button class="category-chip ${isInstalled ? 'installed-category' : ''} ${
-        isActive ? 'active' : ''
-      }" 
-              data-category="${cat}">
-        ${cat}${isInstalled ? ' (' + installedApps.size + ')' : ''}
-      </button>
-    `;
-  }).join('');
 
-  categoryChips.querySelectorAll('.category-chip').forEach((btn) => {
+    const btn = document.createElement('button');
+    btn.className = `category-chip ${isInstalled ? 'installed-category' : ''} ${isActive ? 'active' : ''}`;
+    btn.dataset.category = cat;
+    btn.textContent = `${cat}${isInstalled ? ' (' + installedApps.size + ')' : ''}`;
+
     btn.addEventListener('click', () => {
-      selectedCategory = (btn as HTMLElement).dataset.category || 'All';
+      selectedCategory = btn.dataset.category || 'All';
       document.querySelectorAll('.category-chip').forEach((b) => b.classList.remove('active'));
       btn.classList.add('active');
       visibleStartIndex = 0;
       appsGrid.scrollTop = 0;
       filterApps();
     });
+
+    categoryChips.appendChild(btn);
   });
 }
 
@@ -510,27 +521,39 @@ function updateVisibleItems(): void {
 function renderApps(): void {
   // Clear the grid first to prevent showing old apps
   if (isLoading && allApps.length === 0) {
-    appsGrid.innerHTML = `
-      <div class="loading">
-        <div class="loading-spinner"></div>
-        <div class="loading-message">Loading apps from Homebrew...</div>
-      </div>
-    `;
+    const loadingDiv = document.createElement('div');
+    loadingDiv.className = 'loading';
+
+    const spinnerDiv = document.createElement('div');
+    spinnerDiv.className = 'loading-spinner';
+
+    const messageDiv = document.createElement('div');
+    messageDiv.className = 'loading-message';
+    messageDiv.textContent = 'Loading apps from Homebrew...';
+
+    loadingDiv.appendChild(spinnerDiv);
+    loadingDiv.appendChild(messageDiv);
+
+    appsGrid.replaceChildren(loadingDiv);
     return;
   }
 
   // Show empty state when no filtered apps (but apps are loaded)
   if (filteredApps.length === 0 && allApps.length > 0) {
-    appsGrid.innerHTML =
-      '<div class="empty-state">No apps found matching your criteria.</div>';
+    const emptyState = document.createElement('div');
+    emptyState.className = 'empty-state';
+    emptyState.textContent = 'No apps found matching your criteria.';
+    appsGrid.replaceChildren(emptyState);
     // Reset scroll position
     appsGrid.scrollTop = 0;
     return;
   }
 
   if (filteredApps.length === 0 && allApps.length === 0 && !isLoading) {
-    appsGrid.innerHTML =
-      '<div class="empty-state">No apps available. Please check your connection.</div>';
+    const emptyState = document.createElement('div');
+    emptyState.className = 'empty-state';
+    emptyState.textContent = 'No apps available. Please check your connection.';
+    appsGrid.replaceChildren(emptyState);
     appsGrid.scrollTop = 0;
     return;
   }
@@ -658,9 +681,15 @@ function runCommand(command: string): void {
     toggleTerminal();
   }
 
-  terminalOutput.innerHTML += `<span class="terminal-prompt">${terminalPrompt}</span> ${escapeHtml(
-    command
-  )}\n`;
+  const promptSpan = document.createElement('span');
+  promptSpan.className = 'terminal-prompt';
+  promptSpan.textContent = terminalPrompt;
+
+  const commandText = document.createTextNode(` ${command}\n`);
+
+  terminalOutput.appendChild(promptSpan);
+  terminalOutput.appendChild(commandText);
+
   terminalOutput.scrollTop = terminalOutput.scrollHeight;
 
   ipcRenderer.send('execute-command', command);
