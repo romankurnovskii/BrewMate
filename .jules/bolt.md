@@ -1,0 +1,3 @@
+## 2023-10-25 - Filter Loop Optimization for Large Datasets
+**Learning:** In large arrays (e.g., ~100k items), inline transformations like `toLowerCase()` and inline closures/IIFEs inside `.filter()` operations can drastically degrade performance by creating redundant overhead for every item. Furthermore, complex string matching operations are expensive if not ordered effectively.
+**Action:** Always move invariant transformations (like search term normalization) outside of filtering loops. Cache computed string fields on the objects themselves if they are accessed repeatedly. Structure condition checks to fail fast, prioritizing direct property checks before expensive substring or category computations.
