@@ -1,0 +1,3 @@
+## 2024-05-19 - Fast Filtering over Large Datasets
+**Learning:** For extremely large datasets (like the ~100k items from the Homebrew API), standard array methods can become bottlenecks. Using an inner IIFE or repeatedly computing `.toLowerCase()` inside a `.filter()` loop blocks the main thread during keystroke searches, rendering the UI unresponsive.
+**Action:** When filtering massive arrays, always extract invariant operations (like `searchTerm.toLowerCase()`) outside the loop, avoid creating inner closures, enforce strict early returns sorted by check-speed, and lazily compute and cache derived string/category fields directly on the individual dataset items.
