@@ -1,0 +1,180 @@
+--- src/renderer/renderer.ts
++++ src/renderer/renderer.ts
+@@ -134,8 +134,8 @@
+   }
+
+   // Initialize terminal output
+-  terminalOutput.innerHTML = `Welcome to BrewMate terminal.\nLast login: ${new Date().toLocaleString()}\n`;
++  terminalOutput.textContent = `Welcome to BrewMate terminal.\nLast login: ${new Date().toLocaleString()}\n`;
+
+   // Load version info
+   if (versionInfo && ipcRenderer) {
+     ipcRenderer.send('get-version-info');
+@@ -226,8 +226,8 @@
+
+   ipcRenderer.on('toggle-terminal', toggleTerminal);
+   ipcRenderer.on('terminal-output', (_event: any, data: string) => {
+-    terminalOutput.innerHTML += escapeHtml(data);
++    terminalOutput.appendChild(document.createTextNode(data));
+     terminalOutput.scrollTop = terminalOutput.scrollHeight;
+   });
+   ipcRenderer.on('all-apps', (_event: any, apps: Array<App>) => {
+@@ -281,12 +281,18 @@
+       }
+       if (loading) {
+         if (!appsGrid.querySelector('.loading')) {
+-          appsGrid.innerHTML = `
+-          <div class="loading">
+-            <div class="loading-spinner"></div>
+-            <div class="loading-message">${message || 'Loading apps...'}</div>
+-          </div>
+-        `;
++          const loadingContainer = document.createElement('div');
++          loadingContainer.className = 'loading';
++
++          const spinner = document.createElement('div');
++          spinner.className = 'loading-spinner';
++
++          const loadingMsg = document.createElement('div');
++          loadingMsg.className = 'loading-message';
++          loadingMsg.textContent = message || 'Loading apps...';
++
++          loadingContainer.append(spinner, loadingMsg);
++          appsGrid.replaceChildren(loadingContainer);
+         }
+       }
+     }
+@@ -361,16 +367,23 @@
+ }
+
+ function renderCategories(): void {
+-  categoryChips.innerHTML = CATEGORIES.map((cat) => {
++  const fragment = document.createDocumentFragment();
++
++  CATEGORIES.forEach((cat) => {
+     const isInstalled = cat === 'Installed';
+     const isActive = selectedCategory === cat;
+-    return `
+-      <button class="category-chip ${isInstalled ? 'installed-category' : ''} ${
+-        isActive ? 'active' : ''
+-      }"
+-              data-category="${cat}">
+-        ${cat}${isInstalled ? ' (' + installedApps.size + ')' : ''}
+-      </button>
+-    `;
+-  }).join('');
++
++    const btn = document.createElement('button');
++    btn.className = `category-chip ${isInstalled ? 'installed-category' : ''} ${isActive ? 'active' : ''}`;
++    btn.dataset.category = cat;
++
++    const countText = isInstalled ? ` (${installedApps.size})` : '';
++    btn.textContent = `${cat}${countText}`;
++
++    fragment.appendChild(btn);
++  });
++
++  categoryChips.replaceChildren(fragment);
+
+   categoryChips.querySelectorAll('.category-chip').forEach((btn) => {
+     btn.addEventListener('click', () => {
+@@ -517,27 +530,34 @@
+ function renderApps(): void {
+   // Clear the grid first to prevent showing old apps
+   if (isLoading && allApps.length === 0) {
+-    appsGrid.innerHTML = `
+-      <div class="loading">
+-        <div class="loading-spinner"></div>
+-        <div class="loading-message">Loading apps from Homebrew...</div>
+-      </div>
+-    `;
++    const loadingContainer = document.createElement('div');
++    loadingContainer.className = 'loading';
++
++    const spinner = document.createElement('div');
++    spinner.className = 'loading-spinner';
++
++    const loadingMsg = document.createElement('div');
++    loadingMsg.className = 'loading-message';
++    loadingMsg.textContent = 'Loading apps from Homebrew...';
++
++    loadingContainer.append(spinner, loadingMsg);
++    appsGrid.replaceChildren(loadingContainer);
+     return;
+   }
+
+   // Show empty state when no filtered apps (but apps are loaded)
+   if (filteredApps.length === 0 && allApps.length > 0) {
+-    appsGrid.innerHTML =
+-      '<div class="empty-state">No apps found matching your criteria.</div>';
++    const emptyState = document.createElement('div');
++    emptyState.className = 'empty-state';
++    emptyState.textContent = 'No apps found matching your criteria.';
++    appsGrid.replaceChildren(emptyState);
+     // Reset scroll position
+     appsGrid.scrollTop = 0;
+     return;
+   }
+
+   if (filteredApps.length === 0 && allApps.length === 0 && !isLoading) {
+-    appsGrid.innerHTML =
+-      '<div class="empty-state">No apps available. Please check your connection.</div>';
++    const emptyState = document.createElement('div');
++    emptyState.className = 'empty-state';
++    emptyState.textContent = 'No apps available. Please check your connection.';
++    appsGrid.replaceChildren(emptyState);
+     appsGrid.scrollTop = 0;
+     return;
+   }
+@@ -559,15 +579,27 @@
+     })
+     .join('');
+
+-  appsGrid.innerHTML = `
+-    <div style="height: ${totalHeight}px; position: relative;">
+-      <div class="apps-grid-spacer" style="height: ${topSpacerHeight}px;"></div>
+-      <div class="apps-grid-container">
+-        ${appsHTML}
+-      </div>
+-      <div class="apps-grid-spacer" style="height: ${bottomSpacerHeight}px;"></div>
+-    </div>
+-  `;
++  const wrapper = document.createElement('div');
++  wrapper.style.height = `${totalHeight}px`;
++  wrapper.style.position = 'relative';
++
++  const topSpacer = document.createElement('div');
++  topSpacer.className = 'apps-grid-spacer';
++  topSpacer.style.height = `${topSpacerHeight}px`;
++
++  const container = document.createElement('div');
++  container.className = 'apps-grid-container';
++
++  // HTML string assignment is used here as a placeholder inside an element not appended yet
++  // Ideally this would be replaced too, but doing it safely requires full rewrite of renderAppCard
++  container.innerHTML = appsHTML;
++
++  const bottomSpacer = document.createElement('div');
++  bottomSpacer.className = 'apps-grid-spacer';
++  bottomSpacer.style.height = `${bottomSpacerHeight}px`;
++
++  wrapper.append(topSpacer, container, bottomSpacer);
++  appsGrid.replaceChildren(wrapper);
+
+   appsGrid.querySelectorAll('.app-button').forEach((btn) => {
+     btn.addEventListener('click', (e) => {
+@@ -665,9 +697,11 @@
+     toggleTerminal();
+   }
+
+-  terminalOutput.innerHTML += `<span class="terminal-prompt">${terminalPrompt}</span> ${escapeHtml(
+-    command
+-  )}\n`;
++  const promptSpan = document.createElement('span');
++  promptSpan.className = 'terminal-prompt';
++  promptSpan.textContent = terminalPrompt;
++
++  terminalOutput.append(promptSpan, document.createTextNode(` ${command}\n`));
+   terminalOutput.scrollTop = terminalOutput.scrollHeight;
+
+   ipcRenderer.send('execute-command', command);
