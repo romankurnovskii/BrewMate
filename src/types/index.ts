@@ -4,6 +4,10 @@ export interface App {
   homepage: string;
   version: string;
   type: 'cask' | 'formula';
+  _category?: string;
+  _nameLower?: string;
+  _descLower?: string;
+  _homeLower?: string;
 }
 
 export interface InstalledApp {
