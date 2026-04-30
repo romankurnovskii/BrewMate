@@ -134,7 +134,11 @@ function init(): void {
   }
 
   // Initialize terminal output
-  terminalOutput.innerHTML = `Welcome to BrewMate terminal.\nLast login: ${new Date().toLocaleString()}\n`;
+  terminalOutput.replaceChildren(
+    document.createTextNode(
+      `Welcome to BrewMate terminal.\nLast login: ${new Date().toLocaleString()}\n`
+    )
+  );
 
   // Load version info
   if (versionInfo && ipcRenderer) {
@@ -227,7 +231,7 @@ function setupEventListeners(): void {
 
   ipcRenderer.on('toggle-terminal', toggleTerminal);
   ipcRenderer.on('terminal-output', (_event: any, data: string) => {
-    terminalOutput.innerHTML += escapeHtml(data);
+    terminalOutput.appendChild(document.createTextNode(data));
     terminalOutput.scrollTop = terminalOutput.scrollHeight;
   });
   ipcRenderer.on('all-apps', (_event: any, apps: Array<App>) => {
@@ -361,28 +365,29 @@ function loadData(): void {
 }
 
 function renderCategories(): void {
-  categoryChips.innerHTML = CATEGORIES.map((cat) => {
+  categoryChips.replaceChildren();
+
+  CATEGORIES.forEach((cat) => {
     const isInstalled = cat === 'Installed';
     const isActive = selectedCategory === cat;
-    return `
-      <button class="category-chip ${isInstalled ? 'installed-category' : ''} ${
-        isActive ? 'active' : ''
-      }" 
-              data-category="${cat}">
-        ${cat}${isInstalled ? ' (' + installedApps.size + ')' : ''}
-      </button>
-    `;
-  }).join('');
 
-  categoryChips.querySelectorAll('.category-chip').forEach((btn) => {
+    const btn = document.createElement('button');
+    btn.className = `category-chip ${isInstalled ? 'installed-category' : ''} ${
+      isActive ? 'active' : ''
+    }`;
+    btn.dataset.category = cat;
+    btn.textContent = `${cat}${isInstalled ? ' (' + installedApps.size + ')' : ''}`;
+
     btn.addEventListener('click', () => {
-      selectedCategory = (btn as HTMLElement).dataset.category || 'All';
+      selectedCategory = cat;
       document.querySelectorAll('.category-chip').forEach((b) => b.classList.remove('active'));
       btn.classList.add('active');
       visibleStartIndex = 0;
       appsGrid.scrollTop = 0;
       filterApps();
     });
+
+    categoryChips.appendChild(btn);
   });
 }
 
@@ -661,9 +666,12 @@ function runCommand(command: string): void {
     toggleTerminal();
   }
 
-  terminalOutput.innerHTML += `<span class="terminal-prompt">${terminalPrompt}</span> ${escapeHtml(
-    command
-  )}\n`;
+  const promptSpan = document.createElement('span');
+  promptSpan.className = 'terminal-prompt';
+  promptSpan.textContent = terminalPrompt;
+
+  terminalOutput.appendChild(promptSpan);
+  terminalOutput.appendChild(document.createTextNode(` ${command}\n`));
   terminalOutput.scrollTop = terminalOutput.scrollHeight;
 
   ipcRenderer.send('execute-command', command);
@@ -674,9 +682,12 @@ function runCommand(command: string): void {
 }
 
 function escapeHtml(text: string): string {
-  const div = document.createElement('div');
-  div.textContent = text;
-  return div.innerHTML;
+  return text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
 }
 
 // Start app when DOM is ready
