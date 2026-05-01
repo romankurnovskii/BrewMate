@@ -25,9 +25,10 @@ describe('fetchData utilities', () => {
         }),
       };
 
-      (mockHttps.get as jest.Mock).mockImplementation((url, callback) => {
-        if (callback) {
-          setTimeout(() => callback(mockResponse), 0);
+      (mockHttps.get as jest.Mock).mockImplementation((url, options, callback) => {
+        const cb = typeof options === 'function' ? options : callback;
+        if (cb) {
+          setTimeout(() => cb(mockResponse), 0);
         }
         return mockResponse;
       });
@@ -37,6 +38,11 @@ describe('fetchData utilities', () => {
           expect(result).toEqual(mockData);
           expect(mockHttps.get).toHaveBeenCalledWith(
             'https://example.com/api',
+            expect.objectContaining({
+              headers: expect.objectContaining({
+                'Accept-Encoding': 'gzip, deflate, br'
+              })
+            }),
             expect.any(Function),
           );
           done();
@@ -73,9 +79,10 @@ describe('fetchData utilities', () => {
         }),
       };
 
-      (mockHttps.get as jest.Mock).mockImplementation((url, callback) => {
-        if (callback) {
-          setTimeout(() => callback(mockResponse), 0);
+      (mockHttps.get as jest.Mock).mockImplementation((url, options, callback) => {
+        const cb = typeof options === 'function' ? options : callback;
+        if (cb) {
+          setTimeout(() => cb(mockResponse), 0);
         }
         return mockResponse;
       });
@@ -100,9 +107,10 @@ describe('fetchData utilities', () => {
         }),
       };
 
-      (mockHttps.get as jest.Mock).mockImplementation((url, callback) => {
-        if (callback) {
-          setTimeout(() => callback(mockResponse), 0);
+      (mockHttps.get as jest.Mock).mockImplementation((url, options, callback) => {
+        const cb = typeof options === 'function' ? options : callback;
+        if (cb) {
+          setTimeout(() => cb(mockResponse), 0);
         }
         return mockResponse;
       });
@@ -152,9 +160,10 @@ describe('fetchData utilities', () => {
         }),
       };
 
-      (mockHttps.get as jest.Mock).mockImplementation((url, callback) => {
-        if (callback) {
-          setTimeout(() => callback(mockResponse), 0);
+      (mockHttps.get as jest.Mock).mockImplementation((url, options, callback) => {
+        const cb = typeof options === 'function' ? options : callback;
+        if (cb) {
+          setTimeout(() => cb(mockResponse), 0);
         }
         return mockResponse;
       });
@@ -197,9 +206,10 @@ describe('fetchData utilities', () => {
         }),
       };
 
-      (mockHttps.get as jest.Mock).mockImplementation((url, callback) => {
-        if (callback) {
-          setTimeout(() => callback(mockResponse), 0);
+      (mockHttps.get as jest.Mock).mockImplementation((url, options, callback) => {
+        const cb = typeof options === 'function' ? options : callback;
+        if (cb) {
+          setTimeout(() => cb(mockResponse), 0);
         }
         return mockResponse;
       });
@@ -240,11 +250,12 @@ describe('fetchData utilities', () => {
       ];
 
       // Mock get to return a new response for each call
-      (mockHttps.get as jest.Mock).mockImplementation((url, callback) => {
+      (mockHttps.get as jest.Mock).mockImplementation((url, options, callback) => {
+        const cb = typeof options === 'function' ? options : callback;
         const mockResponse = createMockResponse();
         // Call the callback immediately with the mock response
-        if (callback) {
-          setTimeout(() => callback(mockResponse), 0);
+        if (cb) {
+          setTimeout(() => cb(mockResponse), 0);
         }
         return mockResponse;
       });

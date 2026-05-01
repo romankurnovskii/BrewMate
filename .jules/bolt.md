@@ -1,0 +1,3 @@
+## 2026-05-01 - [Optimize fetchJSON to use Buffer arrays and HTTP compression]
+**Learning:** Homebrew JSON APIs (`formula.json`, `cask.json`) are extremely large (up to 30MB+ uncompressed). Fetching them using `Accept-Encoding: gzip, deflate, br` and decompressing on-the-fly using Node's `zlib` stream pipes significantly reduces network transfer time and bandwidth. Furthermore, using a `Buffer` array and `Buffer.concat()` instead of string concatenation (`+=`) in the `data` event avoids O(n^2) memory complexity and string allocation overhead.
+**Action:** When working with large HTTP responses, always use HTTP compression (`Accept-Encoding: gzip, deflate, br`) and collect data using a Buffer array rather than string concatenation.
