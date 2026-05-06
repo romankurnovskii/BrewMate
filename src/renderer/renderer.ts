@@ -134,7 +134,7 @@ function init(): void {
   }
 
   // Initialize terminal output
-  terminalOutput.innerHTML = `Welcome to BrewMate terminal.\nLast login: ${new Date().toLocaleString()}\n`;
+  terminalOutput.textContent = `Welcome to BrewMate terminal.\nLast login: ${new Date().toLocaleString()}\n`;
 
   // Load version info
   if (versionInfo && ipcRenderer) {
@@ -227,7 +227,7 @@ function setupEventListeners(): void {
 
   ipcRenderer.on('toggle-terminal', toggleTerminal);
   ipcRenderer.on('terminal-output', (_event: any, data: string) => {
-    terminalOutput.innerHTML += escapeHtml(data);
+    terminalOutput.appendChild(document.createTextNode(data));
     terminalOutput.scrollTop = terminalOutput.scrollHeight;
   });
   ipcRenderer.on('all-apps', (_event: any, apps: Array<App>) => {
@@ -288,12 +288,20 @@ function setupEventListeners(): void {
       }
       if (loading) {
         if (!appsGrid.querySelector('.loading')) {
-          appsGrid.innerHTML = `
-          <div class="loading">
-            <div class="loading-spinner"></div>
-            <div class="loading-message">${message || 'Loading apps...'}</div>
-          </div>
-        `;
+          const loadingDiv = document.createElement('div');
+          loadingDiv.className = 'loading';
+
+          const spinnerDiv = document.createElement('div');
+          spinnerDiv.className = 'loading-spinner';
+
+          const messageDiv = document.createElement('div');
+          messageDiv.className = 'loading-message';
+          messageDiv.textContent = message || 'Loading apps...';
+
+          loadingDiv.appendChild(spinnerDiv);
+          loadingDiv.appendChild(messageDiv);
+
+          appsGrid.replaceChildren(loadingDiv);
         }
       }
     }
@@ -375,29 +383,30 @@ function loadData(): void {
 }
 
 function renderCategories(): void {
-  categoryChips.innerHTML = CATEGORIES.map((cat) => {
+  const fragment = document.createDocumentFragment();
+
+  CATEGORIES.forEach((cat) => {
     const isInstalled = cat === 'Installed';
     const isActive = selectedCategory === cat;
-    return `
-      <button class="category-chip ${isInstalled ? 'installed-category' : ''} ${
-        isActive ? 'active' : ''
-      }" 
-              data-category="${cat}">
-        ${cat}${isInstalled ? ' (' + installedApps.size + ')' : ''}
-      </button>
-    `;
-  }).join('');
 
-  categoryChips.querySelectorAll('.category-chip').forEach((btn) => {
+    const btn = document.createElement('button');
+    btn.className = `category-chip ${isInstalled ? 'installed-category' : ''} ${isActive ? 'active' : ''}`;
+    btn.dataset.category = cat;
+    btn.textContent = `${cat}${isInstalled ? ' (' + installedApps.size + ')' : ''}`;
+
     btn.addEventListener('click', () => {
-      selectedCategory = (btn as HTMLElement).dataset.category || 'All';
+      selectedCategory = btn.dataset.category || 'All';
       document.querySelectorAll('.category-chip').forEach((b) => b.classList.remove('active'));
       btn.classList.add('active');
       visibleStartIndex = 0;
       appsGrid.scrollTop = 0;
       filterApps();
     });
+
+    fragment.appendChild(btn);
   });
+
+  categoryChips.replaceChildren(fragment);
 }
 
 function getCategoryForApp(app: App): string {
@@ -533,27 +542,39 @@ function updateVisibleItems(): void {
 function renderApps(): void {
   // Clear the grid first to prevent showing old apps
   if (isLoading && allApps.length === 0) {
-    appsGrid.innerHTML = `
-      <div class="loading">
-        <div class="loading-spinner"></div>
-        <div class="loading-message">Loading apps from Homebrew...</div>
-      </div>
-    `;
+    const loadingDiv = document.createElement('div');
+    loadingDiv.className = 'loading';
+
+    const spinnerDiv = document.createElement('div');
+    spinnerDiv.className = 'loading-spinner';
+
+    const messageDiv = document.createElement('div');
+    messageDiv.className = 'loading-message';
+    messageDiv.textContent = 'Loading apps from Homebrew...';
+
+    loadingDiv.appendChild(spinnerDiv);
+    loadingDiv.appendChild(messageDiv);
+
+    appsGrid.replaceChildren(loadingDiv);
     return;
   }
 
   // Show empty state when no filtered apps (but apps are loaded)
   if (filteredApps.length === 0 && allApps.length > 0) {
-    appsGrid.innerHTML =
-      '<div class="empty-state">No apps found matching your criteria.</div>';
+    const emptyDiv = document.createElement('div');
+    emptyDiv.className = 'empty-state';
+    emptyDiv.textContent = 'No apps found matching your criteria.';
+    appsGrid.replaceChildren(emptyDiv);
     // Reset scroll position
     appsGrid.scrollTop = 0;
     return;
   }
 
   if (filteredApps.length === 0 && allApps.length === 0 && !isLoading) {
-    appsGrid.innerHTML =
-      '<div class="empty-state">No apps available. Please check your connection.</div>';
+    const emptyDiv = document.createElement('div');
+    emptyDiv.className = 'empty-state';
+    emptyDiv.textContent = 'No apps available. Please check your connection.';
+    appsGrid.replaceChildren(emptyDiv);
     appsGrid.scrollTop = 0;
     return;
   }
@@ -568,22 +589,31 @@ function renderApps(): void {
   const bottomSpacerHeight = Math.max(0, (totalRows - endRow) * rowHeight);
   const totalHeight = totalRows * rowHeight;
 
-  const appsHTML = visibleApps
-    .map((app) => {
-      const isInstalled = installedApps.has(app.name);
-      return renderAppCard(app, isInstalled);
-    })
-    .join('');
+  const wrapperDiv = document.createElement('div');
+  wrapperDiv.style.height = `${totalHeight}px`;
+  wrapperDiv.style.position = 'relative';
 
-  appsGrid.innerHTML = `
-    <div style="height: ${totalHeight}px; position: relative;">
-      <div class="apps-grid-spacer" style="height: ${topSpacerHeight}px;"></div>
-      <div class="apps-grid-container">
-        ${appsHTML}
-      </div>
-      <div class="apps-grid-spacer" style="height: ${bottomSpacerHeight}px;"></div>
-    </div>
-  `;
+  const topSpacer = document.createElement('div');
+  topSpacer.className = 'apps-grid-spacer';
+  topSpacer.style.height = `${topSpacerHeight}px`;
+
+  const containerDiv = document.createElement('div');
+  containerDiv.className = 'apps-grid-container';
+
+  visibleApps.forEach((app) => {
+    const isInstalled = installedApps.has(app.name);
+    containerDiv.appendChild(renderAppCardElement(app, isInstalled));
+  });
+
+  const bottomSpacer = document.createElement('div');
+  bottomSpacer.className = 'apps-grid-spacer';
+  bottomSpacer.style.height = `${bottomSpacerHeight}px`;
+
+  wrapperDiv.appendChild(topSpacer);
+  wrapperDiv.appendChild(containerDiv);
+  wrapperDiv.appendChild(bottomSpacer);
+
+  appsGrid.replaceChildren(wrapperDiv);
 
   appsGrid.querySelectorAll('.app-button').forEach((btn) => {
     btn.addEventListener('click', (e) => {
@@ -605,51 +635,6 @@ function renderApps(): void {
       }
     });
   });
-}
-
-function renderAppCard(app: App, isInstalled: boolean): string {
-  return `
-    <div class="app-card">
-      <div>
-        <div class="app-card-header">
-          <div class="app-icon">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-              <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-              <line x1="9" y1="3" x2="9" y2="21"></line>
-              <line x1="15" y1="3" x2="15" y2="21"></line>
-              <line x1="3" y1="9" x2="21" y2="9"></line>
-              <line x1="3" y1="15" x2="21" y2="15"></line>
-            </svg>
-          </div>
-          <span class="app-version">v${app.version || 'N/A'}</span>
-        </div>
-        <h3 class="app-title">${escapeHtml(app.name)}</h3>
-        <p class="app-description">${escapeHtml(
-          app.description || 'No description available'
-        )}</p>
-      </div>
-      <div class="app-actions">
-        <button class="app-button ${isInstalled ? 'installed' : ''}" 
-                data-app="${app.name}" 
-                data-type="${app.type}">
-          ${isInstalled ? 'Delete' : 'Install'}
-        </button>
-        ${
-          app.homepage
-            ? `
-          <a href="${app.homepage}" target="_blank" class="external-link" title="Open homepage">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-              <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
-              <polyline points="15 3 21 3 21 9"></polyline>
-              <line x1="10" y1="14" x2="21" y2="3"></line>
-            </svg>
-          </a>
-        `
-            : ''
-        }
-      </div>
-    </div>
-  `;
 }
 
 function toggleTerminal(): void {
@@ -681,9 +666,13 @@ function runCommand(command: string): void {
     toggleTerminal();
   }
 
-  terminalOutput.innerHTML += `<span class="terminal-prompt">${terminalPrompt}</span> ${escapeHtml(
-    command
-  )}\n`;
+  const promptSpan = document.createElement('span');
+  promptSpan.className = 'terminal-prompt';
+  promptSpan.textContent = terminalPrompt;
+
+  terminalOutput.appendChild(promptSpan);
+  terminalOutput.appendChild(document.createTextNode(` ${command}\n`));
+
   terminalOutput.scrollTop = terminalOutput.scrollHeight;
 
   ipcRenderer.send('execute-command', command);
@@ -691,12 +680,6 @@ function runCommand(command: string): void {
   setTimeout(() => {
     commandToRun = null;
   }, 100);
-}
-
-function escapeHtml(text: string): string {
-  const div = document.createElement('div');
-  div.textContent = text;
-  return div.innerHTML;
 }
 
 // Start app when DOM is ready
@@ -719,4 +702,63 @@ if (document.readyState === 'loading') {
     ipcRenderer.send('get-log-path');
   }
   init();
+}
+
+function renderAppCardElement(app: App, isInstalled: boolean): HTMLElement {
+  const cardDiv = document.createElement('div');
+  cardDiv.className = 'app-card';
+
+  const contentDiv = document.createElement('div');
+
+  const headerDiv = document.createElement('div');
+  headerDiv.className = 'app-card-header';
+
+  const iconDiv = document.createElement('div');
+  iconDiv.className = 'app-icon';
+  // Static safe SVG injection
+  iconDiv.innerHTML = `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="9" y1="3" x2="9" y2="21"></line><line x1="15" y1="3" x2="15" y2="21"></line><line x1="3" y1="9" x2="21" y2="9"></line><line x1="3" y1="15" x2="21" y2="15"></line></svg>`;
+
+  const versionSpan = document.createElement('span');
+  versionSpan.className = 'app-version';
+  versionSpan.textContent = `v${app.version || 'N/A'}`;
+
+  headerDiv.appendChild(iconDiv);
+  headerDiv.appendChild(versionSpan);
+
+  const titleH3 = document.createElement('h3');
+  titleH3.className = 'app-title';
+  titleH3.textContent = app.name;
+
+  const descP = document.createElement('p');
+  descP.className = 'app-description';
+  descP.textContent = app.description || 'No description available';
+
+  contentDiv.appendChild(headerDiv);
+  contentDiv.appendChild(titleH3);
+  contentDiv.appendChild(descP);
+
+  const actionsDiv = document.createElement('div');
+  actionsDiv.className = 'app-actions';
+
+  const btn = document.createElement('button');
+  btn.className = `app-button ${isInstalled ? 'installed' : ''}`;
+  btn.dataset.app = app.name;
+  btn.dataset.type = app.type;
+  btn.textContent = isInstalled ? 'Delete' : 'Install';
+  actionsDiv.appendChild(btn);
+
+  if (app.homepage) {
+    const link = document.createElement('a');
+    link.href = app.homepage;
+    link.target = '_blank';
+    link.className = 'external-link';
+    link.title = 'Open homepage';
+    link.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>`;
+    actionsDiv.appendChild(link);
+  }
+
+  cardDiv.appendChild(contentDiv);
+  cardDiv.appendChild(actionsDiv);
+
+  return cardDiv;
 }
