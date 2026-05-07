@@ -16,13 +16,9 @@ export function getCachePath(): string {
   return CACHE_FILE;
 }
 
-export function loadFromCache(): App[] | null {
-  if (!fs.existsSync(CACHE_FILE)) {
-    return null;
-  }
-
+export async function loadFromCache(): Promise<App[] | null> {
   try {
-    const cacheContent = fs.readFileSync(CACHE_FILE, 'utf8');
+    const cacheContent = await fs.promises.readFile(CACHE_FILE, 'utf8');
     const cache: CacheData = JSON.parse(cacheContent);
     const age = Date.now() - cache.timestamp;
 
@@ -30,15 +26,17 @@ export function loadFromCache(): App[] | null {
       return cache.apps;
     }
   } catch (e) {
-    // Cache is corrupted, ignore it
+    // Cache doesn't exist, is corrupted, or failed to read. Ignore it.
   }
 
   return null;
 }
 
-export function saveToCache(apps: App[]): void {
-  if (!fs.existsSync(CACHE_DIR)) {
-    fs.mkdirSync(CACHE_DIR, { recursive: true });
+export async function saveToCache(apps: App[]): Promise<void> {
+  try {
+    await fs.promises.mkdir(CACHE_DIR, { recursive: true });
+  } catch (e) {
+    // Ignore if directory exists
   }
 
   const cacheData: CacheData = {
@@ -46,5 +44,9 @@ export function saveToCache(apps: App[]): void {
     apps,
   };
 
-  fs.writeFileSync(CACHE_FILE, JSON.stringify(cacheData), 'utf8');
+  try {
+    await fs.promises.writeFile(CACHE_FILE, JSON.stringify(cacheData), 'utf8');
+  } catch (e) {
+    // Ignore write errors
+  }
 }
