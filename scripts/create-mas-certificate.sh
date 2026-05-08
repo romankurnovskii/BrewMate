@@ -12,8 +12,8 @@ if [ -z "$EMAIL" ]; then
 fi
 
 # Get common name
-read -p "Enter your name or organization [Roman Kurnovskii]: " CN
-CN=${CN:-"Roman Kurnovskii"}
+read -p "Enter your name or organization [Your Name]: " CN
+CN=${CN:-"Your Name"}
 
 # Generate CSR
 echo ""

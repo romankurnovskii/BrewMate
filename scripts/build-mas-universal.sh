@@ -13,6 +13,12 @@ if [ -f .env ]; then
 else
 	echo "⚠️  Warning: .env file not found"
 fi
+# Ensure provisioning profile is copied to the location electron-builder expects
+if [ -n "$APPLE_PROVISIONING_PROFILE" ] && [ -f "$APPLE_PROVISIONING_PROFILE" ]; then
+	echo "📋 Copying provisioning profile from $APPLE_PROVISIONING_PROFILE to expected path (.credentials/BrewMate_Distribution.provisionprofile)..."
+	mkdir -p .credentials
+	cp "$APPLE_PROVISIONING_PROFILE" .credentials/BrewMate_Distribution.provisionprofile
+fi
 
 # Check for required certificates or use provided environment variables
 echo "🔍 Checking for Mac App Store certificates..."

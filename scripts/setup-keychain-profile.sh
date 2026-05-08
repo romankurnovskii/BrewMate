@@ -2,6 +2,12 @@
 # Script to set up keychain profile for notarization
 # Based on: https://www.electronforge.io/guides/code-signing/code-signing-macos
 
+# Load .env file if it exists
+if [ -f .env ]; then
+	source .env
+fi
+
+
 echo "Setting up keychain profile for BrewMate notarization..."
 echo ""
 echo "You have two options:"
@@ -26,8 +32,12 @@ if [ "$use_app_password" = "y" ]; then
 	read -sp "Enter your app-specific password: " app_password
 	echo ""
 
-	# Team ID from your certificate (ZJBVSAC8G7)
-	TEAM_ID="ZJBVSAC8G7"
+	# Use Team ID from environment or prompt if empty
+	if [ -n "$APPLE_TEAM_ID" ]; then
+		TEAM_ID="$APPLE_TEAM_ID"
+	else
+		read -p "Enter your Apple Developer Team ID: " TEAM_ID
+	fi
 	PROFILE_NAME="brewmate-profile"
 
 	echo ""
