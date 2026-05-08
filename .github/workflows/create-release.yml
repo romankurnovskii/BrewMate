@@ -33,7 +33,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
         run: |
-          npm run build:mac -- --universal zip dmg
+          npm run build:mac -- --universal
           ls -la dist-app || true
         working-directory: .
 
