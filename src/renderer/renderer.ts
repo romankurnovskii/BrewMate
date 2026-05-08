@@ -37,6 +37,10 @@ interface App {
   homepage: string;
   version: string;
   type: 'cask' | 'formula';
+  _category?: string;
+  _nameLower?: string;
+  _descLower?: string;
+  _homeLower?: string;
 }
 
 // Immediate console log to verify script is loading
@@ -244,6 +248,12 @@ function setupEventListeners(): void {
   });
   ipcRenderer.on('all-apps', (_event: any, apps: Array<App>) => {
     console.log('[Renderer] Received all-apps:', apps.length);
+    for (const app of apps) {
+      app._nameLower = (app.name || '').toLowerCase();
+      app._descLower = (app.description || '').toLowerCase();
+      app._homeLower = (app.homepage || '').toLowerCase();
+      app._category = getCategoryForApp(app);
+    }
     allApps = apps;
     isLoading = false;
     filterApps();
@@ -313,6 +323,12 @@ function setupEventListeners(): void {
     },
   );
   ipcRenderer.on('all-apps-updated', (_event: any, apps: Array<App>) => {
+    for (const app of apps) {
+      app._nameLower = (app.name || '').toLowerCase();
+      app._descLower = (app.description || '').toLowerCase();
+      app._homeLower = (app.homepage || '').toLowerCase();
+      app._category = getCategoryForApp(app);
+    }
     allApps = apps;
     isLoading = false;
     filterApps();
@@ -413,8 +429,8 @@ function renderCategories(): void {
 }
 
 function getCategoryForApp(app: App): string {
-  const desc = (app.description || '').toLowerCase();
-  const name = (app.name || '').toLowerCase();
+  const desc = app._descLower !== undefined ? app._descLower : (app.description || '').toLowerCase();
+  const name = app._nameLower !== undefined ? app._nameLower : (app.name || '').toLowerCase();
   const text = desc + ' ' + name;
 
   if (
@@ -494,32 +510,31 @@ function filterApps(): void {
   requestAnimationFrame(() => {
     // Reset filtered apps before filtering
     filteredApps = [];
+    const searchLower = searchTerm ? searchTerm.toLowerCase() : '';
 
     filteredApps = allApps.filter((app) => {
-      const matchesType = selectedType === 'All' || app.type === selectedType;
-
-      let matchesCategory = true;
-      if (selectedCategory === 'Installed') {
-        matchesCategory = installedApps.has(app.name);
-      } else if (selectedCategory !== 'All') {
-        matchesCategory = getCategoryForApp(app) === selectedCategory;
+      if (selectedType !== 'All' && app.type !== selectedType) {
+        return false;
       }
 
-      const matchesSearch =
-        !searchTerm ||
-        (() => {
-          const searchLower = searchTerm.toLowerCase();
-          const name = (app.name || '').toLowerCase();
-          const desc = (app.description || '').toLowerCase();
-          const homepage = (app.homepage || '').toLowerCase();
-          return (
-            name.includes(searchLower) ||
-            desc.includes(searchLower) ||
-            homepage.includes(searchLower)
-          );
-        })();
+      if (selectedCategory === 'Installed') {
+        if (!installedApps.has(app.name)) return false;
+      } else if (selectedCategory !== 'All') {
+        const category = app._category !== undefined ? app._category : getCategoryForApp(app);
+        if (category !== selectedCategory) return false;
+      }
 
-      return matchesType && matchesCategory && matchesSearch;
+      if (searchLower) {
+        const name = app._nameLower !== undefined ? app._nameLower : (app.name || '').toLowerCase();
+        if (name.includes(searchLower)) return true;
+        const desc = app._descLower !== undefined ? app._descLower : (app.description || '').toLowerCase();
+        if (desc.includes(searchLower)) return true;
+        const homepage = app._homeLower !== undefined ? app._homeLower : (app.homepage || '').toLowerCase();
+        if (homepage.includes(searchLower)) return true;
+        return false;
+      }
+
+      return true;
     });
 
     // Reset scroll position and visible items when filtering
