@@ -31,3 +31,10 @@ export interface InstallResult {
   appName: string;
   success: boolean;
 }
+
+export type {
+  Software,
+  SoftwareQuery,
+  SoftwareUpdatePayload,
+  SoftwareEvent,
+} from './software';
