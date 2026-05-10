@@ -1,12 +1,12 @@
 {
   "name": "brewmate",
-  "version": "1.0.18",
+  "version": "1.0.19",
   "description": "BrewMate - A modern package manager GUI for macOS",
   "author": "Roman Kurnovskii",
   "main": "dist/index.js",
   "scripts": {
     "build": "tsc && npm run build:renderer && npm run copy:static",
-    "build:renderer": "tsc src/renderer/renderer.ts --outDir dist/renderer --target ES2020 --module none --lib ES2020,DOM --skipLibCheck",
+    "build:renderer": "tsc -p tsconfig.renderer.json",
     "copy:static": "mkdir -p dist/renderer && mkdir -p dist/assets && cp src/renderer/index.html dist/renderer/ && cp src/renderer/styles.css dist/renderer/ && if [ -d src/assets ]; then cp -r src/assets/* dist/assets/; elif [ -d assets ]; then cp -r assets/* dist/assets/; fi",
     "start": "electron .",
     "start:dev": "NODE_ENV=development npm start",
@@ -26,15 +26,15 @@
   "devDependencies": {
     "@electron/fuses": "^2.1.0",
     "@types/jest": "^30.0.0",
-    "@types/node": "^22.0.0",
+    "@types/node": "^25.6.2",
     "dotenv": "^17.2.3",
-    "electron": "^42.0.0",
+    "electron": "^42.0.1",
     "electron-builder": "^26.8.1",
     "jest": "^30.3.0",
-    "lint-staged": "^16.3.2",
+    "lint-staged": "^17.0.4",
     "prettier": "^3.6.2",
     "ts-jest": "^29.1.2",
-    "typescript": "^5.3.3"
+    "typescript": "^6.0.3"
   },
   "lint-staged": {
     "*.{ts,tsx,js,jsx,json,css,md}": [

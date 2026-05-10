@@ -41,7 +41,7 @@ describe('fetchData utilities', () => {
           expect(mockHttps.get).toHaveBeenCalledWith(
             'https://example.com/api',
             expect.objectContaining({ headers: expect.any(Object) }),
-            expect.any(Function),
+            expect.any(Function)
           );
           done();
         })
@@ -198,9 +198,9 @@ describe('fetchData utilities', () => {
             callback(Buffer.from(JSON.stringify(largeData)));
             // Then call end callback
             setTimeout(() => {
-              const endCallback = (
-                mockResponse.on as jest.Mock
-              ).mock.calls.find((call: any[]) => call[0] === 'end')?.[1];
+              const endCallback = (mockResponse.on as jest.Mock).mock.calls.find(
+                (call: any[]) => call[0] === 'end'
+              )?.[1];
               if (endCallback) {
                 endCallback();
               }
@@ -235,7 +235,7 @@ describe('fetchData utilities', () => {
       // Create a mock response factory
       const createMockResponse = () => {
         const mockResponse: any = {
-        headers: {},
+          headers: {},
 
           on: jest.fn((event: string, callback: (data?: any) => void) => {
             if (event === 'data') {
