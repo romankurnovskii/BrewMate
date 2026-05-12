@@ -134,7 +134,11 @@ function init(): void {
   }
 
   // Initialize terminal output
-  terminalOutput.innerHTML = `Welcome to BrewMate terminal.\nLast login: ${new Date().toLocaleString()}\n`;
+  terminalOutput.replaceChildren(
+    document.createTextNode(
+      `Welcome to BrewMate terminal.\nLast login: ${new Date().toLocaleString()}\n`
+    )
+  );
 
   // Load version info
   if (versionInfo && ipcRenderer) {
@@ -227,7 +231,8 @@ function setupEventListeners(): void {
 
   ipcRenderer.on('toggle-terminal', toggleTerminal);
   ipcRenderer.on('terminal-output', (_event: any, data: string) => {
-    terminalOutput.innerHTML += escapeHtml(data);
+    // ⚡ Bolt: Use appendChild(createTextNode) instead of innerHTML += to avoid O(N^2) DOM parsing overhead
+    terminalOutput.appendChild(document.createTextNode(data));
     terminalOutput.scrollTop = terminalOutput.scrollHeight;
   });
   ipcRenderer.on('all-apps', (_event: any, apps: Array<App>) => {
@@ -673,9 +678,12 @@ function runCommand(command: string): void {
     toggleTerminal();
   }
 
-  terminalOutput.innerHTML += `<span class="terminal-prompt">${terminalPrompt}</span> ${escapeHtml(
-    command
-  )}\n`;
+  // ⚡ Bolt: Construct DOM nodes manually instead of innerHTML += to avoid O(N^2) DOM parsing overhead
+  const promptSpan = document.createElement('span');
+  promptSpan.className = 'terminal-prompt';
+  promptSpan.textContent = terminalPrompt;
+  terminalOutput.appendChild(promptSpan);
+  terminalOutput.appendChild(document.createTextNode(` ${command}\n`));
   terminalOutput.scrollTop = terminalOutput.scrollHeight;
 
   ipcRenderer.send('execute-command', command);
@@ -685,10 +693,19 @@ function runCommand(command: string): void {
   }, 100);
 }
 
+// ⚡ Bolt: Cache escape dictionary outside function to prevent reallocation on every call
+const HTML_ESCAPES: Record<string, string> = {
+  '&': '&amp;',
+  '<': '&lt;',
+  '>': '&gt;',
+  '"': '&quot;',
+  "'": '&#39;',
+};
+
+// ⚡ Bolt: Use Regex for HTML escaping instead of DOM creation for significantly lower memory/GC overhead
 function escapeHtml(text: string): string {
-  const div = document.createElement('div');
-  div.textContent = text;
-  return div.innerHTML;
+  if (text == null) return '';
+  return String(text).replace(/[&<>"']/g, (match) => HTML_ESCAPES[match]);
 }
 
 // Start app when DOM is ready
