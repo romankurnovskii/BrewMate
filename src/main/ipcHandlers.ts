@@ -20,6 +20,7 @@ export function setupIpcHandlers(): void {
       event.reply('installed-apps', installed);
     } catch (error: any) {
       console.error('[IPC] Error getting installed apps:', error);
+      event.reply('installed-apps-error', error.message);
       event.reply('installed-apps', []);
     }
   });
@@ -98,6 +99,8 @@ export function setupIpcHandlers(): void {
           message: 'Error loading apps',
           error: error.message,
         } as LoadingStatus);
+        // Send error details to renderer
+        event.reply('all-apps-error', error.message);
         if (!cachedData) {
           event.reply('all-apps', []);
         }
@@ -109,6 +112,8 @@ export function setupIpcHandlers(): void {
         message: 'Error',
         error: error.message,
       } as LoadingStatus);
+      // Send error details to renderer
+      event.reply('all-apps-error', error.message);
       event.reply('all-apps', []);
     }
   });
@@ -200,38 +205,32 @@ export function setupIpcHandlers(): void {
   ipcMain.on('get-asset-path', (event: IpcMainEvent, assetName: string) => {
     const fs = require('fs');
 
-    // Try multiple possible paths for assets
-    // Development: assets are in dist/assets/ (from dist/src/main/, go up to dist/, then into assets/)
-    // Packaged: assets are copied to Resources/assets/ or app.asar/assets/
-    const possiblePaths = [
-      path.join(__dirname, '../assets', assetName), // Development: dist/src/main -> dist/assets
-      path.join(process.resourcesPath, 'assets', assetName), // Packaged: Resources/assets
-      path.join(app.getAppPath(), 'assets', assetName), // Alternative packaged path
-      path.join(__dirname, '../../assets', assetName), // Fallback: try src/assets
-      path.join(__dirname, '../src/assets', assetName), // Another fallback
-    ];
-
+    // Standard path resolution based on app state
     let assetPath: string | null = null;
-    for (const testPath of possiblePaths) {
-      try {
-        if (fs.existsSync(testPath)) {
-          assetPath = testPath;
-          console.log(`[IPC] Found asset at: ${assetPath}`);
-          break;
-        }
-      } catch (e) {
-        // Continue to next path
-      }
+    
+    if (app.isPackaged) {
+      // Packaged app: assets in Resources/assets/
+      assetPath = path.join(process.resourcesPath, 'assets', assetName);
+    } else {
+      // Development: assets in src/assets/
+      assetPath = path.join(__dirname, '../src/assets', assetName);
     }
 
-    // Convert to file:// URL for use in HTML
-    if (assetPath) {
-      // On Windows, we need to handle the path differently for file:// URLs
-      const normalizedPath = assetPath.replace(/\\/g, '/');
-      const fileUrl = `file://${normalizedPath}`;
-      event.reply('asset-path', { assetName, path: fileUrl });
-    } else {
-      console.warn(`[IPC] Asset not found: ${assetName}. Tried paths:`, possiblePaths);
+    // Check if asset exists
+    try {
+      if (fs.existsSync(assetPath)) {
+        console.log(`[IPC] Found asset at: ${assetPath}`);
+        
+        // Convert to file:// URL for use in HTML
+        const normalizedPath = assetPath.replace(/\\/g, '/');
+        const fileUrl = `file://${normalizedPath}`;
+        event.reply('asset-path', { assetName, path: fileUrl });
+      } else {
+        console.warn(`[IPC] Asset not found: ${assetName} at ${assetPath}`);
+        event.reply('asset-path', { assetName, path: null });
+      }
+    } catch (e) {
+      console.error(`[IPC] Error checking asset ${assetName}:`, e);
       event.reply('asset-path', { assetName, path: null });
     }
   });
