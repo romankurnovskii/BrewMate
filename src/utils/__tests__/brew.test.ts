@@ -119,16 +119,6 @@ describe('brew utilities', () => {
       );
     });
 
-      expect(mockExecAsync).toHaveBeenCalledWith(
-        'brew list --casks',
-        expect.objectContaining({ env: expect.any(Object) })
-      );
-      expect(mockExecAsync).toHaveBeenCalledWith(
-        'brew list --formula',
-        expect.objectContaining({ env: expect.any(Object) })
-      );
-    });
-
     it('should use getEnvWithBrewPath for environment', async () => {
       const mockEnv = {
         ...process.env,
