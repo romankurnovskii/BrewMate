@@ -4,3 +4,6 @@
 ## 2024-05-18 - Optimized fetchData with zlib compression
 **Learning:** For Electron apps fetching large JSON payloads (like 100k items from the Homebrew API), not requesting compressed responses and using string concatenation (`+=`) on the `data` event blocks the network/main thread heavily.
 **Action:** When fetching large data, request compressed payloads using `Accept-Encoding: gzip, deflate, br` headers. Read response `headers['content-encoding']` and pipe through `zlib` for decompression. In streams, accumulate buffers in an array and use `Buffer.concat(chunks).toString('utf8')` inside the `end` event to prevent O(N^2) memory and time overhead while avoiding chunk boundary multi-byte character issues.
+## 2024-05-18 - Optimized DOM String Escaping and Appending
+**Learning:** Using `document.createElement('div')` to escape HTML and `.innerHTML +=` to append text in Electron renderers introduces heavy DOM serialization/parsing overhead, blocking the main thread and creating O(N^2) bottlenecks.
+**Action:** Use a Regex replacement map for `escapeHtml` and `appendChild(document.createTextNode())` for continuous DOM appending to ensure O(1) updates and avoid GC pressure.
