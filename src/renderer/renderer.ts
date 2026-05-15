@@ -227,7 +227,9 @@ function setupEventListeners(): void {
 
   ipcRenderer.on('toggle-terminal', toggleTerminal);
   ipcRenderer.on('terminal-output', (_event: any, data: string) => {
-    terminalOutput.innerHTML += escapeHtml(data);
+    // ⚡ Bolt: Optimize stream rendering by avoiding O(N^2) innerHTML serialization
+    // appendChild guarantees $O(1)$ insertions and native XSS safety
+    terminalOutput.appendChild(document.createTextNode(data));
     terminalOutput.scrollTop = terminalOutput.scrollHeight;
   });
   ipcRenderer.on('all-apps', (_event: any, apps: Array<App>) => {
@@ -673,9 +675,15 @@ function runCommand(command: string): void {
     toggleTerminal();
   }
 
-  terminalOutput.innerHTML += `<span class="terminal-prompt">${terminalPrompt}</span> ${escapeHtml(
-    command
-  )}\n`;
+  const promptSpan = document.createElement('span');
+  promptSpan.className = 'terminal-prompt';
+  promptSpan.textContent = terminalPrompt;
+
+  const commandText = document.createTextNode(` ${command}\n`);
+
+  terminalOutput.appendChild(promptSpan);
+  terminalOutput.appendChild(commandText);
+
   terminalOutput.scrollTop = terminalOutput.scrollHeight;
 
   ipcRenderer.send('execute-command', command);
@@ -685,10 +693,18 @@ function runCommand(command: string): void {
   }, 100);
 }
 
+const htmlEntities: Record<string, string> = {
+  '&': '&amp;',
+  '<': '&lt;',
+  '>': '&gt;',
+  '"': '&quot;',
+  "'": '&#39;',
+};
+
 function escapeHtml(text: string): string {
-  const div = document.createElement('div');
-  div.textContent = text;
-  return div.innerHTML;
+  // ⚡ Bolt: Optimize escaping by eliminating document.createElement overhead
+  // Uses precomputed mapping to bypass DOM allocation and GC thrashing
+  return String(text ?? '').replace(/[&<>"']/g, (match) => htmlEntities[match]);
 }
 
 // Start app when DOM is ready
