@@ -685,10 +685,19 @@ function runCommand(command: string): void {
   }, 100);
 }
 
-function escapeHtml(text: string): string {
-  const div = document.createElement('div');
-  div.textContent = text;
-  return div.innerHTML;
+// ⚡ Bolt: Cache escape map outside function to prevent memory reallocation
+const HTML_ESCAPE_MAP: Record<string, string> = {
+  '&': '&amp;',
+  '<': '&lt;',
+  '>': '&gt;',
+  '"': '&quot;',
+  "'": '&#39;',
+};
+
+function escapeHtml(text: string | null | undefined): string {
+  if (text == null) return '';
+  // ⚡ Bolt: Avoid DOM creation for O(1) string escaping without GC overhead
+  return String(text).replace(/[&<>"']/g, (m) => HTML_ESCAPE_MAP[m] || m);
 }
 
 // Start app when DOM is ready
