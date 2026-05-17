@@ -117,7 +117,7 @@ export function setupIpcHandlers(): void {
   ipcMain.on('install-app', (event: IpcMainEvent, appName: string, appType: string) => {
     const command =
       appType === 'cask'
-        ? `brew install --cask --no-quarantine --force ${appName}`
+        ? `brew install --cask --force ${appName}`
         : `brew install ${appName}`;
 
     console.log('[IPC] Installing app:', appName, appType);
