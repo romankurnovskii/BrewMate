@@ -685,10 +685,20 @@ function runCommand(command: string): void {
   }, 100);
 }
 
+// ⚡ Bolt: Fast regex-based HTML escaping
+// Replaces slow document.createElement('div') parsing with a simple dictionary lookup.
+// Hoisted static map avoids object reallocation.
+const HTML_ESCAPE_MAP: Record<string, string> = {
+  '&': '&amp;',
+  '<': '&lt;',
+  '>': '&gt;',
+  '"': '&quot;',
+  "'": '&#39;',
+};
+
 function escapeHtml(text: string): string {
-  const div = document.createElement('div');
-  div.textContent = text;
-  return div.innerHTML;
+  if (text == null) return '';
+  return String(text).replace(/[&<>"']/g, (match) => HTML_ESCAPE_MAP[match] || match);
 }
 
 // Start app when DOM is ready
