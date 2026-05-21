@@ -685,10 +685,19 @@ function runCommand(command: string): void {
   }, 100);
 }
 
+// ⚡ Bolt Optimization: Using a static RegExp replacement map instead of document.createElement('div')
+// prevents expensive O(N^2) DOM serialization overhead during high-frequency virtual list updates.
+const HTML_ESCAPE_MAP: Record<string, string> = {
+  '&': '&amp;',
+  '<': '&lt;',
+  '>': '&gt;',
+  '"': '&quot;',
+  "'": '&#39;',
+};
+
 function escapeHtml(text: string): string {
-  const div = document.createElement('div');
-  div.textContent = text;
-  return div.innerHTML;
+  if (text == null) return '';
+  return String(text).replace(/[&<>"']/g, (match) => HTML_ESCAPE_MAP[match] || match);
 }
 
 // Start app when DOM is ready
