@@ -227,7 +227,8 @@ function setupEventListeners(): void {
 
   ipcRenderer.on('toggle-terminal', toggleTerminal);
   ipcRenderer.on('terminal-output', (_event: any, data: string) => {
-    terminalOutput.innerHTML += escapeHtml(data);
+    // Optimization: insertAdjacentHTML is O(1) compared to innerHTML += which is O(N^2)
+    terminalOutput.insertAdjacentHTML('beforeend', escapeHtml(data));
     terminalOutput.scrollTop = terminalOutput.scrollHeight;
   });
   ipcRenderer.on('all-apps', (_event: any, apps: Array<App>) => {
@@ -673,9 +674,11 @@ function runCommand(command: string): void {
     toggleTerminal();
   }
 
-  terminalOutput.innerHTML += `<span class="terminal-prompt">${terminalPrompt}</span> ${escapeHtml(
-    command
-  )}\n`;
+  // Optimization: insertAdjacentHTML avoids O(N^2) innerHTML += serialization/parsing cost
+  terminalOutput.insertAdjacentHTML(
+    'beforeend',
+    `<span class="terminal-prompt">${terminalPrompt}</span> ${escapeHtml(command)}\n`
+  );
   terminalOutput.scrollTop = terminalOutput.scrollHeight;
 
   ipcRenderer.send('execute-command', command);
@@ -685,10 +688,18 @@ function runCommand(command: string): void {
   }, 100);
 }
 
+// Optimization: Regex-based escape is significantly faster than DOM creation
+const HTML_ESCAPE_MAP: Record<string, string> = {
+  '&': '&amp;',
+  '<': '&lt;',
+  '>': '&gt;',
+  '"': '&quot;',
+  "'": '&#39;',
+};
+
 function escapeHtml(text: string): string {
-  const div = document.createElement('div');
-  div.textContent = text;
-  return div.innerHTML;
+  if (text == null) return '';
+  return String(text).replace(/[&<>"']/g, (match) => HTML_ESCAPE_MAP[match] || match);
 }
 
 // Start app when DOM is ready
