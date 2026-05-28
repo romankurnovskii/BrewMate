@@ -227,7 +227,10 @@ function setupEventListeners(): void {
 
   ipcRenderer.on('toggle-terminal', toggleTerminal);
   ipcRenderer.on('terminal-output', (_event: any, data: string) => {
-    terminalOutput.innerHTML += escapeHtml(data);
+    // ⚡ Bolt: Optimize terminal output appending
+    // Using insertAdjacentHTML is O(1) instead of O(N^2) for innerHTML +=
+    // which previously had to parse and serialize the entire container's DOM on every chunk.
+    terminalOutput.insertAdjacentHTML('beforeend', escapeHtml(data));
     terminalOutput.scrollTop = terminalOutput.scrollHeight;
   });
   ipcRenderer.on('all-apps', (_event: any, apps: Array<App>) => {
@@ -673,9 +676,12 @@ function runCommand(command: string): void {
     toggleTerminal();
   }
 
-  terminalOutput.innerHTML += `<span class="terminal-prompt">${terminalPrompt}</span> ${escapeHtml(
-    command
-  )}\n`;
+  // ⚡ Bolt: Optimize terminal output appending
+  // Using insertAdjacentHTML is O(1) instead of O(N^2) for innerHTML +=
+  terminalOutput.insertAdjacentHTML(
+    'beforeend',
+    `<span class="terminal-prompt">${terminalPrompt}</span> ${escapeHtml(command)}\n`
+  );
   terminalOutput.scrollTop = terminalOutput.scrollHeight;
 
   ipcRenderer.send('execute-command', command);
@@ -685,10 +691,20 @@ function runCommand(command: string): void {
   }, 100);
 }
 
+// ⚡ Bolt: Optimize string escaping
+// Using a static Regex replacement map is significantly faster than creating a DOM element
+// and setting textContent/innerHTML, avoiding GC overhead and DOM API calls in hot paths (like virtual scroll rendering).
+const HTML_ESCAPE_MAP: Record<string, string> = {
+  '&': '&amp;',
+  '<': '&lt;',
+  '>': '&gt;',
+  '"': '&quot;',
+  "'": '&#39;',
+};
+
 function escapeHtml(text: string): string {
-  const div = document.createElement('div');
-  div.textContent = text;
-  return div.innerHTML;
+  if (text == null) return '';
+  return String(text).replace(/[&<>"']/g, (match) => HTML_ESCAPE_MAP[match] || match);
 }
 
 // Start app when DOM is ready
