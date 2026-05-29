@@ -4,3 +4,7 @@
 ## 2024-05-18 - Optimized fetchData with zlib compression
 **Learning:** For Electron apps fetching large JSON payloads (like 100k items from the Homebrew API), not requesting compressed responses and using string concatenation (`+=`) on the `data` event blocks the network/main thread heavily.
 **Action:** When fetching large data, request compressed payloads using `Accept-Encoding: gzip, deflate, br` headers. Read response `headers['content-encoding']` and pipe through `zlib` for decompression. In streams, accumulate buffers in an array and use `Buffer.concat(chunks).toString('utf8')` inside the `end` event to prevent O(N^2) memory and time overhead while avoiding chunk boundary multi-byte character issues.
+
+## 2024-05-18 - [DOM Performance in Renderer]
+**Learning:** Appending HTML using `element.innerHTML += string` scales as $O(N^2)$ because it forces the DOM to serialize the existing content and re-parse everything from scratch. This heavily throttles performance as the terminal buffer grows.
+**Action:** Replace `innerHTML +=` with `element.insertAdjacentHTML('beforeend', string)` for $O(1)$ updates when adding items or lines to a running buffer, preserving renderer UI responsiveness.
