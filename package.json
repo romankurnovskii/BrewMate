@@ -33,7 +33,7 @@
     "jest": "^30.3.0",
     "lint-staged": "^17.0.4",
     "prettier": "^3.6.2",
-    "ts-jest": "^29.1.2",
+    "ts-jest": "^29.4.11",
     "typescript": "^6.0.3"
   },
   "lint-staged": {
