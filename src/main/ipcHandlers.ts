@@ -212,8 +212,8 @@ export function setupIpcHandlers(): void {
       // Packaged app: assets in Resources/assets/
       assetPath = path.join(process.resourcesPath, 'assets', assetName);
     } else {
-      // Development: assets in src/assets/
-      assetPath = path.join(__dirname, '../src/assets', assetName);
+      // Development: assets in dist/assets/
+      assetPath = path.join(__dirname, '../assets', assetName);
     }
 
     // Check if asset exists
