@@ -33,27 +33,17 @@ Before you begin, ensure you have met the following requirements:
 
 ### Option 1
 
-1. Download the latest DMG file from the [releases page](https://github.com/romankurnovskii/BrewMate/releases).
-2. Double-click the DMG file to open it.
-3. Drag the BrewMate app to your Applications folder.
-
-### Option 2
-
 In terminal:
 
 ```sh
 brew install romankurnovskii/awesome-brew/brewmate --cask
 ```
 
-### Option 3
+### Option 2
 
-In terminal:
-
-```sh
-brew tap romankurnovskii/awesome-brew
-brew update
-brew install --cask --no-quarantine brewmate
-```
+1. Download the latest DMG file from the [releases page](https://github.com/romankurnovskii/BrewMate/releases).
+2. Double-click the DMG file to open it.
+3. Drag the BrewMate app to your Applications folder.
 
 ## First time launch
 

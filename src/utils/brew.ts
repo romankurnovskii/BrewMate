@@ -15,7 +15,7 @@ export async function getInstalledApps(): Promise<InstalledApp[]> {
     });
     const installedCasks = casksOutput
       .trim()
-      .split('\n')
+      .split(/\s+/)
       .filter(Boolean)
       .map((cask) => cask.trim());
 
@@ -25,7 +25,7 @@ export async function getInstalledApps(): Promise<InstalledApp[]> {
     });
     const installedFormulas = formulasOutput
       .trim()
-      .split('\n')
+      .split(/\s+/)
       .filter(Boolean)
       .map((formula) => formula.trim());
 

@@ -32,8 +32,9 @@ function createWindow(): void {
     mainWindow = null;
   });
 
-  // Register Cmd-J shortcut - setup immediately and also after load
-  const setupCmdJ = () => {
+  // Register Cmd-J shortcut - setup after window loads
+  mainWindow.webContents.once('did-finish-load', () => {
+    console.log('[Main] Window loaded, setting up Cmd+J shortcut');
     mainWindow?.webContents.on('before-input-event', (event, input) => {
       if (input.key === 'j' && (input.meta || input.control) && input.type === 'keyDown') {
         event.preventDefault();
@@ -41,14 +42,6 @@ function createWindow(): void {
         mainWindow?.webContents.send('toggle-terminal');
       }
     });
-  };
-
-  // Setup immediately
-  setupCmdJ();
-
-  // Also setup after window loads (backup)
-  mainWindow.webContents.once('did-finish-load', () => {
-    console.log('[Main] Window loaded, Cmd+J shortcut should be active');
   });
 }
 

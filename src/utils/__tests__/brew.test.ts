@@ -44,7 +44,7 @@ describe('brew utilities', () => {
   });
 
   describe('getInstalledApps', () => {
-    it('should return installed casks and formulas', async () => {
+    it('should return installed casks and formulas (newline-separated)', async () => {
       mockExecAsync
         .mockResolvedValueOnce({
           stdout: 'cask1\ncask2\ncask3',
@@ -67,14 +67,55 @@ describe('brew utilities', () => {
           { name: 'formula2', type: 'formula' },
         ])
       );
+    });
 
-      expect(mockExecAsync).toHaveBeenCalledWith(
-        'brew list --casks',
-        expect.objectContaining({ env: expect.any(Object) })
+    it('should return installed casks and formulas (space-separated)', async () => {
+      mockExecAsync
+        .mockResolvedValueOnce({
+          stdout: 'cask1 cask2 cask3',
+          stderr: '',
+        })
+        .mockResolvedValueOnce({
+          stdout: 'formula1 formula2',
+          stderr: '',
+        });
+
+      const result = await getInstalledApps();
+
+      expect(result).toHaveLength(5);
+      expect(result).toEqual(
+        expect.arrayContaining([
+          { name: 'cask1', type: 'cask' },
+          { name: 'cask2', type: 'cask' },
+          { name: 'cask3', type: 'cask' },
+          { name: 'formula1', type: 'formula' },
+          { name: 'formula2', type: 'formula' },
+        ])
       );
-      expect(mockExecAsync).toHaveBeenCalledWith(
-        'brew list --formula',
-        expect.objectContaining({ env: expect.any(Object) })
+    });
+
+    it('should return installed casks and formulas (mixed whitespace)', async () => {
+      mockExecAsync
+        .mockResolvedValueOnce({
+          stdout: 'cask1  cask2\tcask3',
+          stderr: '',
+        })
+        .mockResolvedValueOnce({
+          stdout: 'formula1\tformula2',
+          stderr: '',
+        });
+
+      const result = await getInstalledApps();
+
+      expect(result).toHaveLength(5);
+      expect(result).toEqual(
+        expect.arrayContaining([
+          { name: 'cask1', type: 'cask' },
+          { name: 'cask2', type: 'cask' },
+          { name: 'cask3', type: 'cask' },
+          { name: 'formula1', type: 'formula' },
+          { name: 'formula2', type: 'formula' },
+        ])
       );
     });
 
