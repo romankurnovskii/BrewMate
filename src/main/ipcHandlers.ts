@@ -30,7 +30,7 @@ export function setupIpcHandlers(): void {
     console.log('[IPC] get-all-apps received');
     try {
       // Try to load from cache first
-      const cachedData = loadFromCache();
+      const cachedData = await loadFromCache();
       console.log(
         '[IPC] Cache check:',
         cachedData ? `Found ${cachedData.length} apps` : 'No cache'
@@ -77,7 +77,7 @@ export function setupIpcHandlers(): void {
         ];
 
         // Save to cache
-        saveToCache(allApps);
+        saveToCache(allApps); // Optimization: Now async, runs in background to unblock main thread
 
         // Send fresh data (only if we didn't have cache, or update anyway)
         console.log('[IPC] Fetched apps:', allApps.length);
@@ -207,7 +207,7 @@ export function setupIpcHandlers(): void {
 
     // Standard path resolution based on app state
     let assetPath: string | null = null;
-    
+
     if (app.isPackaged) {
       // Packaged app: assets in Resources/assets/
       assetPath = path.join(process.resourcesPath, 'assets', assetName);
@@ -220,7 +220,7 @@ export function setupIpcHandlers(): void {
     try {
       if (fs.existsSync(assetPath)) {
         console.log(`[IPC] Found asset at: ${assetPath}`);
-        
+
         // Convert to file:// URL for use in HTML
         const normalizedPath = assetPath.replace(/\\/g, '/');
         const fileUrl = `file://${normalizedPath}`;

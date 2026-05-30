@@ -6,18 +6,21 @@ import * as fs from 'fs';
 
 // Mock fs module
 jest.mock('fs', () => ({
-  existsSync: jest.fn(),
-  readFileSync: jest.fn(),
-  writeFileSync: jest.fn(),
-  mkdirSync: jest.fn(),
+  promises: {
+    readFile: jest.fn(),
+    writeFile: jest.fn(),
+    mkdir: jest.fn(),
+  },
 }));
 
 describe('cache utilities', () => {
-  const mockFs = fs as jest.Mocked<typeof fs>;
-  const mockExistsSync = fs.existsSync as jest.MockedFunction<typeof fs.existsSync>;
-  const mockReadFileSync = fs.readFileSync as jest.MockedFunction<typeof fs.readFileSync>;
-  const mockWriteFileSync = fs.writeFileSync as jest.MockedFunction<typeof fs.writeFileSync>;
-  const mockMkdirSync = fs.mkdirSync as jest.MockedFunction<typeof fs.mkdirSync>;
+  const mockReadFile = fs.promises.readFile as jest.MockedFunction<
+    typeof fs.promises.readFile
+  >;
+  const mockWriteFile = fs.promises.writeFile as jest.MockedFunction<
+    typeof fs.promises.writeFile
+  >;
+  const mockMkdir = fs.promises.mkdir as jest.MockedFunction<typeof fs.promises.mkdir>;
 
   const mockApps: App[] = [
     {
@@ -41,8 +44,6 @@ describe('cache utilities', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    // Reset existsSync to return false by default
-    mockExistsSync.mockReturnValue(false);
   });
 
   describe('getCachePath', () => {
@@ -53,32 +54,20 @@ describe('cache utilities', () => {
   });
 
   describe('saveToCache', () => {
-    it('should create cache directory if it does not exist', () => {
-      mockExistsSync.mockReturnValue(false);
+    it('should create cache directory', async () => {
+      await saveToCache(mockApps);
 
-      saveToCache(mockApps);
-
-      expect(mockExistsSync).toHaveBeenCalledWith(cacheDir);
-      expect(mockMkdirSync).toHaveBeenCalledWith(cacheDir, {
+      expect(mockMkdir).toHaveBeenCalledWith(cacheDir, {
         recursive: true,
       });
     });
 
-    it('should not create cache directory if it already exists', () => {
-      mockExistsSync.mockReturnValue(true);
-
-      saveToCache(mockApps);
-
-      expect(mockMkdirSync).not.toHaveBeenCalled();
-    });
-
-    it('should write apps to cache file with timestamp', () => {
+    it('should write apps to cache file with timestamp', async () => {
       const mockDateNow = jest.spyOn(Date, 'now').mockReturnValue(1234567890);
-      mockExistsSync.mockReturnValue(true);
 
-      saveToCache(mockApps);
+      await saveToCache(mockApps);
 
-      expect(mockWriteFileSync).toHaveBeenCalledWith(
+      expect(mockWriteFile).toHaveBeenCalledWith(
         cacheFile,
         JSON.stringify({
           timestamp: 1234567890,
@@ -90,10 +79,10 @@ describe('cache utilities', () => {
       mockDateNow.mockRestore();
     });
 
-    it('should handle empty apps array', () => {
-      saveToCache([]);
+    it('should handle empty apps array', async () => {
+      await saveToCache([]);
 
-      expect(mockWriteFileSync).toHaveBeenCalledWith(
+      expect(mockWriteFile).toHaveBeenCalledWith(
         cacheFile,
         expect.stringContaining('"apps":[]'),
         'utf8'
@@ -102,34 +91,32 @@ describe('cache utilities', () => {
   });
 
   describe('loadFromCache', () => {
-    it('should return null if cache file does not exist', () => {
-      mockExistsSync.mockReturnValue(false);
+    it('should return null if cache file read fails', async () => {
+      mockReadFile.mockRejectedValue(new Error('ENOENT'));
 
-      const result = loadFromCache();
+      const result = await loadFromCache();
 
       expect(result).toBeNull();
-      expect(mockReadFileSync).not.toHaveBeenCalled();
     });
 
-    it('should return apps if cache is valid and not expired', () => {
+    it('should return apps if cache is valid and not expired', async () => {
       const mockDateNow = jest.spyOn(Date, 'now').mockReturnValue(1234567890);
       const cacheData = {
         timestamp: 1234567890 - 1000, // 1 second ago (within 24h)
         apps: mockApps,
       };
 
-      mockExistsSync.mockReturnValue(true);
-      mockReadFileSync.mockReturnValue(JSON.stringify(cacheData));
+      mockReadFile.mockResolvedValue(JSON.stringify(cacheData));
 
-      const result = loadFromCache();
+      const result = await loadFromCache();
 
       expect(result).toEqual(mockApps);
-      expect(mockReadFileSync).toHaveBeenCalledWith(cacheFile, 'utf8');
+      expect(mockReadFile).toHaveBeenCalledWith(cacheFile, 'utf8');
 
       mockDateNow.mockRestore();
     });
 
-    it('should return null if cache is expired', () => {
+    it('should return null if cache is expired', async () => {
       const twentyFiveHours = 25 * 60 * 60 * 1000;
       const mockDateNow = jest.spyOn(Date, 'now').mockReturnValue(1234567890);
       const cacheData = {
@@ -137,72 +124,61 @@ describe('cache utilities', () => {
         apps: mockApps,
       };
 
-      mockExistsSync.mockReturnValue(true);
-      mockReadFileSync.mockReturnValue(JSON.stringify(cacheData));
+      mockReadFile.mockResolvedValue(JSON.stringify(cacheData));
 
-      const result = loadFromCache();
+      const result = await loadFromCache();
 
       expect(result).toBeNull();
 
       mockDateNow.mockRestore();
     });
 
-    it('should return null if cache file is corrupted (invalid JSON)', () => {
-      mockExistsSync.mockReturnValue(true);
-      mockReadFileSync.mockReturnValue('invalid json');
+    it('should return null if cache file is corrupted (invalid JSON)', async () => {
+      mockReadFile.mockResolvedValue('invalid json');
 
-      const result = loadFromCache();
-
-      expect(result).toBeNull();
-    });
-
-    it('should return null if cache file has wrong structure', () => {
-      mockExistsSync.mockReturnValue(true);
-      mockReadFileSync.mockReturnValue(JSON.stringify({ wrong: 'structure' }));
-
-      const result = loadFromCache();
+      const result = await loadFromCache();
 
       expect(result).toBeNull();
     });
 
-    it('should handle file read errors gracefully', () => {
-      mockExistsSync.mockReturnValue(true);
-      mockReadFileSync.mockImplementation(() => {
-        throw new Error('File read error');
-      });
+    it('should return null if cache file has wrong structure', async () => {
+      mockReadFile.mockResolvedValue(JSON.stringify({ wrong: 'structure' }));
 
-      const result = loadFromCache();
+      const result = await loadFromCache();
+
+      expect(result).toBeNull();
+    });
+
+    it('should handle file read errors gracefully', async () => {
+      mockReadFile.mockRejectedValue(new Error('File read error'));
+
+      const result = await loadFromCache();
 
       expect(result).toBeNull();
     });
   });
 
   describe('cache integration', () => {
-    it('should save and load cache correctly', () => {
+    it('should save and load cache correctly', async () => {
       const mockDateNow = jest.spyOn(Date, 'now').mockReturnValue(1234567890);
       let savedContent = '';
 
-      // First call: check if cache directory exists (false)
-      // Second call: check if cache file exists when loading (true)
-      mockExistsSync
-        .mockReturnValueOnce(false) // Directory doesn't exist when saving
-        .mockReturnValueOnce(true); // File exists when loading
-
-      mockWriteFileSync.mockImplementation((file, content) => {
+      mockWriteFile.mockImplementation((file, content) => {
         savedContent = content as string;
+        return Promise.resolve();
       });
 
       // After save, when loadFromCache is called, it should read the saved content
-      mockReadFileSync.mockImplementation(() => {
-        return savedContent;
+      mockReadFile.mockImplementation(() => {
+        return Promise.resolve(savedContent);
       });
 
-      saveToCache(mockApps);
-      const loaded = loadFromCache();
+      await saveToCache(mockApps);
+      const loaded = await loadFromCache();
 
       expect(loaded).toEqual(mockApps);
-      expect(mockWriteFileSync).toHaveBeenCalled();
-      expect(mockReadFileSync).toHaveBeenCalledWith(cacheFile, 'utf8');
+      expect(mockWriteFile).toHaveBeenCalled();
+      expect(mockReadFile).toHaveBeenCalledWith(cacheFile, 'utf8');
 
       mockDateNow.mockRestore();
     });
