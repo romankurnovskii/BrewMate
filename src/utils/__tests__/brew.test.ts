@@ -1,4 +1,4 @@
-import { getInstalledApps } from '../brew';
+import { getInstalledApps, getOutdatedApps, getCacheSize } from '../brew';
 import { getEnvWithBrewPath } from '../path';
 import { exec } from 'child_process';
 import { promisify } from 'util';
@@ -9,6 +9,14 @@ jest.mock('child_process', () => ({
 }));
 
 jest.mock('../path');
+
+// Mock fs module
+jest.mock('fs', () => ({
+  promises: {
+    readdir: jest.fn().mockResolvedValue([]),
+    stat: jest.fn().mockResolvedValue({ size: 0, isDirectory: () => false, isFile: () => true }),
+  },
+}));
 
 // Mock util.promisify to return our mock function
 // Use a global variable to avoid hoisting issues
@@ -222,6 +230,82 @@ describe('brew utilities', () => {
           { name: 'app.with.dots', type: 'cask' },
         ])
       );
+    });
+  });
+
+  describe('getCacheSize', () => {
+    it('should calculate cache directory size recursively', async () => {
+      const fs = require('fs');
+      fs.promises.readdir
+        .mockResolvedValueOnce([
+          { name: 'file1.txt', isDirectory: () => false, isFile: () => true },
+          { name: 'subdir', isDirectory: () => true, isFile: () => false },
+        ])
+        .mockResolvedValueOnce([
+          { name: 'file2.txt', isDirectory: () => false, isFile: () => true },
+        ]);
+      fs.promises.stat.mockResolvedValue({ size: 1024 });
+
+      mockExecAsync.mockResolvedValueOnce({
+        stdout: '/Users/r/Library/Caches/Homebrew',
+        stderr: '',
+      });
+
+      const result = await getCacheSize();
+      expect(result).toBe(2048); // 1024 * 2 files
+    });
+
+    it('should return 0 on error', async () => {
+      mockExecAsync.mockRejectedValueOnce(new Error('brew failed'));
+      const result = await getCacheSize();
+      expect(result).toBe(0);
+    });
+  });
+
+  describe('getOutdatedApps', () => {
+    it('should parse outdated cask and formulas correctly', async () => {
+      mockExecAsync.mockResolvedValueOnce({
+        stdout: JSON.stringify({
+          formulae: [
+            {
+              name: 'sqlite',
+              installed_versions: ['3.43.0'],
+              current_version: '3.44.0',
+            },
+          ],
+          casks: [
+            {
+              name: 'google-chrome',
+              installed_versions: ['119.0.6045.159'],
+              current_version: '120.0.6099.71',
+            },
+          ],
+        }),
+        stderr: '',
+      });
+
+      const result = await getOutdatedApps();
+      expect(result).toHaveLength(2);
+      expect(result).toEqual([
+        {
+          name: 'sqlite',
+          type: 'formula',
+          installedVersion: '3.43.0',
+          latestVersion: '3.44.0',
+        },
+        {
+          name: 'google-chrome',
+          type: 'cask',
+          installedVersion: '119.0.6045.159',
+          latestVersion: '120.0.6099.71',
+        },
+      ]);
+    });
+
+    it('should return empty array on error', async () => {
+      mockExecAsync.mockRejectedValueOnce(new Error('brew failed'));
+      const result = await getOutdatedApps();
+      expect(result).toEqual([]);
     });
   });
 });

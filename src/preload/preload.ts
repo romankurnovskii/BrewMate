@@ -9,6 +9,10 @@ const validSendChannels = [
   'get-installed-apps',
   'get-terminal-prompt',
   'get-log-path',
+  'get-outdated-apps',
+  'get-cache-size',
+  'upgrade-app',
+  'upgrade-all',
 ];
 
 const validReceiveChannels = [
@@ -23,6 +27,10 @@ const validReceiveChannels = [
   'terminal-prompt-info',
   'log-path',
   'version-info',
+  'outdated-apps',
+  'cache-size',
+  'upgrade-complete',
+  'upgrade-all-complete',
 ];
 
 contextBridge.exposeInMainWorld('electronAPI', {
