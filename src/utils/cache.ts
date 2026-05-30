@@ -16,13 +16,11 @@ export function getCachePath(): string {
   return CACHE_FILE;
 }
 
-export function loadFromCache(): App[] | null {
-  if (!fs.existsSync(CACHE_FILE)) {
-    return null;
-  }
-
+export async function loadFromCache(): Promise<App[] | null> {
   try {
-    const cacheContent = fs.readFileSync(CACHE_FILE, 'utf8');
+    // Optimization: Use asynchronous reading to avoid blocking Electron main thread
+    // when loading large JSON cache files (~34MB for 100k apps)
+    const cacheContent = await fs.promises.readFile(CACHE_FILE, 'utf8');
     const cache: CacheData = JSON.parse(cacheContent);
     const age = Date.now() - cache.timestamp;
 
@@ -30,21 +28,24 @@ export function loadFromCache(): App[] | null {
       return cache.apps;
     }
   } catch (e) {
-    // Cache is corrupted, ignore it
+    // Cache is corrupted or doesn't exist, ignore it
   }
 
   return null;
 }
 
-export function saveToCache(apps: App[]): void {
-  if (!fs.existsSync(CACHE_DIR)) {
-    fs.mkdirSync(CACHE_DIR, { recursive: true });
+export async function saveToCache(apps: App[]): Promise<void> {
+  try {
+    // Optimization: Use asynchronous file operations to avoid blocking Electron main thread
+    await fs.promises.mkdir(CACHE_DIR, { recursive: true });
+
+    const cacheData: CacheData = {
+      timestamp: Date.now(),
+      apps,
+    };
+
+    await fs.promises.writeFile(CACHE_FILE, JSON.stringify(cacheData), 'utf8');
+  } catch (e) {
+    // Handle or ignore cache save error
   }
-
-  const cacheData: CacheData = {
-    timestamp: Date.now(),
-    apps,
-  };
-
-  fs.writeFileSync(CACHE_FILE, JSON.stringify(cacheData), 'utf8');
 }
