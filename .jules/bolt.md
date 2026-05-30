@@ -8,3 +8,6 @@
 ## 2024-05-24 - DOM and String Optimization
 **Learning:** Using `document.createElement('div')` for HTML escaping and `innerHTML +=` for appending content causes significant performance degradation due to memory reallocation and O(N^2) DOM serialization overhead during high-frequency updates (like terminal output or virtual scrolling).
 **Action:** Always use a hoisted Regex replacement map for `escapeHtml` and `insertAdjacentHTML('beforeend', ...)` instead of `innerHTML +=`.
+## 2024-05-24 - Async Cache I/O
+**Learning:** For Electron apps handling large JSON payloads (like 100k items from the Homebrew API), using synchronous file system operations (`fs.readFileSync` and `fs.writeFileSync`) blocks the main thread.
+**Action:** When performing file I/O for large data, always use asynchronous file system methods (`fs.promises`) to avoid blocking the event loop and maintain UI responsiveness.
