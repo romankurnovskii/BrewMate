@@ -4,7 +4,7 @@ import * as path from 'path';
 import { fetchJSON } from '../utils/fetchData';
 import { loadFromCache, saveToCache } from '../utils/cache';
 import { getTerminalPromptInfo } from '../utils/terminal';
-import { getInstalledApps } from '../utils/brew';
+import { getInstalledApps, getOutdatedApps, getCacheSize } from '../utils/brew';
 import { logCommand, getLogFilePath } from '../utils/logger';
 import { getEnvWithBrewPath } from '../utils/path';
 import { HOMEBREW_CASKS_JSON_URL, HOMEBREW_FORMULAS_JSON_URL } from '../constants';
@@ -264,6 +264,99 @@ export function setupIpcHandlers(): void {
     }
 
     event.reply('version-info', { version, commit });
+  });
+
+  // Get outdated apps
+  ipcMain.on('get-outdated-apps', async (event: IpcMainEvent) => {
+    console.log('[IPC] get-outdated-apps received');
+    try {
+      const outdated = await getOutdatedApps();
+      event.reply('outdated-apps', outdated);
+    } catch (error: any) {
+      console.error('[IPC] Error getting outdated apps:', error);
+      event.reply('outdated-apps', []);
+    }
+  });
+
+  // Get cache size
+  ipcMain.on('get-cache-size', async (event: IpcMainEvent) => {
+    console.log('[IPC] get-cache-size received');
+    try {
+      const size = await getCacheSize();
+      event.reply('cache-size', size);
+    } catch (error: any) {
+      console.error('[IPC] Error getting cache size:', error);
+      event.reply('cache-size', 0);
+    }
+  });
+
+  // Upgrade individual app
+  ipcMain.on('upgrade-app', (event: IpcMainEvent, appName: string, appType: string) => {
+    const command =
+      appType === 'cask'
+        ? `brew upgrade --cask ${appName}`
+        : `brew upgrade ${appName}`;
+
+    console.log('[IPC] Upgrading app:', appName, appType);
+    let output = '';
+    logCommand(command);
+
+    const shell = spawn(command, [], {
+      shell: true,
+      cwd: process.env.HOME || process.cwd(),
+      env: getEnvWithBrewPath(),
+    });
+
+    shell.stdout.on('data', (data) => {
+      const dataStr = data.toString();
+      output += dataStr;
+      event.reply('terminal-output', dataStr);
+    });
+
+    shell.stderr.on('data', (data) => {
+      const dataStr = data.toString();
+      output += dataStr;
+      event.reply('terminal-output', dataStr);
+    });
+
+    shell.on('close', (code) => {
+      logCommand(command, output, code);
+      event.reply('upgrade-complete', { appName, success: code === 0 });
+      event.reply('terminal-output', `\nProcess exited with code ${code}\n`);
+    });
+  });
+
+  // Upgrade all outdated apps
+  ipcMain.on('upgrade-all', (event: IpcMainEvent) => {
+    const command = `brew upgrade`;
+
+    console.log('[IPC] Upgrading all outdated apps');
+    let output = '';
+    logCommand(command);
+
+    const shell = spawn(command, [], {
+      shell: true,
+      cwd: process.env.HOME || process.cwd(),
+      env: getEnvWithBrewPath(),
+    });
+
+    shell.stdout.on('data', (data) => {
+      const dataStr = data.toString();
+      output += dataStr;
+      event.reply('terminal-output', dataStr);
+    });
+
+    shell.stderr.on('data', (data) => {
+      const dataStr = data.toString();
+      output += dataStr;
+      event.reply('terminal-output', dataStr);
+    });
+
+    shell.on('close', (code) => {
+      logCommand(command, output, code);
+      event.reply('upgrade-all-complete', { success: code === 0 });
+      event.reply('terminal-output', `\nProcess exited with code ${code}\n`);
+    });
   });
 
   // Handle command execution

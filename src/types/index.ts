@@ -15,6 +15,13 @@ export interface InstalledApp {
   type: 'cask' | 'formula';
 }
 
+export interface OutdatedApp {
+  name: string;
+  type: 'cask' | 'formula';
+  installedVersion: string;
+  latestVersion: string;
+}
+
 export interface TerminalPromptInfo {
   username: string;
   hostname: string;

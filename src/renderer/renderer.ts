@@ -61,6 +61,17 @@ let commandToRun: string | null = null;
 let isLoading = true;
 let terminalPrompt = 'user@brewmate ~ %';
 
+interface OutdatedApp {
+  name: string;
+  type: 'cask' | 'formula';
+  installedVersion: string;
+  latestVersion: string;
+}
+
+let activeView: 'dashboard' | 'explore' | 'updates' = 'dashboard';
+let outdatedApps: Array<OutdatedApp> = [];
+let cacheSize = 0;
+
 // Virtual scrolling state
 let visibleStartIndex = 0;
 let visibleEndIndex = 0;
@@ -83,6 +94,30 @@ let terminalToggleIcon: HTMLElement | null;
 let appCount: HTMLElement;
 let loadingMessage: HTMLElement;
 let logPath: HTMLElement;
+
+// Navigation and Tab Views
+let navButtons: NodeListOf<HTMLButtonElement>;
+let tabViews: NodeListOf<HTMLElement>;
+
+// Dashboard elements
+let dashInstalledCount: HTMLElement;
+let dashCaskCount: HTMLElement;
+let dashFormulaCount: HTMLElement;
+let dashBreakdownProgress: HTMLElement;
+let dashCacheSize: HTMLElement;
+let dashCleanupBtn: HTMLButtonElement;
+let dashUpdatesCount: HTMLElement;
+let dashUpdatesMeta: HTMLElement;
+let dashUpdatesActions: HTMLElement;
+let dashViewUpdatesBtn: HTMLButtonElement;
+let dashUpgradeAllBtn: HTMLButtonElement;
+
+// Updates View elements
+let updatesUpgradeAllBtn: HTMLButtonElement;
+let updatesEmptyState: HTMLElement;
+let updatesTable: HTMLElement;
+let updatesTableBody: HTMLElement;
+let updatesBadge: HTMLElement;
 
 // Sidebar elements
 let sidebarOverlay: HTMLElement;
@@ -119,6 +154,27 @@ function init(): void {
   sidebarHomepage = document.getElementById('sidebarHomepage') as HTMLAnchorElement;
   sidebarActions = document.getElementById('sidebarActions') as HTMLElement;
   sidebarClose = document.getElementById('sidebarClose') as HTMLButtonElement;
+
+  navButtons = document.querySelectorAll('.nav-sidebar .nav-button') as NodeListOf<HTMLButtonElement>;
+  tabViews = document.querySelectorAll('.main-layout-wrapper .tab-view') as NodeListOf<HTMLElement>;
+
+  dashInstalledCount = document.getElementById('dashInstalledCount') as HTMLElement;
+  dashCaskCount = document.getElementById('dashCaskCount') as HTMLElement;
+  dashFormulaCount = document.getElementById('dashFormulaCount') as HTMLElement;
+  dashBreakdownProgress = document.getElementById('dashBreakdownProgress') as HTMLElement;
+  dashCacheSize = document.getElementById('dashCacheSize') as HTMLElement;
+  dashCleanupBtn = document.getElementById('dashCleanupBtn') as HTMLButtonElement;
+  dashUpdatesCount = document.getElementById('dashUpdatesCount') as HTMLElement;
+  dashUpdatesMeta = document.getElementById('dashUpdatesMeta') as HTMLElement;
+  dashUpdatesActions = document.getElementById('dashUpdatesActions') as HTMLElement;
+  dashViewUpdatesBtn = document.getElementById('dashViewUpdatesBtn') as HTMLButtonElement;
+  dashUpgradeAllBtn = document.getElementById('dashUpgradeAllBtn') as HTMLButtonElement;
+
+  updatesUpgradeAllBtn = document.getElementById('updatesUpgradeAllBtn') as HTMLButtonElement;
+  updatesEmptyState = document.getElementById('updatesEmptyState') as HTMLElement;
+  updatesTable = document.getElementById('updatesTable') as HTMLElement;
+  updatesTableBody = document.getElementById('updatesTableBody') as HTMLElement;
+  updatesBadge = document.getElementById('updatesBadge') as HTMLElement;
 
   const versionInfo = document.getElementById('versionInfo') as HTMLElement;
 
@@ -293,6 +349,9 @@ function setupEventListeners(): void {
         installedApps.add(appName);
         renderCategories();
         filterApps();
+        // Refresh outdated apps and cache size
+        ipcRenderer.send('get-outdated-apps');
+        ipcRenderer.send('get-cache-size');
       }
     }
   );
@@ -303,6 +362,9 @@ function setupEventListeners(): void {
         installedApps.delete(appName);
         renderCategories();
         filterApps();
+        // Refresh outdated apps and cache size
+        ipcRenderer.send('get-outdated-apps');
+        ipcRenderer.send('get-cache-size');
       }
     }
   );
@@ -371,6 +433,106 @@ function setupEventListeners(): void {
       }
     }
   );
+
+  // Tab Navigation Click Handlers
+  navButtons.forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const view = btn.dataset.view as 'dashboard' | 'explore' | 'updates';
+      if (!view) return;
+      
+      activeView = view;
+      navButtons.forEach((b) => b.classList.remove('active'));
+      btn.classList.add('active');
+
+      tabViews.forEach((v) => {
+        v.classList.remove('active');
+        if (v.id === `${view}View`) {
+          v.classList.add('active');
+        }
+      });
+
+      // Special action on tab switch
+      if (activeView === 'dashboard') {
+        updateDashboardView();
+      } else if (activeView === 'explore') {
+        calculateItemsPerRow();
+        updateVisibleItems();
+      } else if (activeView === 'updates') {
+        renderUpdatesView();
+      }
+    });
+  });
+
+  // Dashboard buttons
+  if (dashCleanupBtn) {
+    dashCleanupBtn.addEventListener('click', () => {
+      runCommand('brew cleanup');
+    });
+  }
+
+  if (dashViewUpdatesBtn) {
+    dashViewUpdatesBtn.addEventListener('click', () => {
+      const updatesBtn = document.querySelector('.nav-button[data-view="updates"]') as HTMLButtonElement;
+      if (updatesBtn) updatesBtn.click();
+    });
+  }
+
+  if (dashUpgradeAllBtn) {
+    dashUpgradeAllBtn.addEventListener('click', () => {
+      if (confirm('Are you sure you want to upgrade all outdated packages?')) {
+        upgradeAll();
+      }
+    });
+  }
+
+  if (updatesUpgradeAllBtn) {
+    updatesUpgradeAllBtn.addEventListener('click', () => {
+      if (confirm('Are you sure you want to upgrade all outdated packages?')) {
+        upgradeAll();
+      }
+    });
+  }
+
+  // Outdated apps listener
+  ipcRenderer.on('outdated-apps', (_event: any, apps: Array<OutdatedApp>) => {
+    console.log('[Renderer] Received outdated apps:', apps.length);
+    outdatedApps = apps;
+    updateUpdatesBadge();
+    if (activeView === 'dashboard') {
+      updateDashboardView();
+    } else if (activeView === 'updates') {
+      renderUpdatesView();
+    }
+  });
+
+  // Cache size listener
+  ipcRenderer.on('cache-size', (_event: any, size: number) => {
+    console.log('[Renderer] Received cache size:', size);
+    cacheSize = size;
+    if (activeView === 'dashboard') {
+      updateDashboardView();
+    }
+  });
+
+  // Upgrade individual app complete listener
+  ipcRenderer.on('upgrade-complete', (_event: any, { appName, success }: { appName: string; success: boolean }) => {
+    console.log('[Renderer] Upgrade complete:', appName, success);
+    if (success) {
+      ipcRenderer.send('get-outdated-apps');
+      ipcRenderer.send('get-installed-apps');
+      ipcRenderer.send('get-cache-size');
+    }
+  });
+
+  // Upgrade all complete listener
+  ipcRenderer.on('upgrade-all-complete', (_event: any, { success }: { success: boolean }) => {
+    console.log('[Renderer] Upgrade all complete:', success);
+    if (success) {
+      ipcRenderer.send('get-outdated-apps');
+      ipcRenderer.send('get-installed-apps');
+      ipcRenderer.send('get-cache-size');
+    }
+  });
 }
 
 function loadData(): void {
@@ -391,6 +553,12 @@ function loadData(): void {
 
     console.log('[Renderer] Sending get-installed-apps');
     ipcRenderer.send('get-installed-apps');
+
+    console.log('[Renderer] Sending get-outdated-apps');
+    ipcRenderer.send('get-outdated-apps');
+
+    console.log('[Renderer] Sending get-cache-size');
+    ipcRenderer.send('get-cache-size');
 
     console.log('[Renderer] IPC messages sent successfully');
   } catch (error: any) {
@@ -795,6 +963,156 @@ function escapeHtml(text: string): string {
   // Optimization: Defensively cast to string and use Regex replace map to avoid memory reallocation
   // and GC overhead from document.createElement('div')
   return String(text).replace(/[&<>"']/g, (match) => htmlEscapes[match]);
+}
+
+function updateDashboardView(): void {
+  // 1. Summary Card - Installed apps breakdown
+  const installedCount = installedApps.size;
+  if (dashInstalledCount) {
+    dashInstalledCount.textContent = String(installedCount);
+  }
+
+  // Count formulas vs casks
+  let caskCount = 0;
+  let formulaCount = 0;
+  for (const appName of installedApps) {
+    const app = allApps.find((a) => a.name === appName);
+    if (app) {
+      if (app.type === 'cask') {
+        caskCount++;
+      } else {
+        formulaCount++;
+      }
+    }
+  }
+
+  if (dashCaskCount) dashCaskCount.textContent = String(caskCount);
+  if (dashFormulaCount) dashFormulaCount.textContent = String(formulaCount);
+
+  if (dashBreakdownProgress) {
+    const total = caskCount + formulaCount || 1;
+    const percent = (caskCount / total) * 100;
+    dashBreakdownProgress.style.width = `${percent}%`;
+  }
+
+  // 2. Storage Card - Cache size
+  if (dashCacheSize) {
+    const sizeInMB = cacheSize / (1024 * 1024);
+    if (sizeInMB > 1024) {
+      dashCacheSize.textContent = `${(sizeInMB / 1024).toFixed(1)} GB`;
+    } else {
+      dashCacheSize.textContent = `${sizeInMB.toFixed(1)} MB`;
+    }
+  }
+
+  // 3. Updates Card
+  const updatesCount = outdatedApps.length;
+  if (dashUpdatesCount) {
+    dashUpdatesCount.textContent = String(updatesCount);
+  }
+
+  if (dashUpdatesMeta) {
+    if (updatesCount === 0) {
+      dashUpdatesMeta.textContent = 'All your applications are up to date.';
+      if (dashUpdatesActions) dashUpdatesActions.style.display = 'none';
+    } else {
+      dashUpdatesMeta.textContent = `${updatesCount} update${updatesCount > 1 ? 's' : ''} available.`;
+      if (dashUpdatesActions) dashUpdatesActions.style.display = 'flex';
+    }
+  }
+}
+
+function renderUpdatesView(): void {
+  const updatesCount = outdatedApps.length;
+  
+  if (updatesUpgradeAllBtn) {
+    updatesUpgradeAllBtn.style.display = updatesCount > 0 ? 'inline-flex' : 'none';
+  }
+
+  if (updatesCount === 0) {
+    if (updatesEmptyState) updatesEmptyState.style.display = 'flex';
+    if (updatesTable) updatesTable.style.display = 'none';
+    return;
+  }
+
+  if (updatesEmptyState) updatesEmptyState.style.display = 'none';
+  if (updatesTable) updatesTable.style.display = 'table';
+
+  if (updatesTableBody) {
+    updatesTableBody.innerHTML = outdatedApps
+      .map((app) => {
+        return `
+          <tr>
+            <td>
+              <div class="updates-app-name">${escapeHtml(app.name)}</div>
+            </td>
+            <td>
+              <span class="updates-app-type">${app.type}</span>
+            </td>
+            <td>
+              <span class="updates-version-badge">${escapeHtml(app.installedVersion)}</span>
+            </td>
+            <td>
+              <span class="updates-version-badge latest">${escapeHtml(app.latestVersion)}</span>
+            </td>
+            <td style="text-align: right;">
+              <button class="dashboard-action-btn primary action-upgrade-btn" 
+                      data-app="${escapeHtml(app.name)}" 
+                      data-type="${app.type}">
+                Upgrade
+              </button>
+            </td>
+          </tr>
+        `;
+      })
+      .join('');
+
+    updatesTableBody.querySelectorAll('.action-upgrade-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const name = (btn as HTMLElement).dataset.app;
+        const type = (btn as HTMLElement).dataset.type;
+        if (name && type) {
+          upgradeApp(name, type);
+        }
+      });
+    });
+  }
+}
+
+function updateUpdatesBadge(): void {
+  const updatesCount = outdatedApps.length;
+  if (updatesBadge) {
+    if (updatesCount > 0) {
+      updatesBadge.textContent = String(updatesCount);
+      updatesBadge.style.display = 'inline-block';
+    } else {
+      updatesBadge.style.display = 'none';
+    }
+  }
+}
+
+function upgradeAll(): void {
+  if (!terminalVisible) {
+    toggleTerminal();
+  }
+  terminalOutput.insertAdjacentHTML(
+    'beforeend',
+    `<span class="terminal-prompt">${terminalPrompt}</span> upgrading all packages...\n`
+  );
+  terminalOutput.scrollTop = terminalOutput.scrollHeight;
+  ipcRenderer.send('upgrade-all');
+}
+
+function upgradeApp(name: string, type: string): void {
+  if (!terminalVisible) {
+    toggleTerminal();
+  }
+  terminalOutput.insertAdjacentHTML(
+    'beforeend',
+    `<span class="terminal-prompt">${terminalPrompt}</span> upgrading ${escapeHtml(name)}...\n`
+  );
+  terminalOutput.scrollTop = terminalOutput.scrollHeight;
+  ipcRenderer.send('upgrade-app', name, type);
 }
 
 // Start app when DOM is ready

@@ -12,64 +12,231 @@
     <link rel="stylesheet" href="./styles.css" />
   </head>
   <body>
-    <!-- Search & Filter Bar -->
-    <div class="search-bar">
-      <div class="search-bar-top">
-        <div class="app-title">
+    <div class="app-layout">
+      <!-- Left Navigation Sidebar -->
+      <div class="nav-sidebar">
+        <div class="sidebar-brand">
+          <svg class="brand-logo" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
+            <path d="M2 17l10 5 10-5"></path>
+            <path d="M2 12l10 5 10-5"></path>
+          </svg>
           <span>BrewMate</span>
         </div>
-        <div class="search-container">
-          <svg class="search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-            ></path>
-          </svg>
-          <input
-            type="text"
-            id="searchInput"
-            placeholder="Search Casks or Formulas..."
-            autocomplete="off"
-          />
+        <div class="nav-items">
+          <button class="nav-button active" data-view="dashboard">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <rect x="3" y="3" width="7" height="9"></rect>
+              <rect x="14" y="3" width="7" height="5"></rect>
+              <rect x="14" y="12" width="7" height="9"></rect>
+              <rect x="3" y="16" width="7" height="5"></rect>
+            </svg>
+            <span>Dashboard</span>
+          </button>
+          <button class="nav-button" data-view="explore">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+            <span>Explore</span>
+          </button>
+          <button class="nav-button" data-view="updates">
+            <div style="position: relative; display: flex; align-items: center; gap: 12px; width: 100%;">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"></path>
+              </svg>
+              <span>Updates</span>
+              <span class="nav-badge" id="updatesBadge" style="display: none;">0</span>
+            </div>
+          </button>
         </div>
       </div>
-      <div class="category-chips" id="categoryChips"></div>
-    </div>
 
-    <!-- Main Content -->
-    <div class="main-content">
-      <div class="apps-grid" id="appsGrid">
-        <div class="loading">
-          <div class="loading-spinner"></div>
-          <div class="loading-message" id="loadingMessage">Loading apps...</div>
-        </div>
-      </div>
+      <!-- Main Layout Content Wrapper -->
+      <div class="main-layout-wrapper">
+        <!-- Dashboard View -->
+        <div class="tab-view active" id="dashboardView">
+          <div class="view-header">
+            <h1>Dashboard</h1>
+            <p class="view-subtitle">Overview of your macOS system package state</p>
+          </div>
+          
+          <div class="dashboard-grid">
+            <!-- Summary card -->
+            <div class="dashboard-card summary-card">
+              <div class="card-header">
+                <h3>Installed Apps</h3>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+                </svg>
+              </div>
+              <div class="card-large-number" id="dashInstalledCount">0</div>
+              <div class="installed-breakdown">
+                <div class="breakdown-item">
+                  <span class="dot cask"></span>
+                  <span class="label">Casks:</span>
+                  <span class="value" id="dashCaskCount">0</span>
+                </div>
+                <div class="breakdown-item">
+                  <span class="dot formula"></span>
+                  <span class="label">Formulas:</span>
+                  <span class="value" id="dashFormulaCount">0</span>
+                </div>
+              </div>
+              <div class="breakdown-progress">
+                <div class="progress-bar" id="dashBreakdownProgress" style="width: 0%"></div>
+              </div>
+            </div>
 
-      <div class="brew-commands">
-        <div class="type-filter" id="typeFilter">
-          <div class="type-filter-label">Filter by Type</div>
-          <button class="type-toggle active" data-type="All">All Types</button>
-          <button class="type-toggle" data-type="cask">Casks</button>
-          <button class="type-toggle" data-type="formula">Formulas</button>
+            <!-- Storage card -->
+            <div class="dashboard-card storage-card">
+              <div class="card-header">
+                <h3>Homebrew Cache</h3>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+                </svg>
+              </div>
+              <div class="card-large-number" id="dashCacheSize">0.0 MB</div>
+              <p class="card-meta">Storage taken by downloaded installers and logs.</p>
+              <button class="dashboard-action-btn" id="dashCleanupBtn">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <polyline points="3 6 5 6 21 6"></polyline>
+                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                </svg>
+                Run Cleanup
+              </button>
+            </div>
+
+            <!-- Updates card -->
+            <div class="dashboard-card updates-card">
+              <div class="card-header">
+                <h3>Updates Available</h3>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                </svg>
+              </div>
+              <div class="card-large-number" id="dashUpdatesCount">0</div>
+              <p class="card-meta" id="dashUpdatesMeta">All your applications are up to date.</p>
+              <div class="card-actions" id="dashUpdatesActions" style="display: none; gap: 12px; margin-top: auto;">
+                <button class="dashboard-action-btn primary" id="dashViewUpdatesBtn">View Updates</button>
+                <button class="dashboard-action-btn" id="dashUpgradeAllBtn">Upgrade All</button>
+              </div>
+            </div>
+          </div>
         </div>
-        <h3>Brew Commands</h3>
-        <button class="brew-command-button" data-command="brew update">
-          <span class="prompt">$</span> brew update
-        </button>
-        <button class="brew-command-button" data-command="brew upgrade">
-          <span class="prompt">$</span> brew upgrade
-        </button>
-        <button class="brew-command-button" data-command="brew list">
-          <span class="prompt">$</span> brew list
-        </button>
-        <button class="brew-command-button" data-command="brew doctor">
-          <span class="prompt">$</span> brew doctor
-        </button>
-        <button class="brew-command-button" data-command="brew cleanup">
-          <span class="prompt">$</span> brew cleanup
-        </button>
+
+        <!-- Explore View -->
+        <div class="tab-view" id="exploreView">
+          <!-- Search & Filter Bar -->
+          <div class="search-bar">
+            <div class="search-bar-top">
+              <div class="search-container" style="margin-left: 0;">
+                <svg class="search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                  ></path>
+                </svg>
+                <input
+                  type="text"
+                  id="searchInput"
+                  placeholder="Search Casks or Formulas..."
+                  autocomplete="off"
+                />
+              </div>
+            </div>
+            <div class="category-chips" id="categoryChips"></div>
+          </div>
+
+          <!-- Main Content -->
+          <div class="main-content">
+            <div class="apps-grid" id="appsGrid">
+              <div class="loading">
+                <div class="loading-spinner"></div>
+                <div class="loading-message" id="loadingMessage">Loading apps...</div>
+              </div>
+            </div>
+
+            <div class="brew-commands">
+              <div class="type-filter" id="typeFilter">
+                <div class="type-filter-label">Filter by Type</div>
+                <button class="type-toggle active" data-type="All">All Types</button>
+                <button class="type-toggle" data-type="cask">Casks</button>
+                <button class="type-toggle" data-type="formula">Formulas</button>
+              </div>
+              <h3>Brew Commands</h3>
+              <button class="brew-command-button" data-command="brew update">
+                <span class="prompt">$</span> brew update
+              </button>
+              <button class="brew-command-button" data-command="brew upgrade">
+                <span class="prompt">$</span> brew upgrade
+              </button>
+              <button class="brew-command-button" data-command="brew list">
+                <span class="prompt">$</span> brew list
+              </button>
+              <button class="brew-command-button" data-command="brew doctor">
+                <span class="prompt">$</span> brew doctor
+              </button>
+              <button class="brew-command-button" data-command="brew cleanup">
+                <span class="prompt">$</span> brew cleanup
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Updates View -->
+        <div class="tab-view" id="updatesView">
+          <div class="view-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+            <div>
+              <h1>Available Updates</h1>
+              <p class="view-subtitle">Select applications to upgrade</p>
+            </div>
+            <button class="dashboard-action-btn primary" id="updatesUpgradeAllBtn" style="display: none; padding: 12px 24px;">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"></path>
+              </svg>
+              Upgrade All Packages
+            </button>
+          </div>
+
+          <div class="updates-container">
+            <div class="updates-empty-state" id="updatesEmptyState">
+              <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                <polyline points="22 4 12 14.01 9 11.01"></polyline>
+              </svg>
+              <h3>All Packages Up to Date</h3>
+              <p>Everything is running on the latest versions.</p>
+            </div>
+            
+            <table class="updates-table" id="updatesTable" style="display: none;">
+              <thead>
+                <tr>
+                  <th>Application</th>
+                  <th>Type</th>
+                  <th>Installed</th>
+                  <th>Latest</th>
+                  <th style="text-align: right;">Action</th>
+                </tr>
+              </thead>
+              <tbody id="updatesTableBody">
+                <!-- Dynamically populated -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+          <p>
+            Press <span class="keyboard-shortcut">Cmd+J</span> to toggle terminal.
+            <span id="appCount">0</span> apps shown.
+            <span id="logPath" style="margin-left: 16px; font-size: 11px; opacity: 0.6"></span>
+            <span id="versionInfo" style="margin-left: 16px; font-size: 11px; opacity: 0.6"></span>
+          </p>
+        </div>
       </div>
     </div>
 
@@ -122,13 +289,6 @@
       <div id="terminalOutput"></div>
     </div>
 
-    <!-- Footer -->
-    <div class="footer">
-      <p>
-        Press <span class="keyboard-shortcut">Cmd+J</span> to toggle terminal.
-        <span id="appCount">0</span> apps shown.
-        <span id="logPath" style="margin-left: 16px; font-size: 11px; opacity: 0.6"></span>
-        <span id="versionInfo" style="margin-left: 16px; font-size: 11px; opacity: 0.6"></span>
       </p>
     </div>
 
