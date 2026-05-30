@@ -121,6 +121,14 @@
                 <button class="dashboard-action-btn primary" id="dashViewUpdatesBtn">View Updates</button>
                 <button class="dashboard-action-btn" id="dashUpgradeAllBtn">Upgrade All</button>
               </div>
+              <div style="margin-top: 12px;">
+                <button class="dashboard-action-btn" id="dashScanVulnBtn">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                  </svg>
+                  Scan Vulnerabilities
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -165,6 +173,7 @@
                 <button class="type-toggle active" data-type="All">All Types</button>
                 <button class="type-toggle" data-type="cask">Casks</button>
                 <button class="type-toggle" data-type="formula">Formulas</button>
+                <button class="type-toggle" data-type="trending" id="trendingToggleBtn">Trending 🔥</button>
               </div>
               <h3>Brew Commands</h3>
               <button class="brew-command-button" data-command="brew update">
@@ -266,6 +275,24 @@
           </svg>
           Open Homepage
         </a>
+        <div class="sidebar-details-loader" id="sidebarDetailsLoader" style="display: none; margin-top: 16px; align-items: center; gap: 8px; opacity: 0.7;">
+          <div class="loading-spinner" style="width: 16px; height: 16px;"></div> Loading details...
+        </div>
+        <div class="sidebar-extended-details" id="sidebarExtendedDetails" style="display: none; margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--border-color);">
+          <div class="detail-row" style="margin-bottom: 8px;">
+            <strong style="opacity: 0.7;">Size:</strong> <span id="sidebarSize" style="float: right;">Unknown</span>
+          </div>
+          <div class="detail-row" style="margin-bottom: 8px;">
+            <strong style="opacity: 0.7;">Dependencies:</strong>
+            <div id="sidebarDependencies" style="margin-top: 4px; font-size: 12px; color: var(--text-color);">None</div>
+          </div>
+          <div class="detail-row" id="sidebarGithubStatsRow" style="display: none; margin-bottom: 8px;">
+            <strong style="opacity: 0.7;">GitHub Stars:</strong> <span id="sidebarGithubStars" style="float: right;">0</span>
+          </div>
+          <div class="detail-row" id="sidebarVulnRow" style="display: none; margin-bottom: 8px;">
+            <strong style="opacity: 0.7;">Vulnerabilities:</strong> <span id="sidebarVulns" style="float: right; color: #ff4d4f; font-weight: bold; background: rgba(255, 77, 79, 0.1); padding: 2px 6px; border-radius: 4px;">0 Found</span>
+          </div>
+        </div>
       </div>
       <div class="sidebar-actions" id="sidebarActions">
       </div>
@@ -274,17 +301,17 @@
     <!-- Terminal -->
     <div class="terminal-container" id="terminalContainer">
       <div class="terminal-header">
-        <span class="terminal-title">Terminal</span>
-        <button class="terminal-toggle" id="terminalToggle" title="Toggle terminal (Cmd+J)">
-          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" id="terminalToggleIcon">
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M19 9l-7 7-7-7"
-            ></path>
-          </svg>
-        </button>
+        <span class="terminal-title">Terminal Activity</span>
+        <div style="display: flex; gap: 8px; align-items: center;">
+          <select id="terminalHistorySelect" style="background: var(--bg-dark); color: var(--text-color); border: 1px solid var(--border-color); border-radius: 4px; padding: 2px 6px; font-size: 12px; display: none;">
+            <option value="current">Current Session</option>
+          </select>
+          <button class="terminal-toggle" id="terminalToggle" title="Toggle terminal (Cmd+J)">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" id="terminalToggleIcon">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+            </svg>
+          </button>
+        </div>
       </div>
       <div id="terminalOutput"></div>
     </div>

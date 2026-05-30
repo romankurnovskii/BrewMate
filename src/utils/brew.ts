@@ -111,3 +111,34 @@ export async function getInstalledApps(): Promise<InstalledApp[]> {
     return [];
   }
 }
+
+export async function getAppDetails(appName: string, type: 'cask' | 'formula'): Promise<any> {
+  try {
+    const env = getEnvWithBrewPath();
+    const command = type === 'cask' ? `brew info --cask --json=v2 ${appName}` : `brew info --formula --json=v2 ${appName}`;
+    const { stdout } = await execAsync(command, { env });
+    const data = JSON.parse(stdout);
+    
+    if (type === 'cask' && data.casks && data.casks.length > 0) {
+      return data.casks[0];
+    } else if (type === 'formula' && data.formulae && data.formulae.length > 0) {
+      return data.formulae[0];
+    }
+    return null;
+  } catch (error) {
+    console.error(`Error getting details for ${appName}:`, error);
+    return null;
+  }
+}
+
+export async function scanVulnerabilities(): Promise<any[]> {
+  try {
+    const env = getEnvWithBrewPath();
+    const { stdout } = await execAsync('brew vulns --json', { env });
+    const data = JSON.parse(stdout);
+    return data;
+  } catch (error) {
+    console.error('Error scanning vulnerabilities:', error);
+    return [];
+  }
+}

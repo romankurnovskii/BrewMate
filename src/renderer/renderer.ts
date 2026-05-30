@@ -54,7 +54,7 @@ let allApps: Array<App> = [];
 let installedApps = new Set<string>();
 let filteredApps: Array<App> = [];
 let selectedCategory = 'All';
-let selectedType: 'All' | 'cask' | 'formula' = 'All';
+let selectedType: 'All' | 'cask' | 'formula' | 'trending' = 'All';
 let searchTerm = '';
 let terminalVisible = false;
 let commandToRun: string | null = null;
@@ -111,6 +111,7 @@ let dashUpdatesMeta: HTMLElement;
 let dashUpdatesActions: HTMLElement;
 let dashViewUpdatesBtn: HTMLButtonElement;
 let dashUpgradeAllBtn: HTMLButtonElement;
+let dashScanVulnBtn: HTMLButtonElement;
 
 // Updates View elements
 let updatesUpgradeAllBtn: HTMLButtonElement;
@@ -129,6 +130,19 @@ let sidebarDescription: HTMLElement;
 let sidebarHomepage: HTMLAnchorElement;
 let sidebarActions: HTMLElement;
 let sidebarClose: HTMLButtonElement;
+let sidebarDetailsLoader: HTMLElement;
+let sidebarExtendedDetails: HTMLElement;
+let sidebarSize: HTMLElement;
+let sidebarDependencies: HTMLElement;
+let sidebarGithubStatsRow: HTMLElement;
+let sidebarGithubStars: HTMLElement;
+let sidebarVulnRow: HTMLElement;
+let sidebarVulns: HTMLElement;
+let terminalHistorySelect: HTMLSelectElement;
+let trendingToggleBtn: HTMLButtonElement;
+
+// App Data
+let trendingApps = new Set<string>();
 
 // Initialize
 function init(): void {
@@ -144,6 +158,8 @@ function init(): void {
   appCount = document.getElementById('appCount') as HTMLElement;
   loadingMessage = document.getElementById('loadingMessage') as HTMLElement;
   logPath = document.getElementById('logPath') as HTMLElement;
+  terminalHistorySelect = document.getElementById('terminalHistorySelect') as HTMLSelectElement;
+  trendingToggleBtn = document.getElementById('trendingToggleBtn') as HTMLButtonElement;
   
   sidebarOverlay = document.getElementById('sidebarOverlay') as HTMLElement;
   appSidebar = document.getElementById('appSidebar') as HTMLElement;
@@ -154,6 +170,14 @@ function init(): void {
   sidebarHomepage = document.getElementById('sidebarHomepage') as HTMLAnchorElement;
   sidebarActions = document.getElementById('sidebarActions') as HTMLElement;
   sidebarClose = document.getElementById('sidebarClose') as HTMLButtonElement;
+  sidebarDetailsLoader = document.getElementById('sidebarDetailsLoader') as HTMLElement;
+  sidebarExtendedDetails = document.getElementById('sidebarExtendedDetails') as HTMLElement;
+  sidebarSize = document.getElementById('sidebarSize') as HTMLElement;
+  sidebarDependencies = document.getElementById('sidebarDependencies') as HTMLElement;
+  sidebarGithubStatsRow = document.getElementById('sidebarGithubStatsRow') as HTMLElement;
+  sidebarGithubStars = document.getElementById('sidebarGithubStars') as HTMLElement;
+  sidebarVulnRow = document.getElementById('sidebarVulnRow') as HTMLElement;
+  sidebarVulns = document.getElementById('sidebarVulns') as HTMLElement;
 
   navButtons = document.querySelectorAll('.nav-sidebar .nav-button') as NodeListOf<HTMLButtonElement>;
   tabViews = document.querySelectorAll('.main-layout-wrapper .tab-view') as NodeListOf<HTMLElement>;
@@ -169,6 +193,7 @@ function init(): void {
   dashUpdatesActions = document.getElementById('dashUpdatesActions') as HTMLElement;
   dashViewUpdatesBtn = document.getElementById('dashViewUpdatesBtn') as HTMLButtonElement;
   dashUpgradeAllBtn = document.getElementById('dashUpgradeAllBtn') as HTMLButtonElement;
+  dashScanVulnBtn = document.getElementById('dashScanVulnBtn') as HTMLButtonElement;
 
   updatesUpgradeAllBtn = document.getElementById('updatesUpgradeAllBtn') as HTMLButtonElement;
   updatesEmptyState = document.getElementById('updatesEmptyState') as HTMLElement;
@@ -264,12 +289,18 @@ function setupEventListeners(): void {
   // Type filter buttons
   typeFilter.querySelectorAll('.type-toggle').forEach((btn) => {
     btn.addEventListener('click', () => {
-      selectedType = (btn as HTMLElement).dataset.type as 'All' | 'cask' | 'formula';
+      selectedType = (btn as HTMLElement).dataset.type as 'All' | 'cask' | 'formula' | 'trending';
       document.querySelectorAll('.type-toggle').forEach((b) => b.classList.remove('active'));
       btn.classList.add('active');
       visibleStartIndex = 0;
       appsGrid.scrollTop = 0;
-      filterApps();
+      
+      if (selectedType === 'trending' && trendingApps.size === 0) {
+        // Fetch trending apps if we don't have them
+        ipcRenderer.send('get-trending-apps');
+      } else {
+        filterApps();
+      }
     });
   });
 
@@ -434,6 +465,77 @@ function setupEventListeners(): void {
     }
   );
 
+  ipcRenderer.on('app-details', (_event: any, data: { appName: string; details: any }) => {
+    const { appName, details } = data;
+    if (sidebarTitle.textContent !== appName) return; // Ignore if user clicked another app
+
+    sidebarDetailsLoader.style.display = 'none';
+    sidebarExtendedDetails.style.display = 'block';
+
+    if (details) {
+      // popuplate size, dependencies, stars
+      sidebarSize.textContent = details.size || 'Unknown';
+      
+      const deps = details.dependencies || [];
+      if (deps.length > 0) {
+        sidebarDependencies.innerHTML = deps.join(', ');
+      } else {
+        sidebarDependencies.innerHTML = 'None';
+      }
+
+      if (details.githubStats && details.githubStats.stars !== undefined) {
+        sidebarGithubStatsRow.style.display = 'flex';
+        sidebarGithubStars.textContent = details.githubStats.stars.toLocaleString();
+      } else {
+        sidebarGithubStatsRow.style.display = 'none';
+      }
+    } else {
+      sidebarSize.textContent = 'Failed to load';
+      sidebarDependencies.innerHTML = '-';
+      sidebarGithubStatsRow.style.display = 'none';
+    }
+  });
+
+  ipcRenderer.on('vulnerabilities-result', (_event: any, vulns: any) => {
+    if (dashScanVulnBtn) {
+      dashScanVulnBtn.innerHTML = `
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+          <polyline points="22 4 12 14.01 9 11.01"></polyline>
+        </svg>
+        Scan Complete
+      `;
+      setTimeout(() => {
+        dashScanVulnBtn.innerHTML = `
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+          </svg>
+          Scan Vulnerabilities
+        `;
+        dashScanVulnBtn.disabled = false;
+      }, 3000);
+    }
+    
+    // Log results in the terminal activity drawer
+    if (!terminalVisible) toggleTerminal();
+    terminalOutput.insertAdjacentHTML(
+      'beforeend',
+      `<span class="terminal-prompt">${terminalPrompt}</span> brew vulns output:\n${escapeHtml(JSON.stringify(vulns, null, 2))}\n`
+    );
+    terminalOutput.scrollTop = terminalOutput.scrollHeight;
+  });
+
+  ipcRenderer.on('trending-apps-result', (_event: any, data: any) => {
+    trendingApps.clear();
+    if (data && data.items) {
+      data.items.slice(0, 100).forEach((item: any) => {
+        if (item.cask) trendingApps.add(item.cask);
+        if (item.formula) trendingApps.add(item.formula);
+      });
+    }
+    filterApps();
+  });
+
   // Tab Navigation Click Handlers
   navButtons.forEach((btn) => {
     btn.addEventListener('click', () => {
@@ -482,6 +584,17 @@ function setupEventListeners(): void {
       if (confirm('Are you sure you want to upgrade all outdated packages?')) {
         upgradeAll();
       }
+    });
+  }
+
+  if (dashScanVulnBtn) {
+    dashScanVulnBtn.addEventListener('click', () => {
+      dashScanVulnBtn.innerHTML = `
+        <div class="loading-spinner" style="width: 14px; height: 14px; border-width: 2px;"></div>
+        Scanning...
+      `;
+      dashScanVulnBtn.disabled = true;
+      ipcRenderer.send('scan-vulnerabilities');
     });
   }
 
@@ -657,7 +770,9 @@ function filterApps(): void {
     const searchLower = searchTerm ? searchTerm.toLowerCase() : '';
 
     filteredApps = allApps.filter((app) => {
-      if (selectedType !== 'All' && app.type !== selectedType) {
+      if (selectedType === 'trending') {
+        if (!trendingApps.has(app.name)) return false;
+      } else if (selectedType !== 'All' && app.type !== selectedType) {
         return false;
       }
 
@@ -899,6 +1014,13 @@ function openAppDetail(app: App): void {
 
   appSidebar.classList.add('visible');
   sidebarOverlay.classList.add('visible');
+
+  // Reset details state
+  sidebarExtendedDetails.style.display = 'none';
+  sidebarDetailsLoader.style.display = 'flex';
+  sidebarVulnRow.style.display = 'none'; // Will update if we have full vuln state
+  
+  ipcRenderer.send('get-app-details', app.name, app.type);
 }
 
 function closeSidebar(): void {
