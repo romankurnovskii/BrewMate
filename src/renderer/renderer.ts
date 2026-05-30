@@ -84,6 +84,17 @@ let appCount: HTMLElement;
 let loadingMessage: HTMLElement;
 let logPath: HTMLElement;
 
+// Sidebar elements
+let sidebarOverlay: HTMLElement;
+let appSidebar: HTMLElement;
+let sidebarTitle: HTMLElement;
+let sidebarVersion: HTMLElement;
+let sidebarType: HTMLElement;
+let sidebarDescription: HTMLElement;
+let sidebarHomepage: HTMLAnchorElement;
+let sidebarActions: HTMLElement;
+let sidebarClose: HTMLButtonElement;
+
 // Initialize
 function init(): void {
   // Get DOM elements
@@ -98,6 +109,16 @@ function init(): void {
   appCount = document.getElementById('appCount') as HTMLElement;
   loadingMessage = document.getElementById('loadingMessage') as HTMLElement;
   logPath = document.getElementById('logPath') as HTMLElement;
+  
+  sidebarOverlay = document.getElementById('sidebarOverlay') as HTMLElement;
+  appSidebar = document.getElementById('appSidebar') as HTMLElement;
+  sidebarTitle = document.getElementById('sidebarTitle') as HTMLElement;
+  sidebarVersion = document.getElementById('sidebarVersion') as HTMLElement;
+  sidebarType = document.getElementById('sidebarType') as HTMLElement;
+  sidebarDescription = document.getElementById('sidebarDescription') as HTMLElement;
+  sidebarHomepage = document.getElementById('sidebarHomepage') as HTMLAnchorElement;
+  sidebarActions = document.getElementById('sidebarActions') as HTMLElement;
+  sidebarClose = document.getElementById('sidebarClose') as HTMLButtonElement;
 
   const versionInfo = document.getElementById('versionInfo') as HTMLElement;
 
@@ -217,6 +238,13 @@ function setupEventListeners(): void {
   terminalToggle.addEventListener('click', (e) => {
     e.stopPropagation();
     toggleTerminal();
+  });
+
+  // Sidebar listeners
+  sidebarClose.addEventListener('click', closeSidebar);
+  sidebarOverlay.addEventListener('click', closeSidebar);
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeSidebar();
   });
 
   // IPC listeners
@@ -578,6 +606,17 @@ function renderApps(): void {
     </div>
   `;
 
+  appsGrid.querySelectorAll('.app-card').forEach((card) => {
+    card.addEventListener('click', () => {
+      const btn = card.querySelector('.app-button') as HTMLElement;
+      if (btn && btn.dataset.app) {
+        const appName = btn.dataset.app;
+        const app = filteredApps.find(a => a.name === appName);
+        if (app) openAppDetail(app);
+      }
+    });
+  });
+
   appsGrid.querySelectorAll('.app-button').forEach((btn) => {
     btn.addEventListener('click', (e) => {
       e.stopPropagation();
@@ -643,6 +682,60 @@ function renderAppCard(app: App, isInstalled: boolean): string {
       </div>
     </div>
   `;
+}
+
+function openAppDetail(app: App): void {
+  const isInstalled = installedApps.has(app.name);
+  
+  sidebarTitle.textContent = app.name;
+  sidebarVersion.textContent = `v${app.version || 'N/A'}`;
+  sidebarType.textContent = app.type;
+  sidebarDescription.textContent = app.description || 'No description available.';
+  
+  if (app.homepage) {
+    sidebarHomepage.href = app.homepage;
+    sidebarHomepage.style.display = 'inline-flex';
+  } else {
+    sidebarHomepage.style.display = 'none';
+  }
+
+  sidebarActions.innerHTML = `
+    <button class="app-button ${isInstalled ? 'installed' : ''}" 
+            data-app="${app.name}" 
+            data-type="${app.type}"
+            style="width: 100%">
+      ${isInstalled ? 'Delete' : 'Install'}
+    </button>
+  `;
+
+  const actionBtn = sidebarActions.querySelector('.app-button');
+  if (actionBtn) {
+    actionBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const appName = (actionBtn as HTMLElement).dataset.app;
+      const appType = (actionBtn as HTMLElement).dataset.type;
+      if (!appName || !appType) return;
+
+      if (isInstalled) {
+        ipcRenderer.send('uninstall-app', appName, appType);
+      } else {
+        ipcRenderer.send('install-app', appName, appType);
+      }
+      
+      closeSidebar();
+      if (!terminalVisible) {
+        toggleTerminal();
+      }
+    });
+  }
+
+  appSidebar.classList.add('visible');
+  sidebarOverlay.classList.add('visible');
+}
+
+function closeSidebar(): void {
+  appSidebar.classList.remove('visible');
+  sidebarOverlay.classList.remove('visible');
 }
 
 function toggleTerminal(): void {

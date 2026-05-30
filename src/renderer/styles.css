@@ -399,6 +399,149 @@ body {
   margin-right: 8px;
 }
 
+/* App Detail Sidebar */
+.sidebar-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  z-index: 90;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+.sidebar-overlay.visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.app-sidebar {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 400px;
+  max-width: 100vw;
+  background: rgba(25, 18, 43, 0.95);
+  backdrop-filter: blur(24px);
+  border-left: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: -10px 0 30px rgba(0, 0, 0, 0.5);
+  z-index: 100;
+  transform: translateX(100%);
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  display: flex;
+  flex-direction: column;
+}
+
+.app-sidebar.visible {
+  transform: translateX(0);
+}
+
+.sidebar-header {
+  padding: 24px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.sidebar-title {
+  font-size: 24px;
+  font-weight: bold;
+  color: #fff;
+  margin: 0;
+}
+
+.sidebar-close {
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.6);
+  cursor: pointer;
+  padding: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.2s;
+}
+
+.sidebar-close:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+
+.sidebar-content {
+  padding: 24px;
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.sidebar-meta {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.sidebar-version {
+  font-size: 14px;
+  font-weight: 500;
+  background: rgba(193, 182, 255, 0.2);
+  color: #c1b6ff;
+  padding: 6px 12px;
+  border-radius: 9999px;
+}
+
+.sidebar-type {
+  font-size: 14px;
+  font-weight: 500;
+  color: #9ca3af;
+  text-transform: capitalize;
+}
+
+.sidebar-description {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 16px;
+  line-height: 1.6;
+}
+
+.sidebar-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #63ffd2;
+  text-decoration: none;
+  font-size: 15px;
+  padding: 10px 16px;
+  background: rgba(99, 255, 210, 0.1);
+  border-radius: 8px;
+  width: fit-content;
+  transition: all 0.2s;
+}
+
+.sidebar-link:hover {
+  background: rgba(99, 255, 210, 0.2);
+}
+
+.sidebar-actions {
+  padding: 24px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  gap: 16px;
+}
+
+.sidebar-actions .app-button {
+  padding: 14px 24px;
+  font-size: 16px;
+  font-weight: 600;
+}
+
 /* Terminal */
 .terminal-container {
   flex-shrink: 0;
