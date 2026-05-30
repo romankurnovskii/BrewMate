@@ -4,7 +4,7 @@ import * as path from 'path';
 import { fetchJSON } from '../utils/fetchData';
 import { loadFromCache, saveToCache } from '../utils/cache';
 import { getTerminalPromptInfo } from '../utils/terminal';
-import { getInstalledApps, getOutdatedApps, getCacheSize } from '../utils/brew';
+import { getInstalledApps, getOutdatedApps, getCacheSize, getAppDetails, scanVulnerabilities } from '../utils/brew';
 import { logCommand, getLogFilePath } from '../utils/logger';
 import { getEnvWithBrewPath } from '../utils/path';
 import { HOMEBREW_CASKS_JSON_URL, HOMEBREW_FORMULAS_JSON_URL } from '../constants';
@@ -287,6 +287,42 @@ export function setupIpcHandlers(): void {
     } catch (error: any) {
       console.error('[IPC] Error getting cache size:', error);
       event.reply('cache-size', 0);
+    }
+  });
+
+  // Get app details
+  ipcMain.on('get-app-details', async (event: IpcMainEvent, appName: string, type: 'cask' | 'formula') => {
+    console.log('[IPC] get-app-details received for:', appName);
+    try {
+      const details = await getAppDetails(appName, type);
+      event.reply('app-details', { appName, details });
+    } catch (error: any) {
+      console.error('[IPC] Error getting app details:', error);
+      event.reply('app-details', { appName, details: null });
+    }
+  });
+
+  // Scan vulnerabilities
+  ipcMain.on('scan-vulnerabilities', async (event: IpcMainEvent) => {
+    console.log('[IPC] scan-vulnerabilities received');
+    try {
+      const vulns = await scanVulnerabilities();
+      event.reply('vulnerabilities-result', vulns);
+    } catch (error: any) {
+      console.error('[IPC] Error scanning vulnerabilities:', error);
+      event.reply('vulnerabilities-result', []);
+    }
+  });
+
+  // Get trending apps
+  ipcMain.on('get-trending-apps', async (event: IpcMainEvent) => {
+    console.log('[IPC] get-trending-apps received');
+    try {
+      const data = await fetchJSON('https://formulae.brew.sh/api/analytics/install/30d.json');
+      event.reply('trending-apps-result', data);
+    } catch (error: any) {
+      console.error('[IPC] Error getting trending apps:', error);
+      event.reply('trending-apps-result', null);
     }
   });
 
