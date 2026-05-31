@@ -60,7 +60,7 @@ jobs:
       - name: Checkout homebrew-cask repository
         uses: actions/checkout@v4
         with:
-          repository: romankurnovskii/homebrew-cask
+          repository: romankurnovskii/homebrew-awesome-brew
           path: homebrew-cask
           token: ${{ secrets.TOKEN_HOMEBREW_CASK }}
           # https://github.com/settings/tokens/
@@ -97,7 +97,7 @@ jobs:
           git -C homebrew-cask push origin ${BRANCH_NAME}
 
           # Create PR
-          PR_URL="https://api.github.com/repos/romankurnovskii/homebrew-cask/pulls"
+          PR_URL="https://api.github.com/repos/romankurnovskii/homebrew-awesome-brew/pulls"
           curl --request POST \
           --url $PR_URL \
           --header "authorization: token ${TOKEN_HOMEBREW_CASK}" \
