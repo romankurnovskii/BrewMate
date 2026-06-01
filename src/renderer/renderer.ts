@@ -529,8 +529,8 @@ function setupEventListeners(): void {
     trendingApps.clear();
     if (data && data.items) {
       data.items.slice(0, 100).forEach((item: any) => {
-        if (item.cask) trendingApps.add(item.cask);
-        if (item.formula) trendingApps.add(item.formula);
+        if (item.cask) trendingApps.add(item.cask.toLowerCase());
+        if (item.formula) trendingApps.add(item.formula.toLowerCase());
       });
     }
     filterApps();
@@ -756,7 +756,7 @@ function getCategoryForApp(app: App): string {
 
 function calculateItemsPerRow(): void {
   const gridWidth = appsGrid.offsetWidth;
-  itemsPerRow = Math.max(1, Math.floor(gridWidth / 304));
+  itemsPerRow = Math.max(1, Math.floor(gridWidth / 236));
 }
 
 function filterApps(): void {
@@ -771,10 +771,10 @@ function filterApps(): void {
 
     filteredApps = allApps.filter((app) => {
       if (selectedType === 'trending') {
-        if (!trendingApps.has(app.name)) return false;
-      } else if (selectedType !== 'All' && app.type !== selectedType) {
-        return false;
-      }
+          if (!trendingApps.has(app.name.toLowerCase())) return false;
+        } else if (selectedType !== 'All' && app.type !== selectedType) {
+          return false;
+        }
 
       if (selectedCategory === 'Installed') {
         if (!installedApps.has(app.name)) return false;

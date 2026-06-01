@@ -318,8 +318,17 @@ export function setupIpcHandlers(): void {
   ipcMain.on('get-trending-apps', async (event: IpcMainEvent) => {
     console.log('[IPC] get-trending-apps received');
     try {
-      const data = await fetchJSON('https://formulae.brew.sh/api/analytics/install/30d.json');
-      event.reply('trending-apps-result', data);
+      const [formulaData, caskData] = await Promise.all([
+        fetchJSON('https://formulae.brew.sh/api/analytics/install/30d.json'),
+        fetchJSON('https://formulae.brew.sh/api/analytics/cask-install/homebrew-cask/30d.json')
+      ]);
+      
+      const combinedItems = [
+        ...(formulaData?.items || []),
+        ...(caskData?.items || [])
+      ];
+      
+      event.reply('trending-apps-result', { items: combinedItems });
     } catch (error: any) {
       console.error('[IPC] Error getting trending apps:', error);
       event.reply('trending-apps-result', null);
