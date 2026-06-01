@@ -51,6 +51,8 @@ console.log('[Renderer] ipcRenderer loaded:', !!ipcRenderer);
 
 // State
 let allApps: Array<App> = [];
+// Optimization: O(1) Map lookup to replace O(N^2) array searches during rendering
+let allAppsMap = new Map<string, App>();
 let installedApps = new Set<string>();
 let filteredApps: Array<App> = [];
 let selectedCategory = 'All';
@@ -158,9 +160,11 @@ function init(): void {
   appCount = document.getElementById('appCount') as HTMLElement;
   loadingMessage = document.getElementById('loadingMessage') as HTMLElement;
   logPath = document.getElementById('logPath') as HTMLElement;
-  terminalHistorySelect = document.getElementById('terminalHistorySelect') as HTMLSelectElement;
+  terminalHistorySelect = document.getElementById(
+    'terminalHistorySelect'
+  ) as HTMLSelectElement;
   trendingToggleBtn = document.getElementById('trendingToggleBtn') as HTMLButtonElement;
-  
+
   sidebarOverlay = document.getElementById('sidebarOverlay') as HTMLElement;
   appSidebar = document.getElementById('appSidebar') as HTMLElement;
   sidebarTitle = document.getElementById('sidebarTitle') as HTMLElement;
@@ -179,8 +183,12 @@ function init(): void {
   sidebarVulnRow = document.getElementById('sidebarVulnRow') as HTMLElement;
   sidebarVulns = document.getElementById('sidebarVulns') as HTMLElement;
 
-  navButtons = document.querySelectorAll('.nav-sidebar .nav-button') as NodeListOf<HTMLButtonElement>;
-  tabViews = document.querySelectorAll('.main-layout-wrapper .tab-view') as NodeListOf<HTMLElement>;
+  navButtons = document.querySelectorAll(
+    '.nav-sidebar .nav-button'
+  ) as NodeListOf<HTMLButtonElement>;
+  tabViews = document.querySelectorAll(
+    '.main-layout-wrapper .tab-view'
+  ) as NodeListOf<HTMLElement>;
 
   dashInstalledCount = document.getElementById('dashInstalledCount') as HTMLElement;
   dashCaskCount = document.getElementById('dashCaskCount') as HTMLElement;
@@ -289,12 +297,16 @@ function setupEventListeners(): void {
   // Type filter buttons
   typeFilter.querySelectorAll('.type-toggle').forEach((btn) => {
     btn.addEventListener('click', () => {
-      selectedType = (btn as HTMLElement).dataset.type as 'All' | 'cask' | 'formula' | 'trending';
+      selectedType = (btn as HTMLElement).dataset.type as
+        | 'All'
+        | 'cask'
+        | 'formula'
+        | 'trending';
       document.querySelectorAll('.type-toggle').forEach((b) => b.classList.remove('active'));
       btn.classList.add('active');
       visibleStartIndex = 0;
       appsGrid.scrollTop = 0;
-      
+
       if (selectedType === 'trending' && trendingApps.size === 0) {
         // Fetch trending apps if we don't have them
         ipcRenderer.send('get-trending-apps');
@@ -348,11 +360,13 @@ function setupEventListeners(): void {
   });
   ipcRenderer.on('all-apps', (_event: any, apps: Array<App>) => {
     console.log('[Renderer] Received all-apps:', apps.length);
+    allAppsMap.clear();
     for (const app of apps) {
       app._nameLower = (app.name || '').toLowerCase();
       app._descLower = (app.description || '').toLowerCase();
       app._homeLower = (app.homepage || '').toLowerCase();
       app._category = getCategoryForApp(app);
+      allAppsMap.set(app.name, app);
     }
     allApps = apps;
     isLoading = false;
@@ -420,11 +434,13 @@ function setupEventListeners(): void {
     }
   );
   ipcRenderer.on('all-apps-updated', (_event: any, apps: Array<App>) => {
+    allAppsMap.clear();
     for (const app of apps) {
       app._nameLower = (app.name || '').toLowerCase();
       app._descLower = (app.description || '').toLowerCase();
       app._homeLower = (app.homepage || '').toLowerCase();
       app._category = getCategoryForApp(app);
+      allAppsMap.set(app.name, app);
     }
     allApps = apps;
     isLoading = false;
@@ -475,7 +491,7 @@ function setupEventListeners(): void {
     if (details) {
       // popuplate size, dependencies, stars
       sidebarSize.textContent = details.size || 'Unknown';
-      
+
       const deps = details.dependencies || [];
       if (deps.length > 0) {
         sidebarDependencies.innerHTML = deps.join(', ');
@@ -515,7 +531,7 @@ function setupEventListeners(): void {
         dashScanVulnBtn.disabled = false;
       }, 3000);
     }
-    
+
     // Log results in the terminal activity drawer
     if (!terminalVisible) toggleTerminal();
     terminalOutput.insertAdjacentHTML(
@@ -541,7 +557,7 @@ function setupEventListeners(): void {
     btn.addEventListener('click', () => {
       const view = btn.dataset.view as 'dashboard' | 'explore' | 'updates';
       if (!view) return;
-      
+
       activeView = view;
       navButtons.forEach((b) => b.classList.remove('active'));
       btn.classList.add('active');
@@ -574,7 +590,9 @@ function setupEventListeners(): void {
 
   if (dashViewUpdatesBtn) {
     dashViewUpdatesBtn.addEventListener('click', () => {
-      const updatesBtn = document.querySelector('.nav-button[data-view="updates"]') as HTMLButtonElement;
+      const updatesBtn = document.querySelector(
+        '.nav-button[data-view="updates"]'
+      ) as HTMLButtonElement;
       if (updatesBtn) updatesBtn.click();
     });
   }
@@ -628,14 +646,17 @@ function setupEventListeners(): void {
   });
 
   // Upgrade individual app complete listener
-  ipcRenderer.on('upgrade-complete', (_event: any, { appName, success }: { appName: string; success: boolean }) => {
-    console.log('[Renderer] Upgrade complete:', appName, success);
-    if (success) {
-      ipcRenderer.send('get-outdated-apps');
-      ipcRenderer.send('get-installed-apps');
-      ipcRenderer.send('get-cache-size');
+  ipcRenderer.on(
+    'upgrade-complete',
+    (_event: any, { appName, success }: { appName: string; success: boolean }) => {
+      console.log('[Renderer] Upgrade complete:', appName, success);
+      if (success) {
+        ipcRenderer.send('get-outdated-apps');
+        ipcRenderer.send('get-installed-apps');
+        ipcRenderer.send('get-cache-size');
+      }
     }
-  });
+  );
 
   // Upgrade all complete listener
   ipcRenderer.on('upgrade-all-complete', (_event: any, { success }: { success: boolean }) => {
@@ -894,7 +915,7 @@ function renderApps(): void {
       const btn = card.querySelector('.app-button') as HTMLElement;
       if (btn && btn.dataset.app) {
         const appName = btn.dataset.app;
-        const app = filteredApps.find(a => a.name === appName);
+        const app = allAppsMap.get(appName);
         if (app) openAppDetail(app);
       }
     });
@@ -969,12 +990,12 @@ function renderAppCard(app: App, isInstalled: boolean): string {
 
 function openAppDetail(app: App): void {
   const isInstalled = installedApps.has(app.name);
-  
+
   sidebarTitle.textContent = app.name;
   sidebarVersion.textContent = `v${app.version || 'N/A'}`;
   sidebarType.textContent = app.type;
   sidebarDescription.textContent = app.description || 'No description available.';
-  
+
   if (app.homepage) {
     sidebarHomepage.href = app.homepage;
     sidebarHomepage.style.display = 'inline-flex';
@@ -1004,7 +1025,7 @@ function openAppDetail(app: App): void {
       } else {
         ipcRenderer.send('install-app', appName, appType);
       }
-      
+
       closeSidebar();
       if (!terminalVisible) {
         toggleTerminal();
@@ -1019,7 +1040,7 @@ function openAppDetail(app: App): void {
   sidebarExtendedDetails.style.display = 'none';
   sidebarDetailsLoader.style.display = 'flex';
   sidebarVulnRow.style.display = 'none'; // Will update if we have full vuln state
-  
+
   ipcRenderer.send('get-app-details', app.name, app.type);
 }
 
@@ -1098,7 +1119,7 @@ function updateDashboardView(): void {
   let caskCount = 0;
   let formulaCount = 0;
   for (const appName of installedApps) {
-    const app = allApps.find((a) => a.name === appName);
+    const app = allAppsMap.get(appName);
     if (app) {
       if (app.type === 'cask') {
         caskCount++;
@@ -1146,7 +1167,7 @@ function updateDashboardView(): void {
 
 function renderUpdatesView(): void {
   const updatesCount = outdatedApps.length;
-  
+
   if (updatesUpgradeAllBtn) {
     updatesUpgradeAllBtn.style.display = updatesCount > 0 ? 'inline-flex' : 'none';
   }
