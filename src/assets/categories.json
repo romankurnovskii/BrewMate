@@ -1,0 +1,22 @@
+{
+  "categories": {
+    "photo-video": { "label": "Photo/Video", "color": "hsl(316, 73%, 52%)", "keywords": ["video", "photo", "image", "camera", "player", "audio", "media"] },
+    "music": { "label": "Music", "color": "hsl(262, 83%, 58%)", "keywords": ["music", "sound", "midi", "spotify", "itunes"] },
+    "graphic-design": { "label": "Graphic/Design", "color": "hsl(283, 39%, 53%)", "keywords": ["design", "draw", "color", "font", "figma", "graphic"] },
+    "social": { "label": "Social", "color": "hsl(175, 41%, 45%)", "keywords": ["social", "chat", "message", "slack", "discord", "whatsapp", "telegram"] },
+    "menubar": { "label": "Menubar", "color": "hsl(210, 40%, 98%)", "keywords": ["menubar", "menu bar", "status bar"] },
+    "developer-tools": { "label": "Developer Tools", "color": "hsl(217, 91%, 60%)", "keywords": ["developer", "code", "ide", "editor", "git", "docker", "kubernetes", "database", "sql", "api", "terminal", "compiler", "language", "programming", "sdk"] },
+    "wallets-crypto": { "label": "Wallets/Crypto", "color": "hsl(142, 76%, 36%)", "keywords": ["wallet", "crypto", "bitcoin", "ethereum", "blockchain", "coin"] },
+    "productivity": { "label": "Productivity", "color": "hsl(142, 71%, 45%)", "keywords": ["note", "task", "todo", "calendar", "mail", "office", "document", "pdf", "markdown", "write", "productivity"] },
+    "games": { "label": "Games", "color": "hsl(12, 76%, 61%)", "keywords": ["game", "emulator", "play", "rpg", "arcade"] },
+    "health-fitness": { "label": "Health/Fitness", "color": "hsl(348, 83%, 47%)", "keywords": ["health", "fitness", "workout", "sleep", "meditation"] },
+    "news": { "label": "News", "color": "hsl(199, 89%, 48%)", "keywords": ["news", "rss", "feed", "reader", "podcast"] },
+    "business": { "label": "Business", "color": "hsl(45, 93%, 47%)", "keywords": ["business", "finance", "invoice", "accounting", "tax", "expense", "enterprise"] },
+    "education": { "label": "Education", "color": "hsl(45, 93%, 47%)", "keywords": ["education", "learn", "study", "course", "dictionary", "translate", "math", "science"] },
+    "reference": { "label": "Reference", "color": "hsl(160, 84%, 39%)", "keywords": ["reference", "book", "bible", "quran", "hadith", "wiki", "encyclopedia"] },
+    "utilities": { "label": "Utilities", "color": "hsl(201, 96%, 32%)", "keywords": ["utility", "tool", "system", "cleaner", "archive", "zip", "unzip", "network", "vpn", "proxy", "ssh", "ftp", "browser", "password", "security", "sync", "backup", "manager"] },
+    "other": { "label": "Other", "color": "hsl(215, 16%, 47%)", "keywords": [] }
+  },
+  "casks": {},
+  "formulae": {}
+}

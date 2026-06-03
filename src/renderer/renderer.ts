@@ -1,26 +1,19 @@
 // Uses window.electronAPI exposed via contextBridge
 
 // Inline constants to avoid CommonJS exports issue
-const CATEGORIES = [
+let CATEGORIES = [
   'All',
   'Installed',
-  'Business',
-  'Photo/Video',
-  'Graphic/Design',
-  'Social',
-  'Menubar',
-  'Developer Tools',
-  'Wallets/Crypto',
-  'Productivity',
-  'Music',
-  'Education',
-  'Reference',
-  'Games',
-  'Health/Fitness',
-  'News',
-  'Utilities',
-  'Other',
 ];
+
+interface CategoryData {
+  categories: Record<string, { label: string; color: string; keywords?: string[] }>;
+  casks: Record<string, string>;
+  formulae: Record<string, string>;
+}
+
+let categoryDictionary: CategoryData | null = null;
+
 
 const VIRTUAL_SCROLL_CONFIG = {
   rowHeight: 220,
@@ -256,8 +249,22 @@ function init(): void {
 
   console.log('Initializing BrewMate...');
   setupEventListeners();
-  loadData();
-  renderCategories();
+
+  fetch('../assets/categories.json')
+    .then((res) => res.json())
+    .then((data: CategoryData) => {
+      categoryDictionary = data;
+      Object.values(data.categories).forEach((cat) => CATEGORIES.push(cat.label));
+      renderCategories();
+      loadData();
+      renderDashboardDonutChart();
+    })
+    .catch((err) => {
+      console.error('Failed to load categories.json:', err);
+      CATEGORIES.push('Developer Tools', 'Utilities', 'Other');
+      renderCategories();
+      loadData();
+    });
 }
 
 function setupEventListeners(): void {
@@ -377,6 +384,7 @@ function setupEventListeners(): void {
     (_event: any, apps: Array<{ name: string; type: string }>) => {
       installedApps = new Set(apps.map((app) => app.name));
       renderCategories();
+      renderDashboardDonutChart();
       if (filteredApps.length > 0) {
         updateVisibleItems();
       } else {
@@ -390,6 +398,7 @@ function setupEventListeners(): void {
       if (success) {
         installedApps.add(appName);
         renderCategories();
+        renderDashboardDonutChart();
         filterApps();
         // Refresh outdated apps and cache size
         ipcRenderer.send('get-outdated-apps');
@@ -403,6 +412,7 @@ function setupEventListeners(): void {
       if (success) {
         installedApps.delete(appName);
         renderCategories();
+        renderDashboardDonutChart();
         filterApps();
         // Refresh outdated apps and cache size
         ipcRenderer.send('get-outdated-apps');
@@ -746,49 +756,165 @@ function renderCategories(): void {
 }
 
 function getCategoryForApp(app: App): string {
-  const desc =
-    app._descLower !== undefined ? app._descLower : (app.description || '').toLowerCase();
-  const name = app._nameLower !== undefined ? app._nameLower : (app.name || '').toLowerCase();
-  const text = desc + ' ' + name;
+  if (categoryDictionary) {
+    const categoryId = app.type === 'cask' 
+      ? categoryDictionary.casks[app.name] 
+      : categoryDictionary.formulae[app.name];
+    
+    if (categoryId && categoryDictionary.categories[categoryId]) {
+      return categoryDictionary.categories[categoryId].label;
+    }
 
-  if (
-    text.includes('developer') ||
-    text.includes('code') ||
-    text.includes('git') ||
-    text.includes('terminal')
-  ) {
-    return 'Developer Tools';
+    const searchStr = `${app.name} ${app.description || ''}`.toLowerCase();
+    
+    // Dynamic fallback using keywords defined in categories.json
+    for (const cat of Object.values(categoryDictionary.categories)) {
+      if (cat.keywords && cat.keywords.some(kw => searchStr.includes(kw))) {
+        return cat.label;
+      }
+    }
   }
-  if (
-    text.includes('photo') ||
-    text.includes('video') ||
-    text.includes('image') ||
-    text.includes('media')
-  ) {
-    return 'Photo/Video';
-  }
-  if (text.includes('design') || text.includes('graphic') || text.includes('draw')) {
-    return 'Graphic/Design';
-  }
-  if (text.includes('music') || text.includes('audio') || text.includes('sound')) {
-    return 'Music';
-  }
-  if (text.includes('productivity') || text.includes('note') || text.includes('todo')) {
-    return 'Productivity';
-  }
-  if (text.includes('social') || text.includes('chat') || text.includes('message')) {
-    return 'Social';
-  }
-  if (text.includes('business') || text.includes('email') || text.includes('finance')) {
-    return 'Business';
-  }
-  if (text.includes('game') || text.includes('play')) {
-    return 'Games';
-  }
-  if (text.includes('utility') || text.includes('tool') || text.includes('manager')) {
-    return 'Utilities';
-  }
+  
   return 'Other';
+}
+
+function renderDashboardDonutChart(): void {
+  const donutContainer = document.getElementById('dashDonutChart');
+  const legendContainer = document.getElementById('dashDonutLegend');
+  if (!donutContainer || !legendContainer || !categoryDictionary) return;
+
+  // Calculate stats based on installed apps
+  const categoryCounts: Record<string, number> = {};
+  let totalCount = 0;
+
+  for (const appName of installedApps) {
+    const app = allApps.find((a) => a.name === appName);
+    if (app) {
+      const category = app._category || getCategoryForApp(app);
+      categoryCounts[category] = (categoryCounts[category] || 0) + 1;
+      totalCount++;
+    }
+  }
+
+  if (totalCount === 0) {
+    donutContainer.innerHTML = '<div class="empty-chart">No apps installed</div>';
+    legendContainer.innerHTML = '';
+    return;
+  }
+
+  // Sort and pick top 7, rest into 'Other'
+  let sortedCategories = Object.entries(categoryCounts)
+    .sort((a, b) => b[1] - a[1])
+    .filter(([name]) => name !== 'Other');
+
+  let otherCount = categoryCounts['Other'] || 0;
+  
+  if (sortedCategories.length > 7) {
+    const tail = sortedCategories.slice(7);
+    sortedCategories = sortedCategories.slice(0, 7);
+    tail.forEach(([, count]) => {
+      otherCount += count;
+    });
+  }
+
+  if (otherCount > 0) {
+    sortedCategories.push(['Other', otherCount]);
+  }
+
+  // Build SVG and Legend
+  let svgContent = '';
+  let legendContent = '';
+  
+  let cumulativePercentage = 0;
+  const radius = 46;
+  const circumference = 2 * Math.PI * radius;
+
+  // Define colors if missing
+  const getCategoryColor = (label: string) => {
+    if (label === 'Other') return 'hsl(215, 16%, 47%)';
+    const entry = Object.values(categoryDictionary!.categories).find(c => c.label === label);
+    return entry ? entry.color : 'hsl(200, 10%, 50%)';
+  };
+
+  sortedCategories.forEach(([label, count]) => {
+    const percentage = (count / totalCount) * 100;
+    const strokeDashArray = `${(percentage / 100) * circumference} ${circumference}`;
+    const strokeDashOffset = `-${(cumulativePercentage / 100) * circumference}`;
+    const color = getCategoryColor(label);
+
+    svgContent += `<circle class="donut-segment" data-category="${label}" cx="50" cy="50" r="${radius}" fill="transparent" stroke="${color}" stroke-width="8" stroke-dasharray="${strokeDashArray}" stroke-dashoffset="${strokeDashOffset}" transform="rotate(-90 50 50)"></circle>`;
+    
+    legendContent += `
+      <div class="donut-legend-item" data-category="${label}">
+        <span class="donut-legend-dot" style="background-color: ${color}"></span>
+        <span class="donut-legend-label">${label}</span>
+        <span class="donut-legend-count">${count}</span>
+      </div>
+    `;
+
+    cumulativePercentage += percentage;
+  });
+
+  donutContainer.innerHTML = `<svg width="100%" height="100%" viewBox="0 0 100 100">${svgContent}</svg>`;
+  legendContainer.innerHTML = legendContent;
+
+  // Add interactions
+  const segments = donutContainer.querySelectorAll('.donut-segment');
+  const legendItems = legendContainer.querySelectorAll('.donut-legend-item');
+
+  const highlightCategory = (cat: string) => {
+    segments.forEach((s) => {
+      if (s.getAttribute('data-category') === cat) {
+        s.classList.add('highlighted');
+      } else {
+        s.classList.add('dimmed');
+      }
+    });
+    legendItems.forEach((l) => {
+      if (l.getAttribute('data-category') === cat) {
+        l.classList.add('highlighted');
+      } else {
+        l.classList.add('dimmed');
+      }
+    });
+  };
+
+  const resetHighlight = () => {
+    segments.forEach((s) => s.classList.remove('highlighted', 'dimmed'));
+    legendItems.forEach((l) => l.classList.remove('highlighted', 'dimmed'));
+  };
+
+  const navigateToCategory = (cat: string) => {
+    // Switch to Explore view and filter by category
+    const exploreBtn = Array.from(navButtons).find(btn => btn.dataset.view === 'explore');
+    if (exploreBtn) {
+      exploreBtn.click();
+      
+      // Select category chip
+      const chips = categoryChips.querySelectorAll('.category-chip');
+      chips.forEach((chip) => {
+        if ((chip as HTMLElement).dataset.category === cat) {
+          (chip as HTMLElement).click();
+          // Scroll chip into view smoothly
+          chip.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+        }
+      });
+    }
+  };
+
+  segments.forEach((s) => {
+    const cat = s.getAttribute('data-category')!;
+    s.addEventListener('mouseenter', () => highlightCategory(cat));
+    s.addEventListener('mouseleave', resetHighlight);
+    s.addEventListener('click', () => navigateToCategory(cat));
+  });
+
+  legendItems.forEach((l) => {
+    const cat = l.getAttribute('data-category')!;
+    l.addEventListener('mouseenter', () => highlightCategory(cat));
+    l.addEventListener('mouseleave', resetHighlight);
+    l.addEventListener('click', () => navigateToCategory(cat));
+  });
 }
 
 function calculateItemsPerRow(): void {
