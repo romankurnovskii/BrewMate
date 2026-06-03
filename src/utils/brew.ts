@@ -41,7 +41,7 @@ export async function getCacheSize(): Promise<number> {
 export async function getOutdatedApps(): Promise<OutdatedApp[]> {
   try {
     const env = getEnvWithBrewPath();
-    const { stdout } = await execAsync('brew outdated --json', { env });
+    const { stdout } = await execAsync('brew outdated --greedy --json', { env });
     const data = JSON.parse(stdout);
     const outdated: OutdatedApp[] = [];
 

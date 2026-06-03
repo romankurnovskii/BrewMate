@@ -39,6 +39,14 @@ export interface InstallResult {
   success: boolean;
 }
 
+export interface BrewService {
+  name: string;
+  status: 'started' | 'stopped' | 'error' | 'unknown' | 'none';
+  user: string | null;
+  plist: string | null;
+  file?: string;
+}
+
 export type {
   Software,
   SoftwareQuery,

@@ -369,6 +369,12 @@ body {
   top: 0;
   max-height: calc(100vh - 200px);
   overflow-y: auto;
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
+.brew-commands::-webkit-scrollbar {
+  display: none;
 }
 
 .brew-commands h3 {
@@ -1130,4 +1136,129 @@ body {
 #exploreView .search-bar {
   background: transparent;
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* Services View Layout */
+#servicesView {
+  padding: 40px;
+}
+
+.services-container {
+  background: rgba(25, 18, 43, 0.45);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 20px;
+  padding: 32px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.services-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 80px 0;
+  text-align: center;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.services-empty-state svg {
+  color: #63ffd2;
+  filter: drop-shadow(0 0 10px rgba(99, 255, 210, 0.3));
+}
+
+.services-empty-state h3 {
+  font-size: 20px;
+  color: #fff;
+  font-weight: 700;
+}
+
+.services-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.services-table th {
+  padding: 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  font-size: 13px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.4);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.services-table td {
+  padding: 18px 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  font-size: 15px;
+  vertical-align: middle;
+}
+
+.services-table tr:last-child td {
+  border-bottom: none;
+}
+
+.services-table tr:hover td {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.services-name {
+  font-weight: 700;
+  color: #fff;
+}
+
+.status-badge {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  padding: 4px 10px;
+  border-radius: 6px;
+  width: fit-content;
+}
+
+.status-badge.status-started {
+  background: rgba(99, 255, 210, 0.12);
+  color: #63ffd2;
+}
+
+.status-badge.status-stopped {
+  background: rgba(255, 255, 255, 0.1);
+  color: #9ca3af;
+}
+
+.status-badge.status-error {
+  background: rgba(255, 91, 128, 0.12);
+  color: #ff5b80;
+}
+
+.services-action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #fff;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-left: 8px;
+}
+
+.services-action-btn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.services-action-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }

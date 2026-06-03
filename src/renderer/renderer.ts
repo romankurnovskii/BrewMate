@@ -68,7 +68,7 @@ interface OutdatedApp {
   latestVersion: string;
 }
 
-let activeView: 'dashboard' | 'explore' | 'updates' = 'dashboard';
+let activeView: 'dashboard' | 'explore' | 'updates' | 'services' = 'dashboard';
 let outdatedApps: Array<OutdatedApp> = [];
 let cacheSize = 0;
 
@@ -119,6 +119,12 @@ let updatesEmptyState: HTMLElement;
 let updatesTable: HTMLElement;
 let updatesTableBody: HTMLElement;
 let updatesBadge: HTMLElement;
+
+// Services View elements
+let servicesLoading: HTMLElement;
+let servicesEmptyState: HTMLElement;
+let servicesTable: HTMLElement;
+let servicesTableBody: HTMLElement;
 
 // Sidebar elements
 let sidebarOverlay: HTMLElement;
@@ -200,6 +206,11 @@ function init(): void {
   updatesTable = document.getElementById('updatesTable') as HTMLElement;
   updatesTableBody = document.getElementById('updatesTableBody') as HTMLElement;
   updatesBadge = document.getElementById('updatesBadge') as HTMLElement;
+
+  servicesLoading = document.getElementById('servicesLoading') as HTMLElement;
+  servicesEmptyState = document.getElementById('servicesEmptyState') as HTMLElement;
+  servicesTable = document.getElementById('servicesTable') as HTMLElement;
+  servicesTableBody = document.getElementById('servicesTableBody') as HTMLElement;
 
   const versionInfo = document.getElementById('versionInfo') as HTMLElement;
 
@@ -539,7 +550,7 @@ function setupEventListeners(): void {
   // Tab Navigation Click Handlers
   navButtons.forEach((btn) => {
     btn.addEventListener('click', () => {
-      const view = btn.dataset.view as 'dashboard' | 'explore' | 'updates';
+      const view = btn.dataset.view as 'dashboard' | 'explore' | 'updates' | 'services';
       if (!view) return;
       
       activeView = view;
@@ -561,6 +572,11 @@ function setupEventListeners(): void {
         updateVisibleItems();
       } else if (activeView === 'updates') {
         renderUpdatesView();
+      } else if (activeView === 'services') {
+        servicesLoading.style.display = 'flex';
+        servicesTable.style.display = 'none';
+        servicesEmptyState.style.display = 'none';
+        ipcRenderer.send('get-brew-services');
       }
     });
   });
@@ -631,9 +647,30 @@ function setupEventListeners(): void {
   ipcRenderer.on('upgrade-complete', (_event: any, { appName, success }: { appName: string; success: boolean }) => {
     console.log('[Renderer] Upgrade complete:', appName, success);
     if (success) {
-      ipcRenderer.send('get-outdated-apps');
-      ipcRenderer.send('get-installed-apps');
-      ipcRenderer.send('get-cache-size');
+      // Optimistically remove from list
+      outdatedApps = outdatedApps.filter(app => app.name !== appName);
+      updateUpdatesBadge();
+      if (activeView === 'dashboard') {
+        updateDashboardView();
+      } else if (activeView === 'updates') {
+        renderUpdatesView();
+      }
+    }
+  });
+
+  // Services listeners
+  ipcRenderer.on('brew-services-list', (_event: any, services: any[]) => {
+    console.log('[Renderer] Received brew services:', services);
+    renderServices(services);
+  });
+
+  ipcRenderer.on('service-action-complete', (_event: any, { action, service, success, error }: any) => {
+    console.log('[Renderer] Service action complete:', action, service, success, error);
+    if (success) {
+      ipcRenderer.send('get-brew-services');
+    } else {
+      alert(`Failed to ${action} ${service}: ${error}`);
+      ipcRenderer.send('get-brew-services');
     }
   });
 
@@ -1237,6 +1274,104 @@ function upgradeApp(name: string, type: string): void {
   ipcRenderer.send('upgrade-app', name, type);
 }
 
+function renderServices(services: any[]): void {
+  servicesLoading.style.display = 'none';
+  
+  if (!services || services.length === 0) {
+    servicesEmptyState.style.display = 'flex';
+    servicesTable.style.display = 'none';
+    return;
+  }
+  
+  servicesEmptyState.style.display = 'none';
+  servicesTable.style.display = 'table';
+  servicesTableBody.innerHTML = '';
+  
+  services.forEach((service) => {
+    const tr = document.createElement('tr');
+    
+    // Status badge class
+    let statusClass = 'status-stopped';
+    let statusText = 'Stopped';
+    if (service.status.toLowerCase() === 'started' || service.status.toLowerCase() === 'running') {
+      statusClass = 'status-started';
+      statusText = 'Started';
+    } else if (service.status.toLowerCase() === 'error') {
+      statusClass = 'status-error';
+      statusText = 'Error';
+    } else if (service.status.toLowerCase() === 'none') {
+      statusClass = 'status-stopped';
+      statusText = 'None';
+    }
+    
+    tr.innerHTML = `
+      <td>
+        <div class="services-name">${escapeHtml(service.name)}</div>
+      </td>
+      <td>
+        <span class="status-badge ${statusClass}">${statusText}</span>
+      </td>
+      <td>
+        ${escapeHtml(service.user || '-')}
+      </td>
+      <td style="text-align: right;">
+        <button class="services-action-btn start-btn" data-service="${escapeHtml(service.name)}" ${statusText === 'Started' ? 'disabled' : ''}>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+          Start
+        </button>
+        <button class="services-action-btn stop-btn" data-service="${escapeHtml(service.name)}" ${statusText !== 'Started' ? 'disabled' : ''}>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="6" y="6" width="12" height="12"></rect></svg>
+          Stop
+        </button>
+        <button class="services-action-btn restart-btn" data-service="${escapeHtml(service.name)}" ${statusText !== 'Started' ? 'disabled' : ''}>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="1 4 1 10 7 10"></polyline><polyline points="23 20 23 14 17 14"></polyline><path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"></path></svg>
+          Restart
+        </button>
+      </td>
+    `;
+    
+    servicesTableBody.appendChild(tr);
+  });
+  
+  // Attach event listeners
+  const startBtns = servicesTableBody.querySelectorAll('.start-btn');
+  const stopBtns = servicesTableBody.querySelectorAll('.stop-btn');
+  const restartBtns = servicesTableBody.querySelectorAll('.restart-btn');
+  
+  startBtns.forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      const target = e.currentTarget as HTMLButtonElement;
+      const serviceName = target.dataset.service;
+      if (serviceName) {
+        target.disabled = true;
+        ipcRenderer.send('execute-service-action', 'start', serviceName);
+      }
+    });
+  });
+  
+  stopBtns.forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      const target = e.currentTarget as HTMLButtonElement;
+      const serviceName = target.dataset.service;
+      if (serviceName) {
+        target.disabled = true;
+        ipcRenderer.send('execute-service-action', 'stop', serviceName);
+      }
+    });
+  });
+  
+  restartBtns.forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      const target = e.currentTarget as HTMLButtonElement;
+      const serviceName = target.dataset.service;
+      if (serviceName) {
+        target.disabled = true;
+        ipcRenderer.send('execute-service-action', 'restart', serviceName);
+      }
+    });
+  });
+}
+
 // Start app when DOM is ready
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', () => {
@@ -1248,6 +1383,13 @@ if (document.readyState === 'loading') {
       ipcRenderer.send('get-log-path');
     }
     init();
+    
+    // Auto-poll for updates
+    setInterval(() => {
+      if (ipcRenderer) {
+        ipcRenderer.send('get-outdated-apps');
+      }
+    }, 60000);
   });
 } else {
   // DOM already loaded
@@ -1257,4 +1399,11 @@ if (document.readyState === 'loading') {
     ipcRenderer.send('get-log-path');
   }
   init();
+  
+  // Auto-poll for updates
+  setInterval(() => {
+    if (ipcRenderer) {
+      ipcRenderer.send('get-outdated-apps');
+    }
+  }, 60000);
 }

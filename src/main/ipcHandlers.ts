@@ -1,5 +1,5 @@
 import { ipcMain, IpcMainEvent, app } from 'electron';
-import { spawn } from 'child_process';
+import { spawn, exec } from 'child_process';
 import * as path from 'path';
 import { fetchJSON } from '../utils/fetchData';
 import { loadFromCache, saveToCache } from '../utils/cache';
@@ -339,7 +339,7 @@ export function setupIpcHandlers(): void {
   ipcMain.on('upgrade-app', (event: IpcMainEvent, appName: string, appType: string) => {
     const command =
       appType === 'cask'
-        ? `brew upgrade --cask ${appName}`
+        ? `brew upgrade --cask --greedy ${appName}`
         : `brew upgrade ${appName}`;
 
     console.log('[IPC] Upgrading app:', appName, appType);
@@ -373,7 +373,7 @@ export function setupIpcHandlers(): void {
 
   // Upgrade all outdated apps
   ipcMain.on('upgrade-all', (event: IpcMainEvent) => {
-    const command = `brew upgrade`;
+    const command = `brew upgrade --greedy`;
 
     console.log('[IPC] Upgrading all outdated apps');
     let output = '';
@@ -389,6 +389,15 @@ export function setupIpcHandlers(): void {
       const dataStr = data.toString();
       output += dataStr;
       event.reply('terminal-output', dataStr);
+
+      // Optimistically emit completion for UI responsiveness
+      const lines = dataStr.split('\n');
+      for (const line of lines) {
+        const match = line.match(/==>\s+Upgrading\s+(?:cask\s+)?([^\s]+)/i);
+        if (match && match[1]) {
+          event.reply('upgrade-complete', { appName: match[1], success: true });
+        }
+      }
     });
 
     shell.stderr.on('data', (data) => {
@@ -431,6 +440,59 @@ export function setupIpcHandlers(): void {
 
     shell.on('close', (code) => {
       logCommand(command, output, code);
+      event.reply('terminal-output', `\nProcess exited with code ${code}\n`);
+    });
+  });
+
+  // Get Brew Services
+  ipcMain.on('get-brew-services', (event: IpcMainEvent) => {
+    console.log('[IPC] get-brew-services received');
+    const command = 'brew services list --json';
+    exec(command, { env: getEnvWithBrewPath() }, (error, stdout, stderr) => {
+      if (error) {
+        console.error('[IPC] Error getting brew services:', error);
+        event.reply('brew-services-list', []);
+        return;
+      }
+      try {
+        const services = JSON.parse(stdout);
+        event.reply('brew-services-list', services);
+      } catch (parseError) {
+        console.error('[IPC] Error parsing brew services JSON:', parseError);
+        event.reply('brew-services-list', []);
+      }
+    });
+  });
+
+  // Execute Service Action
+  ipcMain.on('execute-service-action', (event: IpcMainEvent, action: string, serviceName: string) => {
+    if (!['start', 'stop', 'restart'].includes(action)) return;
+    const command = `brew services ${action} ${serviceName}`;
+    console.log('[IPC] Executing service action:', command);
+    let output = '';
+    logCommand(command);
+
+    const shell = spawn(command, [], {
+      shell: true,
+      cwd: process.env.HOME || process.cwd(),
+      env: getEnvWithBrewPath(),
+    });
+
+    shell.stdout.on('data', (data) => {
+      const dataStr = data.toString();
+      output += dataStr;
+      event.reply('terminal-output', dataStr);
+    });
+
+    shell.stderr.on('data', (data) => {
+      const dataStr = data.toString();
+      output += dataStr;
+      event.reply('terminal-output', dataStr);
+    });
+
+    shell.on('close', (code) => {
+      logCommand(command, output, code);
+      event.reply('service-action-complete', { serviceName, action, success: code === 0 });
       event.reply('terminal-output', `\nProcess exited with code ${code}\n`);
     });
   });

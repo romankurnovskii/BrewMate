@@ -13,6 +13,8 @@ const validSendChannels = [
   'get-cache-size',
   'upgrade-app',
   'upgrade-all',
+  'get-brew-services',
+  'execute-service-action',
 ];
 
 const validReceiveChannels = [
@@ -31,6 +33,8 @@ const validReceiveChannels = [
   'cache-size',
   'upgrade-complete',
   'upgrade-all-complete',
+  'brew-services-list',
+  'service-action-complete',
 ];
 
 contextBridge.exposeInMainWorld('electronAPI', {
