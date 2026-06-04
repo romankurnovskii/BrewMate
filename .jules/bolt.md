@@ -11,3 +11,6 @@
 ## 2024-05-24 - Async Cache I/O
 **Learning:** For Electron apps handling large JSON payloads (like 100k items from the Homebrew API), using synchronous file system operations (`fs.readFileSync` and `fs.writeFileSync`) blocks the main thread.
 **Action:** When performing file I/O for large data, always use asynchronous file system methods (`fs.promises`) to avoid blocking the event loop and maintain UI responsiveness.
+## 2024-05-24 - Array find on massive subsets blocks UI thread
+**Learning:** For large datasets (like the app's ~100k `allApps`), using nested array scans `.find()` when cross-referencing subsets (like `installedApps`) causes severe UI blocking. The benchmark showed O(N) takes ~744ms while O(1) takes ~0.5ms.
+**Action:** When cross-referencing subsets against massive datasets in the renderer, use a precomputed `Map<string, App>` (e.g., `allAppsMap`) for $O(1)$ lookups instead of nested array scans.
