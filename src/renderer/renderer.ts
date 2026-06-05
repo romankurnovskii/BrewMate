@@ -1,10 +1,7 @@
 // Uses window.electronAPI exposed via contextBridge
 
 // Inline constants to avoid CommonJS exports issue
-let CATEGORIES = [
-  'All',
-  'Installed',
-];
+let CATEGORIES = ['All', 'Installed'];
 
 interface CategoryData {
   categories: Record<string, { label: string; color: string; keywords?: string[] }>;
@@ -13,7 +10,6 @@ interface CategoryData {
 }
 
 let categoryDictionary: CategoryData | null = null;
-
 
 const VIRTUAL_SCROLL_CONFIG = {
   rowHeight: 220,
@@ -44,6 +40,7 @@ console.log('[Renderer] ipcRenderer loaded:', !!ipcRenderer);
 
 // State
 let allApps: Array<App> = [];
+let allAppsMap = new Map<string, App>(); // Optimization: O(1) lookups for 100k items
 let installedApps = new Set<string>();
 let filteredApps: Array<App> = [];
 let selectedCategory = 'All';
@@ -158,9 +155,11 @@ function init(): void {
   appCount = document.getElementById('appCount') as HTMLElement;
   loadingMessage = document.getElementById('loadingMessage') as HTMLElement;
   logPath = document.getElementById('logPath') as HTMLElement;
-  terminalHistorySelect = document.getElementById('terminalHistorySelect') as HTMLSelectElement;
+  terminalHistorySelect = document.getElementById(
+    'terminalHistorySelect'
+  ) as HTMLSelectElement;
   trendingToggleBtn = document.getElementById('trendingToggleBtn') as HTMLButtonElement;
-  
+
   sidebarOverlay = document.getElementById('sidebarOverlay') as HTMLElement;
   appSidebar = document.getElementById('appSidebar') as HTMLElement;
   sidebarTitle = document.getElementById('sidebarTitle') as HTMLElement;
@@ -179,8 +178,12 @@ function init(): void {
   sidebarVulnRow = document.getElementById('sidebarVulnRow') as HTMLElement;
   sidebarVulns = document.getElementById('sidebarVulns') as HTMLElement;
 
-  navButtons = document.querySelectorAll('.nav-sidebar .nav-button') as NodeListOf<HTMLButtonElement>;
-  tabViews = document.querySelectorAll('.main-layout-wrapper .tab-view') as NodeListOf<HTMLElement>;
+  navButtons = document.querySelectorAll(
+    '.nav-sidebar .nav-button'
+  ) as NodeListOf<HTMLButtonElement>;
+  tabViews = document.querySelectorAll(
+    '.main-layout-wrapper .tab-view'
+  ) as NodeListOf<HTMLElement>;
 
   dashInstalledCount = document.getElementById('dashInstalledCount') as HTMLElement;
   dashCaskCount = document.getElementById('dashCaskCount') as HTMLElement;
@@ -308,12 +311,16 @@ function setupEventListeners(): void {
   // Type filter buttons
   typeFilter.querySelectorAll('.type-toggle').forEach((btn) => {
     btn.addEventListener('click', () => {
-      selectedType = (btn as HTMLElement).dataset.type as 'All' | 'cask' | 'formula' | 'trending';
+      selectedType = (btn as HTMLElement).dataset.type as
+        | 'All'
+        | 'cask'
+        | 'formula'
+        | 'trending';
       document.querySelectorAll('.type-toggle').forEach((b) => b.classList.remove('active'));
       btn.classList.add('active');
       visibleStartIndex = 0;
       appsGrid.scrollTop = 0;
-      
+
       if (selectedType === 'trending' && trendingApps.size === 0) {
         // Fetch trending apps if we don't have them
         ipcRenderer.send('get-trending-apps');
@@ -367,11 +374,13 @@ function setupEventListeners(): void {
   });
   ipcRenderer.on('all-apps', (_event: any, apps: Array<App>) => {
     console.log('[Renderer] Received all-apps:', apps.length);
+    allAppsMap.clear();
     for (const app of apps) {
       app._nameLower = (app.name || '').toLowerCase();
       app._descLower = (app.description || '').toLowerCase();
       app._homeLower = (app.homepage || '').toLowerCase();
       app._category = getCategoryForApp(app);
+      allAppsMap.set(app.name, app);
     }
     allApps = apps;
     loadError = null;
@@ -443,11 +452,13 @@ function setupEventListeners(): void {
     }
   );
   ipcRenderer.on('all-apps-updated', (_event: any, apps: Array<App>) => {
+    allAppsMap.clear();
     for (const app of apps) {
       app._nameLower = (app.name || '').toLowerCase();
       app._descLower = (app.description || '').toLowerCase();
       app._homeLower = (app.homepage || '').toLowerCase();
       app._category = getCategoryForApp(app);
+      allAppsMap.set(app.name, app);
     }
     allApps = apps;
     loadError = null;
@@ -512,7 +523,7 @@ function setupEventListeners(): void {
     if (details) {
       // popuplate size, dependencies, stars
       sidebarSize.textContent = details.size || 'Unknown';
-      
+
       const deps = details.dependencies || [];
       if (deps.length > 0) {
         sidebarDependencies.innerHTML = deps.join(', ');
@@ -552,7 +563,7 @@ function setupEventListeners(): void {
         dashScanVulnBtn.disabled = false;
       }, 3000);
     }
-    
+
     // Log results in the terminal activity drawer
     if (!terminalVisible) toggleTerminal();
     terminalOutput.insertAdjacentHTML(
@@ -578,7 +589,7 @@ function setupEventListeners(): void {
     btn.addEventListener('click', () => {
       const view = btn.dataset.view as 'dashboard' | 'explore' | 'updates' | 'services';
       if (!view) return;
-      
+
       activeView = view;
       navButtons.forEach((b) => b.classList.remove('active'));
       btn.classList.add('active');
@@ -616,7 +627,9 @@ function setupEventListeners(): void {
 
   if (dashViewUpdatesBtn) {
     dashViewUpdatesBtn.addEventListener('click', () => {
-      const updatesBtn = document.querySelector('.nav-button[data-view="updates"]') as HTMLButtonElement;
+      const updatesBtn = document.querySelector(
+        '.nav-button[data-view="updates"]'
+      ) as HTMLButtonElement;
       if (updatesBtn) updatesBtn.click();
     });
   }
@@ -670,19 +683,22 @@ function setupEventListeners(): void {
   });
 
   // Upgrade individual app complete listener
-  ipcRenderer.on('upgrade-complete', (_event: any, { appName, success }: { appName: string; success: boolean }) => {
-    console.log('[Renderer] Upgrade complete:', appName, success);
-    if (success) {
-      // Optimistically remove from list
-      outdatedApps = outdatedApps.filter(app => app.name !== appName);
-      updateUpdatesBadge();
-      if (activeView === 'dashboard') {
-        updateDashboardView();
-      } else if (activeView === 'updates') {
-        renderUpdatesView();
+  ipcRenderer.on(
+    'upgrade-complete',
+    (_event: any, { appName, success }: { appName: string; success: boolean }) => {
+      console.log('[Renderer] Upgrade complete:', appName, success);
+      if (success) {
+        // Optimistically remove from list
+        outdatedApps = outdatedApps.filter((app) => app.name !== appName);
+        updateUpdatesBadge();
+        if (activeView === 'dashboard') {
+          updateDashboardView();
+        } else if (activeView === 'updates') {
+          renderUpdatesView();
+        }
       }
     }
-  });
+  );
 
   // Services listeners
   ipcRenderer.on('brew-services-list', (_event: any, services: any[]) => {
@@ -690,15 +706,18 @@ function setupEventListeners(): void {
     renderServices(services);
   });
 
-  ipcRenderer.on('service-action-complete', (_event: any, { action, service, success, error }: any) => {
-    console.log('[Renderer] Service action complete:', action, service, success, error);
-    if (success) {
-      ipcRenderer.send('get-brew-services');
-    } else {
-      alert(`Failed to ${action} ${service}: ${error}`);
-      ipcRenderer.send('get-brew-services');
+  ipcRenderer.on(
+    'service-action-complete',
+    (_event: any, { action, service, success, error }: any) => {
+      console.log('[Renderer] Service action complete:', action, service, success, error);
+      if (success) {
+        ipcRenderer.send('get-brew-services');
+      } else {
+        alert(`Failed to ${action} ${service}: ${error}`);
+        ipcRenderer.send('get-brew-services');
+      }
     }
-  });
+  );
 
   // Upgrade all complete listener
   ipcRenderer.on('upgrade-all-complete', (_event: any, { success }: { success: boolean }) => {
@@ -785,24 +804,25 @@ function renderCategories(): void {
 
 function getCategoryForApp(app: App): string {
   if (categoryDictionary) {
-    const categoryId = app.type === 'cask' 
-      ? categoryDictionary.casks[app.name] 
-      : categoryDictionary.formulae[app.name];
-    
+    const categoryId =
+      app.type === 'cask'
+        ? categoryDictionary.casks[app.name]
+        : categoryDictionary.formulae[app.name];
+
     if (categoryId && categoryDictionary.categories[categoryId]) {
       return categoryDictionary.categories[categoryId].label;
     }
 
     const searchStr = `${app.name} ${app.description || ''}`.toLowerCase();
-    
+
     // Dynamic fallback using keywords defined in categories.json
     for (const cat of Object.values(categoryDictionary.categories)) {
-      if (cat.keywords && cat.keywords.some(kw => searchStr.includes(kw))) {
+      if (cat.keywords && cat.keywords.some((kw) => searchStr.includes(kw))) {
         return cat.label;
       }
     }
   }
-  
+
   return 'Other';
 }
 
@@ -816,7 +836,7 @@ function renderDashboardDonutChart(): void {
   let totalCount = 0;
 
   for (const appName of installedApps) {
-    const app = allApps.find((a) => a.name === appName);
+    const app = allAppsMap.get(appName); // Optimization: O(1) lookup instead of O(N)
     if (app) {
       const category = app._category || getCategoryForApp(app);
       categoryCounts[category] = (categoryCounts[category] || 0) + 1;
@@ -836,7 +856,7 @@ function renderDashboardDonutChart(): void {
     .filter(([name]) => name !== 'Other');
 
   let otherCount = categoryCounts['Other'] || 0;
-  
+
   if (sortedCategories.length > 7) {
     const tail = sortedCategories.slice(7);
     sortedCategories = sortedCategories.slice(0, 7);
@@ -852,7 +872,7 @@ function renderDashboardDonutChart(): void {
   // Build SVG and Legend
   let svgContent = '';
   let legendContent = '';
-  
+
   let cumulativePercentage = 0;
   const radius = 46;
   const circumference = 2 * Math.PI * radius;
@@ -860,7 +880,7 @@ function renderDashboardDonutChart(): void {
   // Define colors if missing
   const getCategoryColor = (label: string) => {
     if (label === 'Other') return 'hsl(215, 16%, 47%)';
-    const entry = Object.values(categoryDictionary!.categories).find(c => c.label === label);
+    const entry = Object.values(categoryDictionary!.categories).find((c) => c.label === label);
     return entry ? entry.color : 'hsl(200, 10%, 50%)';
   };
 
@@ -871,7 +891,7 @@ function renderDashboardDonutChart(): void {
     const color = getCategoryColor(label);
 
     svgContent += `<circle class="donut-segment" data-category="${label}" cx="50" cy="50" r="${radius}" fill="transparent" stroke="${color}" stroke-width="8" stroke-dasharray="${strokeDashArray}" stroke-dashoffset="${strokeDashOffset}" transform="rotate(-90 50 50)"></circle>`;
-    
+
     legendContent += `
       <div class="donut-legend-item" data-category="${label}">
         <span class="donut-legend-dot" style="background-color: ${color}"></span>
@@ -914,10 +934,10 @@ function renderDashboardDonutChart(): void {
 
   const navigateToCategory = (cat: string) => {
     // Switch to Explore view and filter by category
-    const exploreBtn = Array.from(navButtons).find(btn => btn.dataset.view === 'explore');
+    const exploreBtn = Array.from(navButtons).find((btn) => btn.dataset.view === 'explore');
     if (exploreBtn) {
       exploreBtn.click();
-      
+
       // Select category chip
       const chips = categoryChips.querySelectorAll('.category-chip');
       chips.forEach((chip) => {
@@ -962,10 +982,10 @@ function filterApps(): void {
 
     filteredApps = allApps.filter((app) => {
       if (selectedType === 'trending') {
-          if (!trendingApps.has(app.name.toLowerCase())) return false;
-        } else if (selectedType !== 'All' && app.type !== selectedType) {
-          return false;
-        }
+        if (!trendingApps.has(app.name.toLowerCase())) return false;
+      } else if (selectedType !== 'All' && app.type !== selectedType) {
+        return false;
+      }
 
       if (selectedCategory === 'Installed') {
         if (!installedApps.has(app.name)) return false;
@@ -1103,7 +1123,7 @@ function renderApps(): void {
       const btn = card.querySelector('.app-button') as HTMLElement;
       if (btn && btn.dataset.app) {
         const appName = btn.dataset.app;
-        const app = filteredApps.find(a => a.name === appName);
+        const app = allAppsMap.get(appName); // Optimization: O(1) lookup instead of O(N)
         if (app) openAppDetail(app);
       }
     });
@@ -1178,12 +1198,12 @@ function renderAppCard(app: App, isInstalled: boolean): string {
 
 function openAppDetail(app: App): void {
   const isInstalled = installedApps.has(app.name);
-  
+
   sidebarTitle.textContent = app.name;
   sidebarVersion.textContent = `v${app.version || 'N/A'}`;
   sidebarType.textContent = app.type;
   sidebarDescription.textContent = app.description || 'No description available.';
-  
+
   if (app.homepage) {
     sidebarHomepage.href = app.homepage;
     sidebarHomepage.style.display = 'inline-flex';
@@ -1213,7 +1233,7 @@ function openAppDetail(app: App): void {
       } else {
         ipcRenderer.send('install-app', appName, appType);
       }
-      
+
       closeSidebar();
       if (!terminalVisible) {
         toggleTerminal();
@@ -1228,7 +1248,7 @@ function openAppDetail(app: App): void {
   sidebarExtendedDetails.style.display = 'none';
   sidebarDetailsLoader.style.display = 'flex';
   sidebarVulnRow.style.display = 'none'; // Will update if we have full vuln state
-  
+
   ipcRenderer.send('get-app-details', app.name, app.type);
 }
 
@@ -1307,7 +1327,7 @@ function updateDashboardView(): void {
   let caskCount = 0;
   let formulaCount = 0;
   for (const appName of installedApps) {
-    const app = allApps.find((a) => a.name === appName);
+    const app = allAppsMap.get(appName); // Optimization: O(1) lookup instead of O(N)
     if (app) {
       if (app.type === 'cask') {
         caskCount++;
@@ -1355,7 +1375,7 @@ function updateDashboardView(): void {
 
 function renderUpdatesView(): void {
   const updatesCount = outdatedApps.length;
-  
+
   if (updatesUpgradeAllBtn) {
     updatesUpgradeAllBtn.style.display = updatesCount > 0 ? 'inline-flex' : 'none';
   }
@@ -1448,24 +1468,27 @@ function upgradeApp(name: string, type: string): void {
 
 function renderServices(services: any[]): void {
   servicesLoading.style.display = 'none';
-  
+
   if (!services || services.length === 0) {
     servicesEmptyState.style.display = 'flex';
     servicesTable.style.display = 'none';
     return;
   }
-  
+
   servicesEmptyState.style.display = 'none';
   servicesTable.style.display = 'table';
   servicesTableBody.innerHTML = '';
-  
+
   services.forEach((service) => {
     const tr = document.createElement('tr');
-    
+
     // Status badge class
     let statusClass = 'status-stopped';
     let statusText = 'Stopped';
-    if (service.status.toLowerCase() === 'started' || service.status.toLowerCase() === 'running') {
+    if (
+      service.status.toLowerCase() === 'started' ||
+      service.status.toLowerCase() === 'running'
+    ) {
       statusClass = 'status-started';
       statusText = 'Started';
     } else if (service.status.toLowerCase() === 'error') {
@@ -1475,7 +1498,7 @@ function renderServices(services: any[]): void {
       statusClass = 'status-stopped';
       statusText = 'None';
     }
-    
+
     tr.innerHTML = `
       <td>
         <div class="services-name">${escapeHtml(service.name)}</div>
@@ -1501,16 +1524,16 @@ function renderServices(services: any[]): void {
         </button>
       </td>
     `;
-    
+
     servicesTableBody.appendChild(tr);
   });
-  
+
   // Attach event listeners
   const startBtns = servicesTableBody.querySelectorAll('.start-btn');
   const stopBtns = servicesTableBody.querySelectorAll('.stop-btn');
   const restartBtns = servicesTableBody.querySelectorAll('.restart-btn');
-  
-  startBtns.forEach(btn => {
+
+  startBtns.forEach((btn) => {
     btn.addEventListener('click', (e) => {
       const target = e.currentTarget as HTMLButtonElement;
       const serviceName = target.dataset.service;
@@ -1520,8 +1543,8 @@ function renderServices(services: any[]): void {
       }
     });
   });
-  
-  stopBtns.forEach(btn => {
+
+  stopBtns.forEach((btn) => {
     btn.addEventListener('click', (e) => {
       const target = e.currentTarget as HTMLButtonElement;
       const serviceName = target.dataset.service;
@@ -1531,8 +1554,8 @@ function renderServices(services: any[]): void {
       }
     });
   });
-  
-  restartBtns.forEach(btn => {
+
+  restartBtns.forEach((btn) => {
     btn.addEventListener('click', (e) => {
       const target = e.currentTarget as HTMLButtonElement;
       const serviceName = target.dataset.service;
@@ -1555,7 +1578,7 @@ if (document.readyState === 'loading') {
       ipcRenderer.send('get-log-path');
     }
     init();
-    
+
     // Auto-poll for updates
     setInterval(() => {
       if (ipcRenderer) {
@@ -1571,7 +1594,7 @@ if (document.readyState === 'loading') {
     ipcRenderer.send('get-log-path');
   }
   init();
-  
+
   // Auto-poll for updates
   setInterval(() => {
     if (ipcRenderer) {
