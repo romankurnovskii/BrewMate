@@ -36,4 +36,5 @@ yarn-error.log*
 .continue/
 .vscode/
 docs/
-.dev/AGENTS.md
+.dev/
+AGENTS.md

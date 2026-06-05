@@ -108,6 +108,7 @@ export async function getInstalledApps(): Promise<InstalledApp[]> {
       })),
     ];
   } catch (error) {
+    console.error('[Brew] Error getting installed apps:', error);
     return [];
   }
 }
