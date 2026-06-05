@@ -7,23 +7,34 @@ import { getEnvWithBrewPath } from './path';
 
 const execAsync = promisify(exec);
 
+// Optimization: Parallelize file stat and directory traversal to significantly reduce I/O waiting time.
+// Uses chunking (concurrency limit) to avoid EMFILE (too many open files) errors on large directories.
 async function getDirSize(dirPath: string): Promise<number> {
-  let size = 0;
+  let totalSize = 0;
   try {
     const files = await fs.promises.readdir(dirPath, { withFileTypes: true });
-    for (const file of files) {
-      const resPath = path.join(dirPath, file.name);
-      if (file.isDirectory()) {
-        size += await getDirSize(resPath);
-      } else if (file.isFile()) {
-        const stat = await fs.promises.stat(resPath);
-        size += stat.size;
-      }
+    const chunkSize = 50; // concurrency limit
+
+    for (let i = 0; i < files.length; i += chunkSize) {
+      const chunk = files.slice(i, i + chunkSize);
+      const sizes = await Promise.all(
+        chunk.map(async (file) => {
+          const resPath = path.join(dirPath, file.name);
+          if (file.isDirectory()) {
+            return getDirSize(resPath);
+          } else if (file.isFile()) {
+            const stat = await fs.promises.stat(resPath);
+            return stat.size;
+          }
+          return 0;
+        })
+      );
+      totalSize += sizes.reduce((acc, curr) => acc + curr, 0);
     }
   } catch (error) {
     // Ignore read errors
   }
-  return size;
+  return totalSize;
 }
 
 export async function getCacheSize(): Promise<number> {
@@ -116,10 +127,13 @@ export async function getInstalledApps(): Promise<InstalledApp[]> {
 export async function getAppDetails(appName: string, type: 'cask' | 'formula'): Promise<any> {
   try {
     const env = getEnvWithBrewPath();
-    const command = type === 'cask' ? `brew info --cask --json=v2 ${appName}` : `brew info --formula --json=v2 ${appName}`;
+    const command =
+      type === 'cask'
+        ? `brew info --cask --json=v2 ${appName}`
+        : `brew info --formula --json=v2 ${appName}`;
     const { stdout } = await execAsync(command, { env });
     const data = JSON.parse(stdout);
-    
+
     if (type === 'cask' && data.casks && data.casks.length > 0) {
       return data.casks[0];
     } else if (type === 'formula' && data.formulae && data.formulae.length > 0) {
