@@ -21,11 +21,13 @@ const validReceiveChannels = [
   'toggle-terminal',
   'terminal-output',
   'all-apps',
+  'all-apps-error',
+  'all-apps-updated',
   'installed-apps',
+  'installed-apps-error',
   'install-complete',
   'uninstall-complete',
   'loading-status',
-  'all-apps-updated',
   'terminal-prompt-info',
   'log-path',
   'version-info',
@@ -35,6 +37,10 @@ const validReceiveChannels = [
   'upgrade-all-complete',
   'brew-services-list',
   'service-action-complete',
+  'app-details',
+  'asset-path',
+  'trending-apps-result',
+  'vulnerabilities-result',
 ];
 
 contextBridge.exposeInMainWorld('electronAPI', {

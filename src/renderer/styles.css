@@ -685,11 +685,50 @@ body {
 
 .empty-state {
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
   height: 100%;
   color: rgba(193, 182, 255, 0.7);
   font-size: 18px;
+  gap: 12px;
+  text-align: center;
+  padding: 40px;
+}
+
+.empty-state-icon {
+  font-size: 32px;
+  margin-bottom: 8px;
+}
+
+.empty-state-detail {
+  font-size: 13px;
+  color: rgba(255, 91, 128, 0.7);
+  max-width: 400px;
+  word-break: break-word;
+}
+
+.retry-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(99, 255, 210, 0.15);
+  border: 1px solid rgba(99, 255, 210, 0.3);
+  color: #63ffd2;
+  padding: 10px 24px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: inherit;
+  margin-top: 8px;
+}
+
+.retry-button:hover {
+  background: rgba(99, 255, 210, 0.25);
+  border-color: #63ffd2;
+  box-shadow: 0 0 16px rgba(99, 255, 210, 0.2);
 }
 
 .loading {

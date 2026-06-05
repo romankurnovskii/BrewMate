@@ -53,6 +53,7 @@ let terminalVisible = false;
 let commandToRun: string | null = null;
 let isLoading = true;
 let terminalPrompt = 'user@brewmate ~ %';
+let loadError: string | null = null;
 
 interface OutdatedApp {
   name: string;
@@ -373,6 +374,7 @@ function setupEventListeners(): void {
       app._category = getCategoryForApp(app);
     }
     allApps = apps;
+    loadError = null;
     isLoading = false;
     filterApps();
     setTimeout(() => {
@@ -448,11 +450,25 @@ function setupEventListeners(): void {
       app._category = getCategoryForApp(app);
     }
     allApps = apps;
+    loadError = null;
     isLoading = false;
     filterApps();
     if (loadingMessage) {
       loadingMessage.textContent = 'Apps updated';
     }
+  });
+
+  ipcRenderer.on('all-apps-error', (_event: any, errorMessage: string) => {
+    console.error('[Renderer] Error loading apps:', errorMessage);
+    loadError = errorMessage;
+    if (loadingMessage) {
+      loadingMessage.textContent = `Error: ${errorMessage}`;
+    }
+    filterApps();
+  });
+
+  ipcRenderer.on('installed-apps-error', (_event: any, errorMessage: string) => {
+    console.error('[Renderer] Error getting installed apps:', errorMessage);
   });
   ipcRenderer.on(
     'terminal-prompt-info',
@@ -707,6 +723,13 @@ function loadData(): void {
     return;
   }
 
+  // Show loading state
+  isLoading = true;
+  loadError = null;
+  if (appCount) {
+    appCount.textContent = '...';
+  }
+
   try {
     console.log('[Renderer] Sending get-all-apps');
     ipcRenderer.send('get-all-apps');
@@ -727,6 +750,11 @@ function loadData(): void {
       loadingMessage.textContent = `Error: Cannot connect to main process - ${error.message}`;
     }
   }
+}
+
+function retryLoad(): void {
+  console.log('[Renderer] Retrying load...');
+  loadData();
 }
 
 function renderCategories(): void {
@@ -1019,9 +1047,27 @@ function renderApps(): void {
   }
 
   if (filteredApps.length === 0 && allApps.length === 0 && !isLoading) {
-    appsGrid.innerHTML =
-      '<div class="empty-state">No apps available. Please check your connection.</div>';
+    const errorHtml = loadError
+      ? `<div class="empty-state">
+          <div class="empty-state-icon">⚠️</div>
+          <p>Failed to load apps.</p>
+          <p class="empty-state-detail">${escapeHtml(loadError)}</p>
+          <button class="retry-button" id="retryLoadBtn">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"></path>
+            </svg>
+            Retry
+          </button>
+        </div>`
+      : '<div class="empty-state">No apps available. Please check your connection.</div>';
+    appsGrid.innerHTML = errorHtml;
     appsGrid.scrollTop = 0;
+
+    // Attach retry handler
+    const retryBtn = document.getElementById('retryLoadBtn');
+    if (retryBtn) {
+      retryBtn.addEventListener('click', retryLoad);
+    }
     return;
   }
 
