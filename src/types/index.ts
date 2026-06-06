@@ -6,8 +6,7 @@ export interface App {
   type: 'cask' | 'formula';
   _category?: string;
   _nameLower?: string;
-  _descLower?: string;
-  _homeLower?: string;
+  _searchStr?: string;
 }
 
 export interface InstalledApp {
