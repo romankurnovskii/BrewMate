@@ -1314,13 +1314,22 @@ function escapeHtml(text: string): string {
   return String(text).replace(/[&<>"']/g, (match) => htmlEscapes[match]);
 }
 
+// Version truncation utility (copy of shared util in src/utils/format.ts)
 function truncateVersion(version: string, maxLength: number = 15): string {
   if (!version || version.length <= maxLength) {
     return version;
   }
-  // Keep the beginning and end, truncate the middle
-  const halfLength = Math.floor(maxLength / 2);
-  return version.substring(0, halfLength) + '...' + version.substring(version.length - halfLength);
+  if (maxLength <= 3) {
+    return version.substring(0, maxLength);
+  }
+  const available = maxLength - 3;
+  const leftLen = Math.ceil(available / 2);
+  const rightLen = Math.floor(available / 2);
+  return (
+    version.substring(0, leftLen) +
+    '...' +
+    version.substring(version.length - rightLen)
+  );
 }
 
 function updateDashboardView(): void {

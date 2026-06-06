@@ -1,15 +1,7 @@
 /**
- * Standalone test for version truncation logic used in renderer.ts
+ * Test for version truncation logic
  */
-
-function truncateVersion(version: string, maxLength: number = 15): string {
-  if (!version || version.length <= maxLength) {
-    return version;
-  }
-  // Keep the beginning and end, truncate the middle
-  const halfLength = Math.floor(maxLength / 2);
-  return version.substring(0, halfLength) + '...' + version.substring(version.length - halfLength);
-}
+import { truncateVersion } from '../format';
 
 describe('truncateVersion', () => {
   it('should not truncate short versions', () => {
@@ -17,18 +9,22 @@ describe('truncateVersion', () => {
     expect(truncateVersion('1.2.3-beta')).toBe('1.2.3-beta');
   });
 
-  it('should truncate long versions', () => {
+  it('should truncate long versions to exactly maxLength', () => {
     const longVersion = '1.2.3-alpha.20240524.abcdef1234567890';
     const truncated = truncateVersion(longVersion, 15);
-    expect(truncated.length).toBeLessThanOrEqual(18); // 15 chars + '...' which is 3 chars = 18? 
-    // Wait, the logic is: halfLength (7) + '...' (3) + halfLength (7) = 17 chars.
-    expect(truncated).toBe('1.2.3-a...4567890');
-    expect(truncated.length).toBe(17);
+    expect(truncated).toBe('1.2.3-...567890');
+    expect(truncated.length).toBe(15);
   });
 
   it('should handle boundary lengths', () => {
     expect(truncateVersion('123456789012345', 15)).toBe('123456789012345');
-    expect(truncateVersion('1234567890123456', 15)).toBe('1234567...0123456');
+    expect(truncateVersion('1234567890123456', 15)).toBe('123456...123456');
+    expect(truncateVersion('1234567890123456', 15).length).toBe(15);
+  });
+
+  it('should handle small maxLength', () => {
+    expect(truncateVersion('1.2.3', 3)).toBe('1.2');
+    expect(truncateVersion('1.2.3', 2)).toBe('1.');
   });
 
   it('should handle empty or null input', () => {
