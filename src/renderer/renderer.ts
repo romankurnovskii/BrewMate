@@ -254,19 +254,31 @@ function init(): void {
   setupEventListeners();
 
   fetch('../assets/categories.json')
-    .then((res) => res.json())
+    .then((res) => {
+      if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+      return res.json();
+    })
     .then((data: CategoryData) => {
       categoryDictionary = data;
-      Object.values(data.categories).forEach((cat) => CATEGORIES.push(cat.label));
+      CATEGORIES = ['All', 'Installed', ...Object.values(data.categories).map(c => c.label)];
       renderCategories();
       loadData();
       renderDashboardDonutChart();
     })
     .catch((err) => {
-      console.error('Failed to load categories.json:', err);
-      CATEGORIES.push('Developer Tools', 'Utilities', 'Other');
+      console.error('[Renderer] Failed to load categories.json:', err);
+      // Fallback
+      CATEGORIES = ['All', 'Installed', 'Developer Tools', 'Utilities', 'Other'];
       renderCategories();
       loadData();
+      
+      // Log error in the terminal
+      if (terminalOutput) {
+        terminalOutput.insertAdjacentHTML(
+          'beforeend',
+          `<span class="terminal-prompt" style="color: #ff4d4f;">[Error]</span> Failed to load categories. Please check your installation.\n`
+        );
+      }
     });
 }
 
