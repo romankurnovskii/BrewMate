@@ -28,8 +28,7 @@ interface App {
   type: 'cask' | 'formula';
   _category?: string;
   _nameLower?: string;
-  _descLower?: string;
-  _homeLower?: string;
+  _searchStr?: string;
 }
 
 // Immediate console log to verify script is loading
@@ -377,8 +376,7 @@ function setupEventListeners(): void {
     allAppsMap.clear();
     for (const app of apps) {
       app._nameLower = (app.name || '').toLowerCase();
-      app._descLower = (app.description || '').toLowerCase();
-      app._homeLower = (app.homepage || '').toLowerCase();
+      app._searchStr = `${app._nameLower}\0${(app.description || '').toLowerCase()}\0${(app.homepage || '').toLowerCase()}`;
       app._category = getCategoryForApp(app);
       allAppsMap.set(app.name, app);
     }
@@ -455,8 +453,7 @@ function setupEventListeners(): void {
     allAppsMap.clear();
     for (const app of apps) {
       app._nameLower = (app.name || '').toLowerCase();
-      app._descLower = (app.description || '').toLowerCase();
-      app._homeLower = (app.homepage || '').toLowerCase();
+      app._searchStr = `${app._nameLower}\0${(app.description || '').toLowerCase()}\0${(app.homepage || '').toLowerCase()}`;
       app._category = getCategoryForApp(app);
       allAppsMap.set(app.name, app);
     }
@@ -982,7 +979,8 @@ function filterApps(): void {
 
     filteredApps = allApps.filter((app) => {
       if (selectedType === 'trending') {
-        if (!trendingApps.has(app.name.toLowerCase())) return false;
+        const name = app._nameLower !== undefined ? app._nameLower : (app.name || '').toLowerCase();
+        if (!trendingApps.has(name)) return false;
       } else if (selectedType !== 'All' && app.type !== selectedType) {
         return false;
       }
@@ -995,16 +993,16 @@ function filterApps(): void {
       }
 
       if (searchLower) {
-        const name =
-          app._nameLower !== undefined ? app._nameLower : (app.name || '').toLowerCase();
+        if (app._searchStr !== undefined) {
+          return app._searchStr.includes(searchLower);
+        }
+
+        // Fallback if _searchStr is somehow missing
+        const name = app._nameLower !== undefined ? app._nameLower : (app.name || '').toLowerCase();
         if (name.includes(searchLower)) return true;
-        const desc =
-          app._descLower !== undefined
-            ? app._descLower
-            : (app.description || '').toLowerCase();
+        const desc = (app.description || '').toLowerCase();
         if (desc.includes(searchLower)) return true;
-        const homepage =
-          app._homeLower !== undefined ? app._homeLower : (app.homepage || '').toLowerCase();
+        const homepage = (app.homepage || '').toLowerCase();
         if (homepage.includes(searchLower)) return true;
         return false;
       }
