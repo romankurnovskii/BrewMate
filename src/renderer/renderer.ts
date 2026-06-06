@@ -1175,7 +1175,7 @@ function renderAppCard(app: App, isInstalled: boolean): string {
               <line x1="3" y1="15" x2="21" y2="15"></line>
             </svg>
           </div>
-          <span class="app-version">v${app.version || 'N/A'}</span>
+          <span class="app-version">v${escapeHtml(truncateVersion(app.version)) || 'N/A'}</span>
         </div>
         <h3 class="app-title">${escapeHtml(app.name)}</h3>
         <p class="app-description">${escapeHtml(
@@ -1210,7 +1210,7 @@ function openAppDetail(app: App): void {
   const isInstalled = installedApps.has(app.name);
 
   sidebarTitle.textContent = app.name;
-  sidebarVersion.textContent = `v${app.version || 'N/A'}`;
+  sidebarVersion.textContent = `v${truncateVersion(app.version) || 'N/A'}`;
   sidebarType.textContent = app.type;
   sidebarDescription.textContent = app.description || 'No description available.';
 
@@ -1326,6 +1326,30 @@ function escapeHtml(text: string): string {
   return String(text).replace(/[&<>"']/g, (match) => htmlEscapes[match]);
 }
 
+// Version truncation utility (copy of shared util in src/utils/format.ts)
+function truncateVersion(
+  version: string | null | undefined,
+  maxLength: number = 15
+): string {
+  if (!version) {
+    return '';
+  }
+  if (version.length <= maxLength) {
+    return version;
+  }
+  if (maxLength <= 3) {
+    return version.substring(0, maxLength);
+  }
+  const available = maxLength - 3;
+  const leftLen = Math.ceil(available / 2);
+  const rightLen = Math.floor(available / 2);
+  return (
+    version.substring(0, leftLen) +
+    '...' +
+    version.substring(version.length - rightLen)
+  );
+}
+
 function updateDashboardView(): void {
   // 1. Summary Card - Installed apps breakdown
   const installedCount = installedApps.size;
@@ -1411,10 +1435,10 @@ function renderUpdatesView(): void {
               <span class="updates-app-type">${app.type}</span>
             </td>
             <td>
-              <span class="updates-version-badge">${escapeHtml(app.installedVersion)}</span>
+              <span class="updates-version-badge">${escapeHtml(truncateVersion(app.installedVersion))}</span>
             </td>
             <td>
-              <span class="updates-version-badge latest">${escapeHtml(app.latestVersion)}</span>
+              <span class="updates-version-badge latest">${escapeHtml(truncateVersion(app.latestVersion))}</span>
             </td>
             <td style="text-align: right;">
               <button class="dashboard-action-btn primary action-upgrade-btn" 
