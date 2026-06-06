@@ -1,5 +1,104 @@
 {
-  "welcome": "Welcome to BrewMate",
-  "main_menu": "Main Menu",
-  "settings": "Settings"
+  "nav": {
+    "dashboard": "Dashboard",
+    "explore": "Explore",
+    "updates": "Updates",
+    "services": "Services"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "subtitle": "Overview of your macOS system package state",
+    "installed_apps": "Installed Apps",
+    "casks": "Casks",
+    "formulas": "Formulas",
+    "top_categories": "Top Categories",
+    "cache_title": "Homebrew Cache",
+    "cache_subtitle": "Storage taken by downloaded installers and logs.",
+    "run_cleanup": "Run Cleanup",
+    "updates_available": "Updates Available",
+    "up_to_date": "All your applications are up to date.",
+    "view_updates": "View Updates",
+    "upgrade_all": "Upgrade All",
+    "scan_vuln": "Scan Vulnerabilities"
+  },
+  "explore": {
+    "search_placeholder": "Search Casks or Formulas...",
+    "loading": "Loading apps...",
+    "filter_type": "Filter by Type",
+    "all_types": "All Types",
+    "casks": "Casks",
+    "formulas": "Formulas",
+    "trending": "Trending 🔥",
+    "brew_commands": "Brew Commands"
+  },
+  "updates": {
+    "title": "Available Updates",
+    "subtitle": "Select applications to upgrade",
+    "upgrade_all": "Upgrade All Packages",
+    "all_up_to_date": "All Packages Up to Date",
+    "up_to_date_msg": "Everything is running on the latest versions.",
+    "table": {
+      "app": "Application",
+      "type": "Type",
+      "installed": "Installed",
+      "latest": "Latest",
+      "action": "Action"
+    },
+    "upgrade": "Upgrade"
+  },
+  "services": {
+    "title": "Services",
+    "subtitle": "Manage background services (launchd daemons)",
+    "loading": "Loading services...",
+    "no_services": "No Services Found",
+    "no_services_msg": "You don't have any Homebrew services installed.",
+    "table": {
+      "service": "Service",
+      "status": "Status",
+      "user": "User",
+      "actions": "Actions"
+    },
+    "actions": {
+      "start": "Start",
+      "stop": "Stop",
+      "restart": "Restart"
+    },
+    "status": {
+      "started": "Started",
+      "stopped": "Stopped",
+      "error": "Error"
+    }
+  },
+  "footer": {
+    "terminal_hint": "Press Cmd+J to toggle terminal.",
+    "apps_shown": "apps shown."
+  },
+  "sidebar": {
+    "open_homepage": "Open Homepage",
+    "loading_details": "Loading details...",
+    "size": "Size",
+    "dependencies": "Dependencies",
+    "github_stars": "GitHub Stars",
+    "vulnerabilities": "Vulnerabilities",
+    "found": "Found",
+    "unknown": "Unknown",
+    "none": "None",
+    "delete": "Delete",
+    "install": "Install"
+  },
+  "terminal": {
+    "title": "Terminal Activity",
+    "welcome": "Welcome to BrewMate terminal.",
+    "last_login": "Last login:",
+    "current_session": "Current Session"
+  },
+  "common": {
+    "loading": "Loading...",
+    "error": "Error:",
+    "retry": "Retry",
+    "confirm_upgrade_all": "Are you sure you want to upgrade all outdated packages?",
+    "no_apps_found": "No apps found matching your criteria.",
+    "failed_load_apps": "Failed to load apps.",
+    "no_apps_available": "No apps available. Please check your connection."
+  }
 }

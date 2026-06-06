@@ -57,4 +57,14 @@ contextBridge.exposeInMainWorld('electronAPI', {
       );
     }
   },
+  // i18n helpers
+  t: (key: string, options?: object) => {
+    return ipcRenderer.invoke('i18n-t', key, options);
+  },
+  changeLanguage: (lng: string) => {
+    ipcRenderer.send('i18n-change-language', lng);
+  },
+  getCurrentLanguage: () => {
+    return ipcRenderer.invoke('i18n-get-language');
+  },
 });

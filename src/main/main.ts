@@ -2,6 +2,7 @@ import { app, BrowserWindow } from 'electron';
 import * as path from 'path';
 import { setupIpcHandlers } from './ipcHandlers';
 import { logCommand } from '../utils/logger';
+import { initI18n, changeLanguage, t, getCurrentLanguage } from './i18n';
 
 let mainWindow: BrowserWindow | null = null;
 
@@ -57,6 +58,11 @@ function initializeApp(): void {
   console.log('[Main] Setting up IPC handlers...');
   setupIpcHandlers();
   console.log('[Main] IPC handlers set up');
+
+  // Initialize i18n
+  console.log('[Main] Initializing i18n...');
+  initI18n();
+  console.log('[Main] i18n initialized');
 
   // Create window when ready
   app.whenReady().then(() => {
