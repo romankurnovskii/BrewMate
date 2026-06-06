@@ -1307,6 +1307,12 @@ const htmlEscapes: Record<string, string> = {
   "'": '&#39;',
 };
 
+/**
+ * Escapes HTML special characters in a string to prevent XSS.
+ *
+ * @param text The string to escape
+ * @returns The escaped string
+ */
 function escapeHtml(text: string): string {
   if (text == null) return '';
   // Optimization: Defensively cast to string and use Regex replace map to avoid memory reallocation
@@ -1314,7 +1320,14 @@ function escapeHtml(text: string): string {
   return String(text).replace(/[&<>"']/g, (match) => htmlEscapes[match]);
 }
 
-// Version truncation utility (copy of shared util in src/utils/format.ts)
+/**
+ * Truncates a version string to a maximum length, preserving the start and end.
+ * Example: "1.2.3-alpha.20240524.abcdef1234567890" -> "1.2.3-...567890"
+ *
+ * @param version The version string to truncate
+ * @param maxLength The maximum allowed length (default: 15)
+ * @returns The truncated version string
+ */
 function truncateVersion(
   version: string | null | undefined,
   maxLength: number = 15
