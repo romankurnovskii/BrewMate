@@ -1425,42 +1425,54 @@ function renderUpdatesView(): void {
   if (updatesTable) updatesTable.style.display = 'table';
 
   if (updatesTableBody) {
-    updatesTableBody.innerHTML = outdatedApps
-      .map((app) => {
-        return `
-          <tr>
-            <td>
-              <div class="updates-app-name">${escapeHtml(app.name)}</div>
-            </td>
-            <td>
-              <span class="updates-app-type">${app.type}</span>
-            </td>
-            <td>
-              <span class="updates-version-badge">${escapeHtml(truncateVersion(app.installedVersion))}</span>
-            </td>
-            <td>
-              <span class="updates-version-badge latest">${escapeHtml(truncateVersion(app.latestVersion))}</span>
-            </td>
-            <td style="text-align: right;">
-              <button class="dashboard-action-btn primary action-upgrade-btn" 
-                      data-app="${escapeHtml(app.name)}" 
-                      data-type="${app.type}">
-                Upgrade
-              </button>
-            </td>
-          </tr>
-        `;
-      })
-      .join('');
+    updatesTableBody.innerHTML = '';
 
-    updatesTableBody.querySelectorAll('.action-upgrade-btn').forEach((btn) => {
-      btn.addEventListener('click', () => {
-        const name = (btn as HTMLElement).dataset.app;
-        const type = (btn as HTMLElement).dataset.type;
-        if (name && type) {
-          upgradeApp(name, type);
-        }
-      });
+    outdatedApps.forEach((app) => {
+      const tr = document.createElement('tr');
+
+      // Application name column
+      const tdName = document.createElement('td');
+      const divName = document.createElement('div');
+      divName.className = 'updates-app-name';
+      divName.textContent = app.name;
+      tdName.appendChild(divName);
+      tr.appendChild(tdName);
+
+      // Type column
+      const tdType = document.createElement('td');
+      const spanType = document.createElement('span');
+      spanType.className = 'updates-app-type';
+      spanType.textContent = app.type;
+      tdType.appendChild(spanType);
+      tr.appendChild(tdType);
+
+      // Installed version column
+      const tdInstalled = document.createElement('td');
+      const spanInstalled = document.createElement('span');
+      spanInstalled.className = 'updates-version-badge';
+      spanInstalled.textContent = truncateVersion(app.installedVersion);
+      tdInstalled.appendChild(spanInstalled);
+      tr.appendChild(tdInstalled);
+
+      // Latest version column
+      const tdLatest = document.createElement('td');
+      const spanLatest = document.createElement('span');
+      spanLatest.className = 'updates-version-badge latest';
+      spanLatest.textContent = truncateVersion(app.latestVersion);
+      tdLatest.appendChild(spanLatest);
+      tr.appendChild(tdLatest);
+
+      // Action column
+      const tdAction = document.createElement('td');
+      tdAction.style.textAlign = 'right';
+      const button = document.createElement('button');
+      button.className = 'dashboard-action-btn primary action-upgrade-btn';
+      button.textContent = 'Upgrade';
+      button.onclick = () => upgradeApp(app.name, app.type);
+      tdAction.appendChild(button);
+      tr.appendChild(tdAction);
+
+      updatesTableBody.appendChild(tr);
     });
   }
 }
