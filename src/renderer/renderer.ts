@@ -1163,7 +1163,7 @@ function renderAppCard(app: App, isInstalled: boolean): string {
               <line x1="3" y1="15" x2="21" y2="15"></line>
             </svg>
           </div>
-          <span class="app-version">v${truncateVersion(app.version) || 'N/A'}</span>
+          <span class="app-version">v${escapeHtml(truncateVersion(app.version)) || 'N/A'}</span>
         </div>
         <h3 class="app-title">${escapeHtml(app.name)}</h3>
         <p class="app-description">${escapeHtml(
@@ -1315,8 +1315,14 @@ function escapeHtml(text: string): string {
 }
 
 // Version truncation utility (copy of shared util in src/utils/format.ts)
-function truncateVersion(version: string, maxLength: number = 15): string {
-  if (!version || version.length <= maxLength) {
+function truncateVersion(
+  version: string | null | undefined,
+  maxLength: number = 15
+): string {
+  if (!version) {
+    return '';
+  }
+  if (version.length <= maxLength) {
     return version;
   }
   if (maxLength <= 3) {

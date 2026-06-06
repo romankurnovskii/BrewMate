@@ -10,8 +10,14 @@
  * @param maxLength The maximum allowed length (default: 15)
  * @returns The truncated version string
  */
-export function truncateVersion(version: string, maxLength: number = 15): string {
-  if (!version || version.length <= maxLength) {
+export function truncateVersion(
+  version: string | null | undefined,
+  maxLength: number = 15
+): string {
+  if (!version) {
+    return '';
+  }
+  if (version.length <= maxLength) {
     return version;
   }
   if (maxLength <= 3) {

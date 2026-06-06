@@ -29,6 +29,7 @@ describe('truncateVersion', () => {
 
   it('should handle empty or null input', () => {
     expect(truncateVersion('')).toBe('');
-    expect(truncateVersion(null as any)).toBe(null);
+    expect(truncateVersion(null as any)).toBe('');
+    expect(truncateVersion(undefined as any)).toBe('');
   });
 });
