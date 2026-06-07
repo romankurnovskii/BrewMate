@@ -88,21 +88,21 @@ export async function getInstalledApps(): Promise<InstalledApp[]> {
   try {
     const env = getEnvWithBrewPath();
 
+    // Optimization: Parallelize fetching casks and formulas to significantly reduce I/O wait time
+    const [casksResult, formulasResult] = await Promise.all([
+      execAsync('brew list --casks', { env }),
+      execAsync('brew list --formula', { env }),
+    ]);
+
     // Get installed casks (brew list --casks returns space-separated list)
-    const { stdout: casksOutput } = await execAsync('brew list --casks', {
-      env,
-    });
-    const installedCasks = casksOutput
+    const installedCasks = casksResult.stdout
       .trim()
       .split(/\s+/)
       .filter(Boolean)
       .map((cask) => cask.trim());
 
     // Get installed formulas
-    const { stdout: formulasOutput } = await execAsync('brew list --formula', {
-      env,
-    });
-    const installedFormulas = formulasOutput
+    const installedFormulas = formulasResult.stdout
       .trim()
       .split(/\s+/)
       .filter(Boolean)
