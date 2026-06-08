@@ -1,0 +1,104 @@
+{
+  "nav": {
+    "dashboard": "Panel de Control",
+    "explore": "Explorar",
+    "updates": "Actualizaciones",
+    "services": "Servicios"
+  },
+  "dashboard": {
+    "title": "Panel de Control",
+    "subtitle": "Resumen del estado de los paquetes de su sistema macOS",
+    "installed_apps": "Aplicaciones Instaladas",
+    "casks": "Casks",
+    "formulas": "Fórmulas",
+    "top_categories": "Categorías Principales",
+    "cache_title": "Caché de Homebrew",
+    "cache_subtitle": "Espacio ocupado por instaladores descargados y registros.",
+    "run_cleanup": "Ejecutar Limpieza",
+    "updates_available": "Actualizaciones Disponibles",
+    "up_to_date": "Todas sus aplicaciones están al día.",
+    "view_updates": "Ver Actualizaciones",
+    "upgrade_all": "Actualizar Todo",
+    "scan_vuln": "Escanear Vulnerabilidades"
+  },
+  "explore": {
+    "search_placeholder": "Buscar Casks o Fórmulas...",
+    "loading": "Cargando aplicaciones...",
+    "filter_type": "Filtrar por Tipo",
+    "all_types": "Todos los Tipos",
+    "casks": "Casks",
+    "formulas": "Fórmulas",
+    "trending": "Tendencias 🔥",
+    "brew_commands": "Comandos de Brew"
+  },
+  "updates": {
+    "title": "Actualizaciones Disponibles",
+    "subtitle": "Seleccione aplicaciones para actualizar",
+    "upgrade_all": "Actualizar Todos los Paquetes",
+    "all_up_to_date": "Todos los Paquetes al Día",
+    "up_to_date_msg": "Todo está funcionando en las últimas versiones.",
+    "table": {
+      "app": "Aplicación",
+      "type": "Tipo",
+      "installed": "Instalado",
+      "latest": "Último",
+      "action": "Acción"
+    },
+    "upgrade": "Actualizar"
+  },
+  "services": {
+    "title": "Servicios",
+    "subtitle": "Gestionar servicios en segundo plano (daemons de launchd)",
+    "loading": "Cargando servicios...",
+    "no_services": "No se Encontraron Servicios",
+    "no_services_msg": "No tiene ningún servicio de Homebrew instalado.",
+    "table": {
+      "service": "Servicio",
+      "status": "Estado",
+      "user": "Usuario",
+      "actions": "Acciones"
+    },
+    "actions": {
+      "start": "Iniciar",
+      "stop": "Detener",
+      "restart": "Reiniciar"
+    },
+    "status": {
+      "started": "Iniciado",
+      "stopped": "Detenido",
+      "error": "Error"
+    }
+  },
+  "footer": {
+    "terminal_hint": "Presione Cmd+J para alternar la terminal.",
+    "apps_shown": "aplicaciones mostradas."
+  },
+  "sidebar": {
+    "open_homepage": "Abrir Página de Inicio",
+    "loading_details": "Cargando detalles...",
+    "size": "Tamaño",
+    "dependencies": "Dependencias",
+    "github_stars": "Estrellas de GitHub",
+    "vulnerabilities": "Vulnerabilidades",
+    "found": "Encontrado",
+    "unknown": "Desconocido",
+    "none": "Ninguno",
+    "delete": "Eliminar",
+    "install": "Instalar"
+  },
+  "terminal": {
+    "title": "Actividad de la Terminal",
+    "welcome": "Bienvenido a la terminal de BrewMate.",
+    "last_login": "Último inicio de sesión:",
+    "current_session": "Sesión Actual"
+  },
+  "common": {
+    "loading": "Cargando...",
+    "error": "Error:",
+    "retry": "Reintentar",
+    "confirm_upgrade_all": "¿Está seguro de que desea actualizar todos los paquetes obsoletos?",
+    "no_apps_found": "No se encontraron aplicaciones que coincidan con sus criterios.",
+    "failed_load_apps": "Error al cargar las aplicaciones.",
+    "no_apps_available": "No hay aplicaciones disponibles. Por favor, compruebe su conexión."
+  }
+}

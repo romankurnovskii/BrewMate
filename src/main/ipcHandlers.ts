@@ -9,8 +9,22 @@ import { logCommand, getLogFilePath } from '../utils/logger';
 import { getEnvWithBrewPath } from '../utils/path';
 import { HOMEBREW_CASKS_JSON_URL, HOMEBREW_FORMULAS_JSON_URL } from '../constants';
 import { App, LoadingStatus } from '../types';
+import { t, changeLanguage, getCurrentLanguage } from './i18n';
 
 export function setupIpcHandlers(): void {
+  // i18n handlers
+  ipcMain.handle('i18n-t', (_event, key: string, options?: object) => {
+    return t(key, options);
+  });
+
+  ipcMain.on('i18n-change-language', (_event, lng: string) => {
+    changeLanguage(lng);
+  });
+
+  ipcMain.handle('i18n-get-language', () => {
+    return getCurrentLanguage();
+  });
+
   // Get installed apps
   ipcMain.on('get-installed-apps', async (event: IpcMainEvent) => {
     console.log('[IPC] get-installed-apps received');

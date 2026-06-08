@@ -7,7 +7,7 @@
   "scripts": {
     "build": "tsc && npm run build:renderer && npm run copy:static",
     "build:renderer": "tsc -p tsconfig.renderer.json",
-    "copy:static": "mkdir -p dist/renderer && mkdir -p dist/assets && cp src/renderer/index.html dist/renderer/ && cp src/renderer/styles.css dist/renderer/ && if [ -d src/assets ]; then cp -r src/assets/* dist/assets/; elif [ -d assets ]; then cp -r assets/* dist/assets/; fi",
+    "copy:static": "mkdir -p dist/renderer && mkdir -p dist/assets && mkdir -p dist/locales && cp src/renderer/index.html dist/renderer/ && cp src/renderer/styles.css dist/renderer/ && cp locales/*.json dist/locales/ && if [ -d src/assets ]; then cp -r src/assets/* dist/assets/; elif [ -d assets ]; then cp -r assets/* dist/assets/; fi",
     "start": "electron .",
     "start:dev": "NODE_ENV=development npm start",
     "build:mac": "npm run build && electron-builder --mac",
@@ -24,12 +24,12 @@
     "postinstall": "electron-builder install-app-deps"
   },
   "devDependencies": {
-    "@electron/fuses": "^2.1.0",
+    "@electron/fuses": "^2.1.2",
     "@types/jest": "^30.0.0",
-    "@types/node": "^25.9.1",
+    "@types/node": "^25.9.2",
     "dotenv": "^17.2.3",
-    "electron": "^42.3.2",
-    "electron-builder": "^26.8.1",
+    "electron": "^42.3.3",
+    "electron-builder": "^26.15.2",
     "jest": "^30.3.0",
     "lint-staged": "^17.0.7",
     "prettier": "^3.6.2",
@@ -40,5 +40,9 @@
     "*.{ts,tsx,js,jsx,json,css,md}": [
       "prettier --write"
     ]
+  },
+  "dependencies": {
+    "i18next": "^26.3.1",
+    "react-i18next": "^17.0.8"
   }
 }
