@@ -23,12 +23,10 @@ export function truncateVersion(
   if (maxLength <= 3) {
     return version.substring(0, maxLength);
   }
+  const len = version.length;
   const available = maxLength - 3;
-  const leftLen = Math.ceil(available / 2);
-  const rightLen = Math.floor(available / 2);
-  return (
-    version.substring(0, leftLen) +
-    '...' +
-    version.substring(version.length - rightLen)
-  );
+  // Optimization: Use bitwise right shift for faster integer division
+  const rightLen = available >> 1;
+  const leftLen = available - rightLen;
+  return version.substring(0, leftLen) + '...' + version.substring(len - rightLen);
 }
