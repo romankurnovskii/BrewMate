@@ -10,6 +10,7 @@ asar: true
 
 files:
   - 'dist/**/*'
+  - 'locales/**/*'
   - 'package.json'
   - '!**/node_modules/**/*'
   - '!**/src/**/*'
