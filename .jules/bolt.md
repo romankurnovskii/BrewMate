@@ -14,6 +14,9 @@
 ## 2026-06-05 - Optimized application lookups with O(1) Maps
 **Learning:** When cross-referencing subsets (like `installedApps`) against massive datasets (like `allApps` ~100k items) in the renderer, using nested array scans like `.find()` causes severe UI blocking due to O(N) complexity per lookup.
 **Action:** Precompute and maintain a `Map<string, App>` alongside the main data array to enable O(1) property lookups, eliminating redundant array iterations.
+## 2024-05-18 - Async Testing with Promise.all
+**Learning:** In Jest, when refactoring sequential independent async operations to run concurrently via `Promise.all([func1(), func2()])`, chained `mockResolvedValueOnce` setups remain valid without modification because the functions within the array are instantiated synchronously in order.
+**Action:** When migrating independent await statements to `Promise.all`, rely on existing sequential mocks instead of rewriting tests with complex mock orchestration.
 
 ## 2024-10-24 - [Optimizing Application Category Fallback Resolution]
 **Learning:** For extremely large data lists (like the ~100k Homebrew apps), calculating fallbacks inside an inline loop for each app blocks the main thread noticeably because `Object.values(categoryDictionary.categories)` recalculates the array on every single item.
