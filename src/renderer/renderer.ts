@@ -1184,7 +1184,7 @@ function renderApps(): void {
 
   // Show empty state when no filtered apps (but apps are loaded)
   if (filteredApps.length === 0 && allApps.length > 0) {
-    appsGrid.innerHTML = `<div class="empty-state">${uiTranslations.noAppsFound}</div>`;
+    appsGrid.innerHTML = `<div class="empty-state">${escapeHtml(uiTranslations.noAppsFound)}</div>`;
     // Reset scroll position
     appsGrid.scrollTop = 0;
     return;
