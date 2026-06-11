@@ -1171,18 +1171,26 @@ function updateVisibleItems(): void {
 function renderApps(): void {
   // Clear the grid first to prevent showing old apps
   if (isLoading && allApps.length === 0) {
-    appsGrid.innerHTML = `
+    appsGrid.textContent = '';
+    appsGrid.insertAdjacentHTML(
+      'beforeend',
+      `
       <div class="loading">
         <div class="loading-spinner"></div>
         <div class="loading-message">${escapeHtml(uiTranslations.loadingApps)}</div>
       </div>
-    `;
+    `
+    );
     return;
   }
 
   // Show empty state when no filtered apps (but apps are loaded)
   if (filteredApps.length === 0 && allApps.length > 0) {
-    appsGrid.innerHTML = `<div class="empty-state">${escapeHtml(uiTranslations.noAppsFound)}</div>`;
+    appsGrid.textContent = '';
+    appsGrid.insertAdjacentHTML(
+      'beforeend',
+      `<div class="empty-state">${escapeHtml(uiTranslations.noAppsFound)}</div>`
+    );
     // Reset scroll position
     appsGrid.scrollTop = 0;
     return;
@@ -1202,7 +1210,8 @@ function renderApps(): void {
           </button>
         </div>`
       : `<div class="empty-state">${escapeHtml(uiTranslations.noAppsAvailable)}</div>`;
-    appsGrid.innerHTML = errorHtml;
+    appsGrid.textContent = '';
+    appsGrid.insertAdjacentHTML('beforeend', errorHtml);
     appsGrid.scrollTop = 0;
 
     // Attach retry handler
