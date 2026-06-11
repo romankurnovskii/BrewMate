@@ -812,17 +812,17 @@ function setupEventListeners(): void {
   });
 
   ipcRenderer.on(
-  'service-action-complete',
-  async (_event: any, { action, service, success, error }: any) => {
-    console.log('[Renderer] Service action complete:', action, service, success, error);
-    if (success) {
-      ipcRenderer.send('get-brew-services');
-    } else {
-      const failedToMsg = await t('common.error');
-      alert(`${failedToMsg} ${action} ${service}: ${error}`);
-      ipcRenderer.send('get-brew-services');
+    'service-action-complete',
+    async (_event: any, { action, service, success, error }: any) => {
+      console.log('[Renderer] Service action complete:', action, service, success, error);
+      if (success) {
+        ipcRenderer.send('get-brew-services');
+      } else {
+        const failedToMsg = await t('common.error');
+        alert(`${failedToMsg} ${action} ${service}: ${error}`);
+        ipcRenderer.send('get-brew-services');
+      }
     }
-  }
   );
 
   // Upgrade all complete listener
@@ -1090,44 +1090,50 @@ function filterApps(): void {
   }
 
   requestAnimationFrame(() => {
-    // Reset filtered apps before filtering
-    filteredApps = [];
     const searchLower = searchTerm ? searchTerm.toLowerCase() : '';
 
-    filteredApps = allApps.filter((app) => {
-      if (selectedType === 'trending') {
-        const name =
-          app._nameLower !== undefined ? app._nameLower : (app.name || '').toLowerCase();
-        if (!trendingApps.has(name)) return false;
-      } else if (selectedType !== 'All' && app.type !== selectedType) {
-        return false;
-      }
-
-      if (selectedCategory === 'Installed') {
-        if (!installedApps.has(app.name)) return false;
-      } else if (selectedCategory !== 'All') {
-        const category = app._category !== undefined ? app._category : getCategoryForApp(app);
-        if (category !== selectedCategory) return false;
-      }
-
-      if (searchLower) {
-        if (app._searchStr !== undefined) {
-          return app._searchStr.includes(searchLower);
+    // Fast path: if no filters are active, directly use allApps array (O(1) vs O(N))
+    if (!searchLower && selectedType === 'All' && selectedCategory === 'All') {
+      filteredApps = allApps;
+    } else {
+      // Reset filtered apps before filtering
+      filteredApps = [];
+      filteredApps = allApps.filter((app) => {
+        if (selectedType === 'trending') {
+          const name =
+            app._nameLower !== undefined ? app._nameLower : (app.name || '').toLowerCase();
+          if (!trendingApps.has(name)) return false;
+        } else if (selectedType !== 'All' && app.type !== selectedType) {
+          return false;
         }
 
-        // Fallback if _searchStr is somehow missing
-        const name =
-          app._nameLower !== undefined ? app._nameLower : (app.name || '').toLowerCase();
-        if (name.includes(searchLower)) return true;
-        const desc = (app.description || '').toLowerCase();
-        if (desc.includes(searchLower)) return true;
-        const homepage = (app.homepage || '').toLowerCase();
-        if (homepage.includes(searchLower)) return true;
-        return false;
-      }
+        if (selectedCategory === 'Installed') {
+          if (!installedApps.has(app.name)) return false;
+        } else if (selectedCategory !== 'All') {
+          const category =
+            app._category !== undefined ? app._category : getCategoryForApp(app);
+          if (category !== selectedCategory) return false;
+        }
 
-      return true;
-    });
+        if (searchLower) {
+          if (app._searchStr !== undefined) {
+            return app._searchStr.includes(searchLower);
+          }
+
+          // Fallback if _searchStr is somehow missing
+          const name =
+            app._nameLower !== undefined ? app._nameLower : (app.name || '').toLowerCase();
+          if (name.includes(searchLower)) return true;
+          const desc = (app.description || '').toLowerCase();
+          if (desc.includes(searchLower)) return true;
+          const homepage = (app.homepage || '').toLowerCase();
+          if (homepage.includes(searchLower)) return true;
+          return false;
+        }
+
+        return true;
+      });
+    }
 
     // Reset scroll position and visible items when filtering
     visibleStartIndex = 0;
@@ -1176,8 +1182,7 @@ function renderApps(): void {
 
   // Show empty state when no filtered apps (but apps are loaded)
   if (filteredApps.length === 0 && allApps.length > 0) {
-    appsGrid.innerHTML =
-      `<div class="empty-state">${uiTranslations.noAppsFound}</div>`;
+    appsGrid.innerHTML = `<div class="empty-state">${uiTranslations.noAppsFound}</div>`;
     // Reset scroll position
     appsGrid.scrollTop = 0;
     return;
