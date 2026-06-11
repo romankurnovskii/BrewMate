@@ -1182,7 +1182,7 @@ function renderApps(): void {
 
   // Show empty state when no filtered apps (but apps are loaded)
   if (filteredApps.length === 0 && allApps.length > 0) {
-    appsGrid.innerHTML = `<div class="empty-state">${uiTranslations.noAppsFound}</div>`;
+    appsGrid.innerHTML = `<div class="empty-state">${escapeHtml(uiTranslations.noAppsFound)}</div>`;
     // Reset scroll position
     appsGrid.scrollTop = 0;
     return;
@@ -1192,16 +1192,16 @@ function renderApps(): void {
     const errorHtml = loadError
       ? `<div class="empty-state">
           <div class="empty-state-icon">⚠️</div>
-          <p>${uiTranslations.failedLoadApps}</p>
+          <p>${escapeHtml(uiTranslations.failedLoadApps)}</p>
           <p class="empty-state-detail">${escapeHtml(loadError)}</p>
           <button class="retry-button" id="retryLoadBtn">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
               <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"></path>
             </svg>
-            ${uiTranslations.retry}
+            ${escapeHtml(uiTranslations.retry)}
           </button>
         </div>`
-      : `<div class="empty-state">${uiTranslations.noAppsAvailable}</div>`;
+      : `<div class="empty-state">${escapeHtml(uiTranslations.noAppsAvailable)}</div>`;
     appsGrid.innerHTML = errorHtml;
     appsGrid.scrollTop = 0;
 
