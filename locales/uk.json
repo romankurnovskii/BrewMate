@@ -1,0 +1,104 @@
+{
+  "nav": {
+    "dashboard": "Панель",
+    "explore": "Огляд",
+    "updates": "Оновлення",
+    "services": "Сервіси"
+  },
+  "dashboard": {
+    "title": "Панель",
+    "subtitle": "Огляд стану пакетів macOS",
+    "installed_apps": "Встановлені додатки",
+    "casks": "Каски",
+    "formulas": "Формули",
+    "top_categories": "Топ категорій",
+    "cache_title": "Кеш Homebrew",
+    "cache_subtitle": "Зберігання завантажених інсталяторів та логів.",
+    "run_cleanup": "Запустити очищення",
+    "updates_available": "Доступні оновлення",
+    "up_to_date": "Всі ваші додатки оновлені.",
+    "view_updates": "Переглянути оновлення",
+    "upgrade_all": "Оновити все",
+    "scan_vuln": "Сканувати вразливості"
+  },
+  "explore": {
+    "search_placeholder": "Пошук Касків або Формул...",
+    "loading": "Завантаження додатків...",
+    "filter_type": "Фільтр за типом",
+    "all_types": "Всі типи",
+    "casks": "Каски",
+    "formulas": "Формули",
+    "trending": "Популярні 🔥",
+    "brew_commands": "Команди Brew"
+  },
+  "updates": {
+    "title": "Доступні оновлення",
+    "subtitle": "Оберіть додатки для оновлення",
+    "upgrade_all": "Оновити всі пакети",
+    "all_up_to_date": "Всі пакети оновлені",
+    "up_to_date_msg": "Все працює на останніх версіях.",
+    "table": {
+      "app": "Додаток",
+      "type": "Тип",
+      "installed": "Встановлено",
+      "latest": "Остання",
+      "action": "Дія"
+    },
+    "upgrade": "Оновити"
+  },
+  "services": {
+    "title": "Сервіси",
+    "subtitle": "Керування фоновими сервісами (демони launchd)",
+    "loading": "Завантаження сервісів...",
+    "no_services": "Сервіси не знайдено",
+    "no_services_msg": "У вас немає встановлених сервісів Homebrew.",
+    "table": {
+      "service": "Сервіс",
+      "status": "Статус",
+      "user": "Користувач",
+      "actions": "Дії"
+    },
+    "actions": {
+      "start": "Запустити",
+      "stop": "Зупинити",
+      "restart": "Перезапустити"
+    },
+    "status": {
+      "started": "Запущено",
+      "stopped": "Зупинено",
+      "error": "Помилка"
+    }
+  },
+  "footer": {
+    "terminal_hint": "Натисніть Cmd+J, щоб відкрити термінал.",
+    "apps_shown": "додатків показано."
+  },
+  "sidebar": {
+    "open_homepage": "Відкрити головну сторінку",
+    "loading_details": "Завантаження деталей...",
+    "size": "Розмір",
+    "dependencies": "Залежності",
+    "github_stars": "Зірки GitHub",
+    "vulnerabilities": "Вразливості",
+    "found": "Знайдено",
+    "unknown": "Невідомо",
+    "none": "Немає",
+    "delete": "Видалити",
+    "install": "Встановити"
+  },
+  "terminal": {
+    "title": "Активність терміналу",
+    "welcome": "Ласкаво просимо до терміналу BrewMate.",
+    "last_login": "Останній вхід:",
+    "current_session": "Поточна сесія"
+  },
+  "common": {
+    "loading": "Завантаження...",
+    "error": "Помилка:",
+    "retry": "Повторити",
+    "confirm_upgrade_all": "Ви впевнені, що хочете оновити всі застарілі пакети?",
+    "no_apps_found": "Додатки за вашим запитом не знайдено.",
+    "failed_load_apps": "Не вдалося завантажити додатки.",
+    "no_apps_available": "Додатки недоступні. Перевірте з'єднання."
+  }
+}

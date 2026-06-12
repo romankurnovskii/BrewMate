@@ -1,0 +1,104 @@
+{
+  "nav": {
+    "dashboard": "Панель",
+    "explore": "Обзор",
+    "updates": "Обновления",
+    "services": "Сервисы"
+  },
+  "dashboard": {
+    "title": "Панель",
+    "subtitle": "Обзор состояния пакетов macOS",
+    "installed_apps": "Установленные приложения",
+    "casks": "Каски",
+    "formulas": "Формулы",
+    "top_categories": "Топ категории",
+    "cache_title": "Кеш Homebrew",
+    "cache_subtitle": "Хранилище загруженных установщиков и логов.",
+    "run_cleanup": "Запустить очистку",
+    "updates_available": "Доступные обновления",
+    "up_to_date": "Все ваши приложения обновлены.",
+    "view_updates": "Просмотр обновлений",
+    "upgrade_all": "Обновить всё",
+    "scan_vuln": "Сканировать уязвимости"
+  },
+  "explore": {
+    "search_placeholder": "Поиск Касков или Формул...",
+    "loading": "Загрузка приложений...",
+    "filter_type": "Фильтр по типу",
+    "all_types": "Все типы",
+    "casks": "Каски",
+    "formulas": "Формулы",
+    "trending": "Популярные 🔥",
+    "brew_commands": "Команды Brew"
+  },
+  "updates": {
+    "title": "Доступные обновления",
+    "subtitle": "Выберите приложения для обновления",
+    "upgrade_all": "Обновить все пакеты",
+    "all_up_to_date": "Все пакеты обновлены",
+    "up_to_date_msg": "Все работают на последних версиях.",
+    "table": {
+      "app": "Приложение",
+      "type": "Тип",
+      "installed": "Установлено",
+      "latest": "Последняя",
+      "action": "Действие"
+    },
+    "upgrade": "Обновить"
+  },
+  "services": {
+    "title": "Сервисы",
+    "subtitle": "Управление фоновыми сервисами (демоны launchd)",
+    "loading": "Загрузка сервисов...",
+    "no_services": "Сервисы не найдены",
+    "no_services_msg": "У вас нет установленных сервисов Homebrew.",
+    "table": {
+      "service": "Сервис",
+      "status": "Статус",
+      "user": "Пользователь",
+      "actions": "Действия"
+    },
+    "actions": {
+      "start": "Запустить",
+      "stop": "Остановить",
+      "restart": "Перезапустить"
+    },
+    "status": {
+      "started": "Запущен",
+      "stopped": "Остановлен",
+      "error": "Ошибка"
+    }
+  },
+  "footer": {
+    "terminal_hint": "Нажмите Cmd+J, чтобы открыть терминал.",
+    "apps_shown": "приложений показано."
+  },
+  "sidebar": {
+    "open_homepage": "Открыть главную страницу",
+    "loading_details": "Загрузка деталей...",
+    "size": "Размер",
+    "dependencies": "Зависимости",
+    "github_stars": "Звёзды GitHub",
+    "vulnerabilities": "Уязвимости",
+    "found": "Найдено",
+    "unknown": "Неизвестно",
+    "none": "Нет",
+    "delete": "Удалить",
+    "install": "Установить"
+  },
+  "terminal": {
+    "title": "Активность терминала",
+    "welcome": "Добро пожаловать в терминал BrewMate.",
+    "last_login": "Последний вход:",
+    "current_session": "Текущая сессия"
+  },
+  "common": {
+    "loading": "Загрузка...",
+    "error": "Ошибка:",
+    "retry": "Повторить",
+    "confirm_upgrade_all": "Вы уверены, что хотите обновить все устаревшие пакеты?",
+    "no_apps_found": "Приложения не найдены по вашему запросу.",
+    "failed_load_apps": "Не удалось загрузить приложения.",
+    "no_apps_available": "Приложения недоступны. Проверьте соединение."
+  }
+}
