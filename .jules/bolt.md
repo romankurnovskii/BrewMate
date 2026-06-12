@@ -21,3 +21,6 @@
 ## 2024-10-24 - [Optimizing Application Category Fallback Resolution]
 **Learning:** For extremely large data lists (like the ~100k Homebrew apps), calculating fallbacks inside an inline loop for each app blocks the main thread noticeably because `Object.values(categoryDictionary.categories)` recalculates the array on every single item.
 **Action:** Always pre-compile constants arrays, like categories with keywords, outside of loop bodies and avoid Object.keys / Object.values in tight loops executing on high volumes of records.
+## 2024-05-18 - Optimized application category fallback resolution
+**Learning:** Using `Object.values().find()` inside a loop for rendering UI elements reallocates arrays and incurs O(N) lookup costs.
+**Action:** Precompute and maintain a `Map` (e.g., `categoryColorMap`) during data ingestion to enable O(1) lookups and eliminate redundant allocations during render.
