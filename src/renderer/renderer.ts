@@ -10,6 +10,7 @@ interface CategoryData {
 }
 
 let categoryDictionary: CategoryData | null = null;
+let categoryColorMap = new Map<string, string>(); // Optimization: O(1) lookups for category colors
 
 const VIRTUAL_SCROLL_CONFIG = {
   rowHeight: 220,
@@ -336,6 +337,9 @@ async function init(): Promise<void> {
     .then((data: CategoryData) => {
       categoryDictionary = data;
       CATEGORIES = ['All', 'Installed', ...Object.values(data.categories).map((c) => c.label)];
+
+      // Populate categoryColorMap for O(1) lookups during render
+      Object.values(data.categories).forEach(c => categoryColorMap.set(c.label, c.color));
 
       // Pre-compile fallback categories to optimize getCategoryForApp
       fallbackCategories = Object.values(data.categories).filter(
@@ -994,8 +998,8 @@ function renderDashboardDonutChart(): void {
   // Define colors if missing
   const getCategoryColor = (label: string) => {
     if (label === 'Other') return 'hsl(215, 16%, 47%)';
-    const entry = Object.values(categoryDictionary!.categories).find((c) => c.label === label);
-    return entry ? entry.color : 'hsl(200, 10%, 50%)';
+    // Optimization: Use precomputed Map for O(1) lookup instead of O(N) array scan
+    return categoryColorMap.get(label) || 'hsl(200, 10%, 50%)';
   };
 
   sortedCategories.forEach(([label, count]) => {
