@@ -19,6 +19,9 @@ const VIRTUAL_SCROLL_CONFIG = {
   scrollThreshold: 50,
 };
 
+// Optimization: O(1) lookup for category colors during render
+let categoryColorMap: Map<string, string> = new Map();
+
 // App type definition
 interface App {
   name: string;
@@ -337,6 +340,12 @@ async function init(): Promise<void> {
       categoryDictionary = data;
       CATEGORIES = ['All', 'Installed', ...Object.values(data.categories).map((c) => c.label)];
 
+      // Pre-compile category colors for O(1) lookup
+      categoryColorMap.clear();
+      Object.values(data.categories).forEach((c) => {
+        categoryColorMap.set(c.label, c.color);
+      });
+
       // Pre-compile fallback categories to optimize getCategoryForApp
       fallbackCategories = Object.values(data.categories).filter(
         (c) => c.keywords && c.keywords.length > 0
@@ -550,7 +559,7 @@ function setupEventListeners(): void {
           appsGrid.innerHTML = `
           <div class="loading">
             <div class="loading-spinner"></div>
-            <div class="loading-message">${message || uiTranslations.loadingApps}</div>
+            <div class="loading-message">${escapeHtml(message || uiTranslations.loadingApps)}</div>
           </div>
         `;
         }
@@ -812,17 +821,17 @@ function setupEventListeners(): void {
   });
 
   ipcRenderer.on(
-  'service-action-complete',
-  async (_event: any, { action, service, success, error }: any) => {
-    console.log('[Renderer] Service action complete:', action, service, success, error);
-    if (success) {
-      ipcRenderer.send('get-brew-services');
-    } else {
-      const failedToMsg = await t('common.error');
-      alert(`${failedToMsg} ${action} ${service}: ${error}`);
-      ipcRenderer.send('get-brew-services');
+    'service-action-complete',
+    async (_event: any, { action, service, success, error }: any) => {
+      console.log('[Renderer] Service action complete:', action, service, success, error);
+      if (success) {
+        ipcRenderer.send('get-brew-services');
+      } else {
+        const failedToMsg = await t('common.error');
+        alert(`${failedToMsg} ${action} ${service}: ${error}`);
+        ipcRenderer.send('get-brew-services');
+      }
     }
-  }
   );
 
   // Upgrade all complete listener
@@ -994,8 +1003,9 @@ function renderDashboardDonutChart(): void {
   // Define colors if missing
   const getCategoryColor = (label: string) => {
     if (label === 'Other') return 'hsl(215, 16%, 47%)';
-    const entry = Object.values(categoryDictionary!.categories).find((c) => c.label === label);
-    return entry ? entry.color : 'hsl(200, 10%, 50%)';
+    // Optimization: O(1) lookup instead of O(N) array reallocation and iteration
+    const color = categoryColorMap.get(label);
+    return color || 'hsl(200, 10%, 50%)';
   };
 
   sortedCategories.forEach(([label, count]) => {
@@ -1168,7 +1178,7 @@ function renderApps(): void {
     appsGrid.innerHTML = `
       <div class="loading">
         <div class="loading-spinner"></div>
-        <div class="loading-message">${uiTranslations.loadingApps}</div>
+        <div class="loading-message">${escapeHtml(uiTranslations.loadingApps)}</div>
       </div>
     `;
     return;
@@ -1176,8 +1186,7 @@ function renderApps(): void {
 
   // Show empty state when no filtered apps (but apps are loaded)
   if (filteredApps.length === 0 && allApps.length > 0) {
-    appsGrid.innerHTML =
-      `<div class="empty-state">${uiTranslations.noAppsFound}</div>`;
+    appsGrid.innerHTML = `<div class="empty-state">${escapeHtml(uiTranslations.noAppsFound)}</div>`;
     // Reset scroll position
     appsGrid.scrollTop = 0;
     return;
@@ -1187,16 +1196,16 @@ function renderApps(): void {
     const errorHtml = loadError
       ? `<div class="empty-state">
           <div class="empty-state-icon">⚠️</div>
-          <p>${uiTranslations.failedLoadApps}</p>
+          <p>${escapeHtml(uiTranslations.failedLoadApps)}</p>
           <p class="empty-state-detail">${escapeHtml(loadError)}</p>
           <button class="retry-button" id="retryLoadBtn">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
               <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"></path>
             </svg>
-            ${uiTranslations.retry}
+            ${escapeHtml(uiTranslations.retry)}
           </button>
         </div>`
-      : `<div class="empty-state">${uiTranslations.noAppsAvailable}</div>`;
+      : `<div class="empty-state">${escapeHtml(uiTranslations.noAppsAvailable)}</div>`;
     appsGrid.innerHTML = errorHtml;
     appsGrid.scrollTop = 0;
 
@@ -1291,9 +1300,9 @@ function renderAppCard(app: App, isInstalled: boolean): string {
       </div>
       <div class="app-actions">
         <button class="app-button ${isInstalled ? 'installed' : ''}" 
-                data-app="${app.name}" 
-                data-type="${app.type}">
-          ${isInstalled ? uiTranslations.delete : uiTranslations.install}
+                data-app="${escapeHtml(app.name)}"
+                data-type="${escapeHtml(app.type)}">
+          ${escapeHtml(isInstalled ? uiTranslations.delete : uiTranslations.install)}
         </button>
         ${
           app.homepage
@@ -1330,10 +1339,10 @@ function openAppDetail(app: App): void {
 
   sidebarActions.innerHTML = `
     <button class="app-button ${isInstalled ? 'installed' : ''}" 
-            data-app="${app.name}" 
-            data-type="${app.type}"
+            data-app="${escapeHtml(app.name)}"
+            data-type="${escapeHtml(app.type)}"
             style="width: 100%">
-      ${isInstalled ? uiTranslations.delete : uiTranslations.install}
+      ${escapeHtml(isInstalled ? uiTranslations.delete : uiTranslations.install)}
     </button>
   `;
 
@@ -1545,8 +1554,8 @@ function renderUpdatesView(): void {
             <td style="text-align: right;">
               <button class="dashboard-action-btn primary action-upgrade-btn" 
                       data-app="${escapeHtml(app.name)}" 
-                      data-type="${app.type}">
-                ${uiTranslations.upgrade}
+                      data-type="${escapeHtml(app.type)}">
+                ${escapeHtml(uiTranslations.upgrade)}
               </button>
             </td>
           </tr>
