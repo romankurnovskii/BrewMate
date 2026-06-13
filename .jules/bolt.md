@@ -21,3 +21,6 @@
 ## 2024-10-24 - [Optimizing Application Category Fallback Resolution]
 **Learning:** For extremely large data lists (like the ~100k Homebrew apps), calculating fallbacks inside an inline loop for each app blocks the main thread noticeably because `Object.values(categoryDictionary.categories)` recalculates the array on every single item.
 **Action:** Always pre-compile constants arrays, like categories with keywords, outside of loop bodies and avoid Object.keys / Object.values in tight loops executing on high volumes of records.
+## 2024-06-11 - Fast-Path O(1) Array Assignment for Unfiltered Datasets
+**Learning:** For massive datasets (~100k items in `allApps`), executing `Array.prototype.filter()` is an expensive $O(N)$ operation that blocks the main thread, even when all items are returned (e.g. no active filters).
+**Action:** When a filter configuration is functionally a no-op (e.g., `selectedType === 'All'`, `selectedCategory === 'All'`, empty search), directly assign the source array reference (`filteredApps = allApps`) to achieve an $O(1)$ fast-path execution.
