@@ -1300,9 +1300,9 @@ function renderAppCard(app: App, isInstalled: boolean): string {
       </div>
       <div class="app-actions">
         <button class="app-button ${isInstalled ? 'installed' : ''}" 
-                data-app="${app.name}" 
-                data-type="${app.type}">
-          ${isInstalled ? uiTranslations.delete : uiTranslations.install}
+                data-app="${escapeHtml(app.name)}"
+                data-type="${escapeHtml(app.type)}">
+          ${escapeHtml(isInstalled ? uiTranslations.delete : uiTranslations.install)}
         </button>
         ${
           app.homepage
@@ -1339,10 +1339,10 @@ function openAppDetail(app: App): void {
 
   sidebarActions.innerHTML = `
     <button class="app-button ${isInstalled ? 'installed' : ''}" 
-            data-app="${app.name}" 
-            data-type="${app.type}"
+            data-app="${escapeHtml(app.name)}"
+            data-type="${escapeHtml(app.type)}"
             style="width: 100%">
-      ${isInstalled ? uiTranslations.delete : uiTranslations.install}
+      ${escapeHtml(isInstalled ? uiTranslations.delete : uiTranslations.install)}
     </button>
   `;
 
@@ -1554,8 +1554,8 @@ function renderUpdatesView(): void {
             <td style="text-align: right;">
               <button class="dashboard-action-btn primary action-upgrade-btn" 
                       data-app="${escapeHtml(app.name)}" 
-                      data-type="${app.type}">
-                ${uiTranslations.upgrade}
+                      data-type="${escapeHtml(app.type)}">
+                ${escapeHtml(uiTranslations.upgrade)}
               </button>
             </td>
           </tr>
