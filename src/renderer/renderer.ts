@@ -1175,7 +1175,7 @@ function renderApps(): void {
     appsGrid.innerHTML = `
       <div class="loading">
         <div class="loading-spinner"></div>
-        <div class="loading-message">${uiTranslations.loadingApps}</div>
+        <div class="loading-message">${escapeHtml(uiTranslations.loadingApps)}</div>
       </div>
     `;
     return;
