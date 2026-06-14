@@ -21,3 +21,6 @@
 ## 2024-10-24 - [Optimizing Application Category Fallback Resolution]
 **Learning:** For extremely large data lists (like the ~100k Homebrew apps), calculating fallbacks inside an inline loop for each app blocks the main thread noticeably because `Object.values(categoryDictionary.categories)` recalculates the array on every single item.
 **Action:** Always pre-compile constants arrays, like categories with keywords, outside of loop bodies and avoid Object.keys / Object.values in tight loops executing on high volumes of records.
+## 2024-10-24 - [Optimizing Application Category Render Loop with Map]
+**Learning:** In `src/renderer/renderer.ts`, extracting the category colors into a map avoids O(N) lookup operations inside high frequency loop execution like `renderDashboardDonutChart`.
+**Action:** Always precompute `Map` collections when doing lookups inside of array iterates to avoid nested array allocations and lookup penalties.
