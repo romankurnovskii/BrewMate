@@ -64,7 +64,7 @@ function initializeApp(): void {
   initI18n();
   console.log('[Main] i18n initialized');
 
-  if (process.argv.includes('--test-startup')) {
+  if (process.argv.includes('--test-startup') || process.env.TEST_STARTUP === 'true') {
     console.log('[Main] Startup smoke test passed successfully.');
     app.exit(0);
     return;
