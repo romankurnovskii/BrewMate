@@ -34,8 +34,10 @@ jobs:
         working-directory: .
 
       - name: Verify Startup (Smoke Test)
+        timeout-minutes: 2
         env:
           TEST_STARTUP: 'true'
+          ELECTRON_ENABLE_LOGGING: '1'
         run: |
           APP_PATH=$(find dist-app -name "BrewMate.app" | head -n 1)
           if [ -z "$APP_PATH" ]; then
@@ -46,5 +48,5 @@ jobs:
           echo "Ad-hoc signing the application bundle..."
           codesign --force --deep --sign - "$APP_PATH"
           echo "Launching application..."
-          "$APP_PATH/Contents/MacOS/BrewMate" --test-startup
+          "$APP_PATH/Contents/MacOS/BrewMate" --test-startup --no-sandbox
         working-directory: .
