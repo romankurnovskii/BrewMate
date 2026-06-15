@@ -28,7 +28,7 @@
     "@types/jest": "^30.0.0",
     "@types/node": "^25.9.2",
     "dotenv": "^17.2.3",
-    "electron": "^42.3.3",
+    "electron": "^42.4.0",
     "electron-builder": "^26.15.2",
     "jest": "^30.3.0",
     "lint-staged": "^17.0.7",
