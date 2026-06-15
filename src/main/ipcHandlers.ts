@@ -510,4 +510,23 @@ export function setupIpcHandlers(): void {
       event.reply('terminal-output', `\nProcess exited with code ${code}\n`);
     });
   });
+
+  // Get categories configuration
+  ipcMain.handle('get-categories', async () => {
+    const fs = require('fs').promises;
+    let assetPath: string;
+    if (app.isPackaged) {
+      assetPath = path.join(process.resourcesPath, 'assets', 'categories.json');
+    } else {
+      assetPath = path.join(__dirname, '../assets', 'categories.json');
+    }
+    try {
+      const data = await fs.readFile(assetPath, 'utf8');
+      return JSON.parse(data);
+    } catch (error) {
+      console.error('[IPC] Error reading categories.json:', error);
+      throw error;
+    }
+  });
 }
+

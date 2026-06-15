@@ -367,40 +367,43 @@ async function init(): Promise<void> {
   console.log('Initializing BrewMate...');
   setupEventListeners();
 
-  fetch('../assets/categories.json')
-    .then((res) => {
-      if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
-      return res.json();
-    })
-    .then((data: CategoryData) => {
-      categoryDictionary = data;
-      CATEGORIES = ['All', 'Installed', ...Object.values(data.categories).map((c) => c.label)];
+  if (ipcRenderer && ipcRenderer.getCategories) {
+    ipcRenderer.getCategories()
+      .then((data: CategoryData) => {
+        categoryDictionary = data;
+        CATEGORIES = ['All', 'Installed', ...Object.values(data.categories).map((c) => c.label)];
 
-      // Pre-compile fallback categories to optimize getCategoryForApp
-      fallbackCategories = Object.values(data.categories).filter(
-        (c) => c.keywords && c.keywords.length > 0
-      ) as Array<{ label: string; keywords: string[] }>;
+        // Pre-compile fallback categories to optimize getCategoryForApp
+        fallbackCategories = Object.values(data.categories).filter(
+          (c) => c.keywords && c.keywords.length > 0
+        ) as Array<{ label: string; keywords: string[] }>;
 
-      renderCategories();
-      loadData();
-      renderDashboardDonutChart();
-    })
-    .catch((err) => {
-      console.error('[Renderer] Failed to load categories.json:', err);
-      // Fallback
-      CATEGORIES = ['All', 'Installed', 'Developer Tools', 'Utilities', 'Other'];
-      renderCategories();
-      loadData();
+        renderCategories();
+        loadData();
+        renderDashboardDonutChart();
+      })
+      .catch((err: any) => {
+        console.error('[Renderer] Failed to load categories.json:', err);
+        // Fallback
+        CATEGORIES = ['All', 'Installed', 'Developer Tools', 'Utilities', 'Other'];
+        renderCategories();
+        loadData();
 
-      // Log error in the terminal
-      if (terminalOutput) {
-        terminalOutput.insertAdjacentHTML(
-          'beforeend',
-          `<span class="terminal-prompt" style="color: #ff4d4f;">[Error]</span> Failed to load categories. Please check your installation.\n`
-        );
-      }
-    });
+        // Log error in the terminal
+        if (terminalOutput) {
+          terminalOutput.insertAdjacentHTML(
+            'beforeend',
+            `<span class="terminal-prompt" style="color: #ff4d4f;">[Error]</span> Failed to load categories. Please check your installation.\n`
+          );
+        }
+      });
+  } else {
+    CATEGORIES = ['All', 'Installed', 'Developer Tools', 'Utilities', 'Other'];
+    renderCategories();
+    loadData();
+  }
 }
+
 
 async function translateUI(): Promise<void> {
   const elements = document.querySelectorAll('[data-i18n]');
@@ -767,7 +770,7 @@ function setupEventListeners(): void {
   // Dashboard buttons
   if (dashCleanupBtn) {
     dashCleanupBtn.addEventListener('click', () => {
-      runCommand('brew cleanup');
+      runCommand('brew cleanup --prune=all');
     });
   }
 

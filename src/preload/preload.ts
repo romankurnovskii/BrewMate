@@ -67,4 +67,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
   getCurrentLanguage: () => {
     return ipcRenderer.invoke('i18n-get-language');
   },
+  getCategories: () => {
+    return ipcRenderer.invoke('get-categories');
+  },
 });
+
