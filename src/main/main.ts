@@ -4,6 +4,10 @@ import { setupIpcHandlers } from './ipcHandlers';
 import { logCommand } from '../utils/logger';
 import { initI18n, changeLanguage, t, getCurrentLanguage } from './i18n';
 
+if (process.argv.includes('--test-startup') || process.env.TEST_STARTUP === 'true') {
+  app.disableHardwareAcceleration();
+}
+
 let mainWindow: BrowserWindow | null = null;
 
 function createWindow(): void {
@@ -63,6 +67,13 @@ function initializeApp(): void {
   console.log('[Main] Initializing i18n...');
   initI18n();
   console.log('[Main] i18n initialized');
+
+  if (process.argv.includes('--test-startup') || process.env.TEST_STARTUP === 'true') {
+    console.log('[Main] Startup smoke test passed successfully. Exiting before UI init.');
+    app.exit(0);
+    process.exit(0); // Add process.exit to be absolutely sure
+    return;
+  }
 
   // Create window when ready
   app.whenReady().then(() => {

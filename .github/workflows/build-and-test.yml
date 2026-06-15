@@ -24,6 +24,27 @@ jobs:
       - name: Build Electron App
         run: |
           npm run build
-          pwd
-          ls -la
+        working-directory: .
+
+      - name: Package App (Dry Run)
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: false
+        run: |
+          npx electron-builder --mac --dir
+        working-directory: .
+
+      - name: Verify Startup (Smoke Test)
+        timeout-minutes: 2
+        env:
+          TEST_STARTUP: 'true'
+          ELECTRON_ENABLE_LOGGING: '1'
+        run: |
+          ASAR_PATH=$(find dist-app -name "app.asar" | head -n 1)
+          if [ -z "$ASAR_PATH" ]; then
+            echo "Error: app.asar not found!"
+            exit 1
+          fi
+          echo "Found ASAR at: $ASAR_PATH"
+          echo "Launching application from ASAR..."
+          npx electron "$ASAR_PATH" --test-startup --no-sandbox
         working-directory: .
