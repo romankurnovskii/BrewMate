@@ -1,5 +1,4 @@
 import i18n from 'i18next';
-import { initReactI18next } from 'react-i18next';
 import path from 'path';
 import { app } from 'electron';
 import * as fs from 'fs';
@@ -22,22 +21,24 @@ export const initI18n = () => {
   // Load all available languages
   const enTranslations = loadTranslations('en');
   const esTranslations = loadTranslations('es');
+  const ruTranslations = loadTranslations('ru');
+  const ukTranslations = loadTranslations('uk');
+  const hiTranslations = loadTranslations('hi');
 
   i18n
-    .use(initReactI18next)
     .init({
       resources: {
         en: { translation: enTranslations },
         es: { translation: esTranslations },
+        ru: { translation: ruTranslations },
+        uk: { translation: ukTranslations },
+        hi: { translation: hiTranslations },
       },
       lng: 'en', // Default language
       fallbackLng: 'en',
       debug: isDev,
       interpolation: {
-        escapeValue: false, // React already escapes
-      },
-      react: {
-        useSuspense: false,
+        escapeValue: false,
       },
     });
 

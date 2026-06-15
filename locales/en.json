@@ -85,7 +85,8 @@
     "unknown": "Unknown",
     "none": "None",
     "delete": "Delete",
-    "install": "Install"
+    "install": "Install",
+    "language": "Language"
   },
   "terminal": {
     "title": "Terminal Activity",

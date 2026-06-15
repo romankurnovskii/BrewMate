@@ -85,7 +85,8 @@
     "unknown": "Desconocido",
     "none": "Ninguno",
     "delete": "Eliminar",
-    "install": "Instalar"
+    "install": "Instalar",
+    "language": "Idioma"
   },
   "terminal": {
     "title": "Actividad de la Terminal",

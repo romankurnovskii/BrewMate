@@ -329,6 +329,41 @@ async function init(): Promise<void> {
   await translateUI();
   await updateTranslationCache();
 
+  // Initialize language selection dropdown
+  if (ipcRenderer && ipcRenderer.getCurrentLanguage) {
+    const currentLang = await ipcRenderer.getCurrentLanguage();
+    const languageSelect = document.getElementById('languageSelect') as HTMLSelectElement;
+    if (languageSelect) {
+      languageSelect.value = currentLang || 'en';
+      languageSelect.addEventListener('change', async (e) => {
+        const newLang = (e.target as HTMLSelectElement).value;
+        console.log('[Renderer] Changing language to:', newLang);
+        if (ipcRenderer.changeLanguage) {
+          ipcRenderer.changeLanguage(newLang);
+          
+          // Re-translate static UI and rebuild translated caches
+          await translateUI();
+          await updateTranslationCache();
+          
+          // Re-render categories (since they might need new translated labels)
+          renderCategories();
+          
+          // Re-run other UI rendering updates
+          if (activeView === 'dashboard') {
+            updateDashboardView();
+            renderDashboardDonutChart();
+          } else if (activeView === 'explore') {
+            filterApps();
+          } else if (activeView === 'updates') {
+            renderUpdatesView();
+          } else if (activeView === 'services') {
+            ipcRenderer.send('get-brew-services');
+          }
+        }
+      });
+    }
+  }
+
   console.log('Initializing BrewMate...');
   setupEventListeners();
 
