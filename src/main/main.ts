@@ -68,13 +68,14 @@ function initializeApp(): void {
   initI18n();
   console.log('[Main] i18n initialized');
 
+  if (process.argv.includes('--test-startup') || process.env.TEST_STARTUP === 'true') {
+    console.log('[Main] Startup smoke test passed successfully.');
+    app.exit(0);
+    return;
+  }
+
   // Create window when ready
   app.whenReady().then(() => {
-    if (process.argv.includes('--test-startup') || process.env.TEST_STARTUP === 'true') {
-      console.log('[Main] Startup smoke test passed successfully.');
-      app.exit(0);
-      return;
-    }
     console.log('[Main] App ready, creating window...');
     createWindow();
   });
