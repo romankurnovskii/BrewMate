@@ -11,6 +11,7 @@ asar: true
 files:
   - 'dist/**/*'
   - 'locales/**/*'
+  - 'node_modules/**/*'
   - 'package.json'
   - '!**/src/**/*'
   - '!**/*.{iml,o,hprof,orig,pyc,pyo,rbc,swp,csproj,sln,xproj}'
