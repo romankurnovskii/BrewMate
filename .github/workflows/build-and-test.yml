@@ -24,6 +24,22 @@ jobs:
       - name: Build Electron App
         run: |
           npm run build
-          pwd
-          ls -la
+        working-directory: .
+
+      - name: Package App (Dry Run)
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: false
+        run: |
+          npx electron-builder --mac --dir
+        working-directory: .
+
+      - name: Verify Startup (Smoke Test)
+        run: |
+          APP_PATH=$(find dist-app -name "BrewMate.app" | head -n 1)
+          if [ -z "$APP_PATH" ]; then
+            echo "Error: BrewMate.app not found!"
+            exit 1
+          fi
+          echo "Found application at: $APP_PATH"
+          "$APP_PATH/Contents/MacOS/BrewMate" --test-startup
         working-directory: .
