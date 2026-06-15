@@ -19,7 +19,8 @@
     "up_to_date": "Todas sus aplicaciones están al día.",
     "view_updates": "Ver Actualizaciones",
     "upgrade_all": "Actualizar Todo",
-    "scan_vuln": "Escanear Vulnerabilidades"
+    "scan_vuln": "Escanear Vulnerabilidades",
+    "no_apps_installed": "No hay aplicaciones instaladas"
   },
   "explore": {
     "search_placeholder": "Buscar Casks o Fórmulas...",

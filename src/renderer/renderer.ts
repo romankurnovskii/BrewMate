@@ -60,6 +60,7 @@ const uiTranslations = {
   start: 'Start',
   stop: 'Stop',
   restart: 'Restart',
+  loading: 'Loading...',
   loadingApps: 'Loading apps from Homebrew...',
   noAppsFound: 'No apps found matching your criteria.',
   failedLoadApps: 'Failed to load apps.',
@@ -69,6 +70,7 @@ const uiTranslations = {
   upgradingAll: 'upgrading all packages...',
   upgrading: 'upgrading',
   allUpToDate: 'All your applications are up to date.',
+  noAppsInstalled: 'No apps installed',
   update: 'update',
   updates: 'updates',
   available: 'available',
@@ -87,6 +89,7 @@ async function updateTranslationCache(): Promise<void> {
   uiTranslations.start = await t('services.actions.start');
   uiTranslations.stop = await t('services.actions.stop');
   uiTranslations.restart = await t('services.actions.restart');
+  uiTranslations.loading = await t('common.loading');
   uiTranslations.loadingApps = await t('explore.loading');
   uiTranslations.noAppsFound = await t('common.no_apps_found');
   uiTranslations.failedLoadApps = await t('common.failed_load_apps');
@@ -95,6 +98,7 @@ async function updateTranslationCache(): Promise<void> {
   uiTranslations.confirmUpgradeAll = await t('common.confirm_upgrade_all');
   uiTranslations.upgradingAll = await t('updates.upgrade_all');
   uiTranslations.allUpToDate = await t('dashboard.up_to_date');
+  uiTranslations.noAppsInstalled = await t('dashboard.no_apps_installed');
   uiTranslations.all = await t('explore.all_types');
   uiTranslations.installed = await t('dashboard.installed_apps');
 
@@ -492,6 +496,7 @@ function setupEventListeners(): void {
     loadError = null;
     isLoading = false;
     filterApps();
+    renderDashboardDonutChart();
     setTimeout(() => {
       updateVisibleItems();
     }, 100);
@@ -569,6 +574,7 @@ function setupEventListeners(): void {
     loadError = null;
     isLoading = false;
     filterApps();
+    renderDashboardDonutChart();
     if (loadingMessage) {
       loadingMessage.textContent = 'Apps updated';
     }
@@ -959,7 +965,11 @@ function renderDashboardDonutChart(): void {
   }
 
   if (totalCount === 0) {
-    donutContainer.innerHTML = '<div class="empty-chart">No apps installed</div>';
+    if (isLoading) {
+      donutContainer.innerHTML = `<div class="empty-chart">${uiTranslations.loading}</div>`;
+    } else {
+      donutContainer.innerHTML = `<div class="empty-chart">${uiTranslations.noAppsInstalled}</div>`;
+    }
     legendContainer.innerHTML = '';
     return;
   }

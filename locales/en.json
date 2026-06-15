@@ -19,7 +19,8 @@
     "up_to_date": "All your applications are up to date.",
     "view_updates": "View Updates",
     "upgrade_all": "Upgrade All",
-    "scan_vuln": "Scan Vulnerabilities"
+    "scan_vuln": "Scan Vulnerabilities",
+    "no_apps_installed": "No apps installed"
   },
   "explore": {
     "search_placeholder": "Search Casks or Formulas...",
