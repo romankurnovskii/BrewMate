@@ -43,5 +43,8 @@ jobs:
             exit 1
           fi
           echo "Found application at: $APP_PATH"
+          echo "Ad-hoc signing the application bundle..."
+          codesign --force --deep --sign - "$APP_PATH"
+          echo "Launching application..."
           "$APP_PATH/Contents/MacOS/BrewMate" --test-startup
         working-directory: .
