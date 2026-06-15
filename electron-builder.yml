@@ -12,7 +12,6 @@ files:
   - 'dist/**/*'
   - 'locales/**/*'
   - 'package.json'
-  - '!**/node_modules/**/*'
   - '!**/src/**/*'
   - '!**/*.{iml,o,hprof,orig,pyc,pyo,rbc,swp,csproj,sln,xproj}'
   - '!.editorconfig'
