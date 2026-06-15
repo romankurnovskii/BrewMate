@@ -39,14 +39,12 @@ jobs:
           TEST_STARTUP: 'true'
           ELECTRON_ENABLE_LOGGING: '1'
         run: |
-          APP_PATH=$(find dist-app -name "BrewMate.app" | head -n 1)
-          if [ -z "$APP_PATH" ]; then
-            echo "Error: BrewMate.app not found!"
+          ASAR_PATH=$(find dist-app -name "app.asar" | head -n 1)
+          if [ -z "$ASAR_PATH" ]; then
+            echo "Error: app.asar not found!"
             exit 1
           fi
-          echo "Found application at: $APP_PATH"
-          echo "Ad-hoc signing the application bundle..."
-          codesign --force --deep --sign - "$APP_PATH"
-          echo "Launching application..."
-          "$APP_PATH/Contents/MacOS/BrewMate" --test-startup --no-sandbox
+          echo "Found ASAR at: $ASAR_PATH"
+          echo "Launching application from ASAR..."
+          npx electron "$ASAR_PATH" --test-startup --no-sandbox
         working-directory: .
