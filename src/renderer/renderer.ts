@@ -604,9 +604,13 @@ function setupEventListeners(): void {
           appsGrid.innerHTML = `
           <div class="loading">
             <div class="loading-spinner"></div>
-            <div class="loading-message">${message || uiTranslations.loadingApps}</div>
+            <div class="loading-message"></div>
           </div>
         `;
+          const loadingMsgEl = appsGrid.querySelector('.loading-message');
+          if (loadingMsgEl) {
+            loadingMsgEl.textContent = message || uiTranslations.loadingApps;
+          }
         }
       }
     }
@@ -1226,15 +1230,23 @@ function renderApps(): void {
     appsGrid.innerHTML = `
       <div class="loading">
         <div class="loading-spinner"></div>
-        <div class="loading-message">${uiTranslations.loadingApps}</div>
+        <div class="loading-message"></div>
       </div>
     `;
+    const loadingMessageEl = appsGrid.querySelector('.loading-message');
+    if (loadingMessageEl) {
+      loadingMessageEl.textContent = uiTranslations.loadingApps;
+    }
     return;
   }
 
   // Show empty state when no filtered apps (but apps are loaded)
   if (filteredApps.length === 0 && allApps.length > 0) {
-    appsGrid.innerHTML = `<div class="empty-state">${uiTranslations.noAppsFound}</div>`;
+    appsGrid.innerHTML = `<div class="empty-state"></div>`;
+    const emptyStateDiv = appsGrid.querySelector('.empty-state');
+    if (emptyStateDiv) {
+      emptyStateDiv.textContent = uiTranslations.noAppsFound;
+    }
     // Reset scroll position
     appsGrid.scrollTop = 0;
     return;
@@ -1244,17 +1256,28 @@ function renderApps(): void {
     const errorHtml = loadError
       ? `<div class="empty-state">
           <div class="empty-state-icon">⚠️</div>
-          <p>${uiTranslations.failedLoadApps}</p>
+          <p class="error-msg-title"></p>
           <p class="empty-state-detail">${escapeHtml(loadError)}</p>
           <button class="retry-button" id="retryLoadBtn">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
               <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"></path>
             </svg>
-            ${uiTranslations.retry}
+            <span class="retry-btn-text"></span>
           </button>
         </div>`
-      : `<div class="empty-state">${uiTranslations.noAppsAvailable}</div>`;
+      : `<div class="empty-state error-msg-no-apps"></div>`;
     appsGrid.innerHTML = errorHtml;
+
+    if (loadError) {
+      const errorMsgTitle = appsGrid.querySelector('.error-msg-title');
+      if (errorMsgTitle) errorMsgTitle.textContent = uiTranslations.failedLoadApps;
+      const retryBtnText = appsGrid.querySelector('.retry-btn-text');
+      if (retryBtnText) retryBtnText.textContent = uiTranslations.retry;
+    } else {
+      const emptyStateNoApps = appsGrid.querySelector('.error-msg-no-apps');
+      if (emptyStateNoApps) emptyStateNoApps.textContent = uiTranslations.noAppsAvailable;
+    }
+
     appsGrid.scrollTop = 0;
 
     // Attach retry handler
