@@ -1223,35 +1223,52 @@ function renderApps(): void {
     appsGrid.innerHTML = `
       <div class="loading">
         <div class="loading-spinner"></div>
-        <div class="loading-message">${uiTranslations.loadingApps}</div>
+        <div class="loading-message"></div>
       </div>
     `;
+    const loadingMessage = appsGrid.querySelector('.loading-message');
+    if (loadingMessage) loadingMessage.textContent = uiTranslations.loadingApps;
     return;
   }
 
   // Show empty state when no filtered apps (but apps are loaded)
   if (filteredApps.length === 0 && allApps.length > 0) {
-    appsGrid.innerHTML = `<div class="empty-state">${uiTranslations.noAppsFound}</div>`;
+    appsGrid.innerHTML = `<div class="empty-state"></div>`;
+    const emptyState = appsGrid.querySelector('.empty-state');
+    if (emptyState) emptyState.textContent = uiTranslations.noAppsFound;
     // Reset scroll position
     appsGrid.scrollTop = 0;
     return;
   }
 
   if (filteredApps.length === 0 && allApps.length === 0 && !isLoading) {
-    const errorHtml = loadError
-      ? `<div class="empty-state">
+    if (loadError) {
+      appsGrid.innerHTML = `<div class="empty-state">
           <div class="empty-state-icon">⚠️</div>
-          <p>${uiTranslations.failedLoadApps}</p>
-          <p class="empty-state-detail">${escapeHtml(loadError)}</p>
+          <p class="error-msg"></p>
+          <p class="empty-state-detail"></p>
           <button class="retry-button" id="retryLoadBtn">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
               <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"></path>
             </svg>
-            ${uiTranslations.retry}
+            <span class="retry-text"></span>
           </button>
-        </div>`
-      : `<div class="empty-state">${uiTranslations.noAppsAvailable}</div>`;
-    appsGrid.innerHTML = errorHtml;
+        </div>`;
+
+      const errorMsg = appsGrid.querySelector('.error-msg');
+      if (errorMsg) errorMsg.textContent = uiTranslations.failedLoadApps;
+
+      const errorDetail = appsGrid.querySelector('.empty-state-detail');
+      if (errorDetail) errorDetail.textContent = loadError;
+
+      const retryText = appsGrid.querySelector('.retry-text');
+      if (retryText) retryText.textContent = uiTranslations.retry;
+    } else {
+      appsGrid.innerHTML = `<div class="empty-state"></div>`;
+      const emptyState = appsGrid.querySelector('.empty-state');
+      if (emptyState) emptyState.textContent = uiTranslations.noAppsAvailable;
+    }
+
     appsGrid.scrollTop = 0;
 
     // Attach retry handler
