@@ -21,3 +21,6 @@
 ## 2024-10-24 - [Optimizing Application Category Fallback Resolution]
 **Learning:** For extremely large data lists (like the ~100k Homebrew apps), calculating fallbacks inside an inline loop for each app blocks the main thread noticeably because `Object.values(categoryDictionary.categories)` recalculates the array on every single item.
 **Action:** Always pre-compile constants arrays, like categories with keywords, outside of loop bodies and avoid Object.keys / Object.values in tight loops executing on high volumes of records.
+## 2024-06-18 - Optimized Dashboard Category Rendering
+**Learning:** Using `Object.values().find()` inside a rendering loop (like drawing a donut chart segment for each installed app's category) creates O(N) lookup overhead and triggers unnecessary garbage collection, degrading frame rate.
+**Action:** Precompute static lookup maps (like mapping category labels to hex colors) into a JavaScript `Map` upon initialization to convert nested O(N) searches into O(1) operations during rendering.
