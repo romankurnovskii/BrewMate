@@ -20,7 +20,6 @@ const VIRTUAL_SCROLL_CONFIG = {
 };
 
 let categoryColorMap = new Map<string, string>(); // Optimization: O(1) lookups for category colors
-
 // App type definition
 interface App {
   name: string;
@@ -680,12 +679,20 @@ function setupIpcListeners(): void {
       }
       if (loading) {
         if (!appsGrid.querySelector('.loading')) {
-          appsGrid.innerHTML = `
-          <div class="loading">
-            <div class="loading-spinner"></div>
-            <div class="loading-message">${message || uiTranslations.loadingApps}</div>
-          </div>
-        `;
+          appsGrid.innerHTML = '';
+          const loadingContainer = document.createElement('div');
+          loadingContainer.className = 'loading';
+
+          const spinner = document.createElement('div');
+          spinner.className = 'loading-spinner';
+
+          const msgContainer = document.createElement('div');
+          msgContainer.className = 'loading-message';
+          msgContainer.textContent = message || uiTranslations.loadingApps;
+
+          loadingContainer.appendChild(spinner);
+          loadingContainer.appendChild(msgContainer);
+          appsGrid.appendChild(loadingContainer);
         }
       }
     }
@@ -1272,65 +1279,75 @@ function updateVisibleItems(): void {
 function renderApps(): void {
   // Clear the grid first to prevent showing old apps
   if (isLoading && allApps.length === 0) {
-    appsGrid.innerHTML = `
-      <div class="loading">
-        <div class="loading-spinner"></div>
-        <div class="loading-message">${uiTranslations.loadingApps}</div>
-      </div>
-    `;
+    appsGrid.innerHTML = '';
+    const loadingContainer = document.createElement('div');
+    loadingContainer.className = 'loading';
+
+    const spinner = document.createElement('div');
+    spinner.className = 'loading-spinner';
+
+    const msgContainer = document.createElement('div');
+    msgContainer.className = 'loading-message';
+    msgContainer.textContent = uiTranslations.loadingApps;
+
+    loadingContainer.appendChild(spinner);
+    loadingContainer.appendChild(msgContainer);
+    appsGrid.appendChild(loadingContainer);
     return;
   }
-
   // Show empty state when no filtered apps (but apps are loaded)
   if (filteredApps.length === 0 && allApps.length > 0) {
-    appsGrid.innerHTML = '<div class="empty-state"></div>';
-    const emptyStateElement = appsGrid.querySelector('.empty-state');
-    if (emptyStateElement) {
-      emptyStateElement.textContent = uiTranslations.noAppsFound;
-    }
+    appsGrid.innerHTML = '';
+    const emptyState = document.createElement('div');
+    emptyState.className = 'empty-state';
+    emptyState.textContent = uiTranslations.noAppsFound;
+    appsGrid.appendChild(emptyState);
+
     // Reset scroll position
     appsGrid.scrollTop = 0;
     return;
   }
 
   if (filteredApps.length === 0 && allApps.length === 0 && !isLoading) {
+    appsGrid.innerHTML = '';
+
     if (loadError) {
-      appsGrid.innerHTML = `
-        <div class="empty-state">
-          <div class="empty-state-icon">⚠️</div>
-          <p class="failed-load-apps-text"></p>
-          <p class="empty-state-detail"></p>
-          <button class="retry-button" id="retryLoadBtn">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-              <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"></path>
-            </svg>
-            <span class="retry-text"></span>
-          </button>
-        </div>
-      `;
-      const failedLoadAppsText = appsGrid.querySelector('.failed-load-apps-text');
-      if (failedLoadAppsText) failedLoadAppsText.textContent = uiTranslations.failedLoadApps;
+      const container = document.createElement('div');
+      container.className = 'empty-state';
 
-      const emptyStateDetail = appsGrid.querySelector('.empty-state-detail');
-      if (emptyStateDetail) emptyStateDetail.textContent = loadError;
+      const icon = document.createElement('div');
+      icon.className = 'empty-state-icon';
+      icon.textContent = '⚠️';
+      container.appendChild(icon);
 
-      const retryText = appsGrid.querySelector('.retry-text');
-      if (retryText) retryText.textContent = uiTranslations.retry;
-    } else {
-      appsGrid.innerHTML = '<div class="empty-state"></div>';
-      const emptyState = appsGrid.querySelector('.empty-state');
-      if (emptyState) emptyState.textContent = uiTranslations.noAppsAvailable;
-    }
-    appsGrid.scrollTop = 0;
+      const msg = document.createElement('p');
+      msg.textContent = uiTranslations.failedLoadApps;
+      container.appendChild(msg);
 
-    // Attach retry handler
-    const retryBtn = document.getElementById('retryLoadBtn');
-    if (retryBtn) {
+      const detail = document.createElement('p');
+      detail.className = 'empty-state-detail';
+      detail.textContent = loadError;
+      container.appendChild(detail);
+
+      const retryBtn = document.createElement('button');
+      retryBtn.className = 'retry-button';
+      retryBtn.id = 'retryLoadBtn';
+      retryBtn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"></path></svg>`;
+      retryBtn.appendChild(document.createTextNode(' ' + uiTranslations.retry));
       retryBtn.addEventListener('click', retryLoad);
+      container.appendChild(retryBtn);
+
+      appsGrid.appendChild(container);
+    } else {
+      const emptyState = document.createElement('div');
+      emptyState.className = 'empty-state';
+      emptyState.textContent = uiTranslations.noAppsAvailable;
+      appsGrid.appendChild(emptyState);
     }
+
+    appsGrid.scrollTop = 0;
     return;
   }
-
   // Calculate visible items and render
   const visibleApps = filteredApps.slice(visibleStartIndex, visibleEndIndex);
   const totalRows = Math.ceil(filteredApps.length / itemsPerRow);
@@ -1414,9 +1431,9 @@ function renderAppCard(app: App, isInstalled: boolean): string {
       </div>
       <div class="app-actions">
         <button class="app-button ${isInstalled ? 'installed' : ''}" 
-                data-app="${app.name}" 
-                data-type="${app.type}">
-          ${isInstalled ? uiTranslations.delete : uiTranslations.install}
+                data-app="${escapeHtml(app.name)}"
+                data-type="${escapeHtml(app.type)}">
+          ${escapeHtml(isInstalled ? uiTranslations.delete : uiTranslations.install)}
         </button>
         ${
           app.homepage
@@ -1451,16 +1468,15 @@ function openAppDetail(app: App): void {
     sidebarHomepage.style.display = 'none';
   }
 
-  sidebarActions.innerHTML = `
-    <button class="app-button ${isInstalled ? 'installed' : ''}" 
-            data-app="${app.name}" 
-            data-type="${app.type}"
-            style="width: 100%">
-      ${isInstalled ? uiTranslations.delete : uiTranslations.install}
-    </button>
-  `;
+  sidebarActions.innerHTML = '';
+  const actionBtn = document.createElement('button');
+  actionBtn.className = `app-button ${isInstalled ? 'installed' : ''}`;
+  actionBtn.dataset.app = app.name;
+  actionBtn.dataset.type = app.type;
+  actionBtn.style.width = '100%';
+  actionBtn.textContent = isInstalled ? uiTranslations.delete : uiTranslations.install;
+  sidebarActions.appendChild(actionBtn);
 
-  const actionBtn = sidebarActions.querySelector('.app-button');
   if (actionBtn) {
     actionBtn.addEventListener('click', (e) => {
       e.stopPropagation();
@@ -1686,8 +1702,8 @@ function renderUpdatesView(): void {
             <td style="text-align: right;">
               <button class="dashboard-action-btn primary action-upgrade-btn" 
                       data-app="${escapeHtml(app.name)}" 
-                      data-type="${app.type}">
-                ${uiTranslations.upgrade}
+                      data-type="${escapeHtml(app.type)}">
+                ${escapeHtml(uiTranslations.upgrade)}
               </button>
             </td>
           </tr>
