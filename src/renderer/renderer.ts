@@ -19,6 +19,8 @@ const VIRTUAL_SCROLL_CONFIG = {
   scrollThreshold: 50,
 };
 
+let categoryColorMap = new Map<string, string>(); // Optimization: O(1) lookups for category colors
+
 // App type definition
 interface App {
   name: string;
@@ -342,14 +344,14 @@ async function init(): Promise<void> {
         console.log('[Renderer] Changing language to:', newLang);
         if (ipcRenderer.changeLanguage) {
           ipcRenderer.changeLanguage(newLang);
-          
+
           // Re-translate static UI and rebuild translated caches
           await translateUI();
           await updateTranslationCache();
-          
+
           // Re-render categories (since they might need new translated labels)
           renderCategories();
-          
+
           // Re-run other UI rendering updates
           if (activeView === 'dashboard') {
             updateDashboardView();
@@ -370,10 +372,19 @@ async function init(): Promise<void> {
   setupEventListeners();
 
   if (ipcRenderer && ipcRenderer.getCategories) {
-    ipcRenderer.getCategories()
+    ipcRenderer
+      .getCategories()
       .then((data: CategoryData) => {
         categoryDictionary = data;
-        CATEGORIES = ['All', 'Installed', ...Object.values(data.categories).map((c) => c.label)];
+        CATEGORIES = ['All', 'Installed'];
+        categoryColorMap.clear();
+
+        Object.values(data.categories).forEach((c) => {
+          CATEGORIES.push(c.label);
+          if (c.label && c.color) {
+            categoryColorMap.set(c.label, c.color);
+          }
+        });
 
         // Pre-compile fallback categories to optimize getCategoryForApp
         fallbackCategories = Object.values(data.categories).filter(
@@ -405,7 +416,6 @@ async function init(): Promise<void> {
     loadData();
   }
 }
-
 
 async function translateUI(): Promise<void> {
   const elements = document.querySelectorAll('[data-i18n]');
@@ -1047,8 +1057,7 @@ function renderDashboardDonutChart(): void {
   // Define colors if missing
   const getCategoryColor = (label: string) => {
     if (label === 'Other') return 'hsl(215, 16%, 47%)';
-    const entry = Object.values(categoryDictionary!.categories).find((c) => c.label === label);
-    return entry ? entry.color : 'hsl(200, 10%, 50%)';
+    return categoryColorMap.get(label) || 'hsl(200, 10%, 50%)';
   };
 
   sortedCategories.forEach(([label, count]) => {
@@ -1229,28 +1238,44 @@ function renderApps(): void {
 
   // Show empty state when no filtered apps (but apps are loaded)
   if (filteredApps.length === 0 && allApps.length > 0) {
-    appsGrid.innerHTML =
-      `<div class="empty-state">${uiTranslations.noAppsFound}</div>`;
+    appsGrid.innerHTML = '<div class="empty-state"></div>';
+    const emptyStateElement = appsGrid.querySelector('.empty-state');
+    if (emptyStateElement) {
+      emptyStateElement.textContent = uiTranslations.noAppsFound;
+    }
     // Reset scroll position
     appsGrid.scrollTop = 0;
     return;
   }
 
   if (filteredApps.length === 0 && allApps.length === 0 && !isLoading) {
-    const errorHtml = loadError
-      ? `<div class="empty-state">
+    if (loadError) {
+      appsGrid.innerHTML = `
+        <div class="empty-state">
           <div class="empty-state-icon">⚠️</div>
-          <p>${uiTranslations.failedLoadApps}</p>
-          <p class="empty-state-detail">${escapeHtml(loadError)}</p>
+          <p class="failed-load-apps-text"></p>
+          <p class="empty-state-detail"></p>
           <button class="retry-button" id="retryLoadBtn">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
               <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"></path>
             </svg>
-            ${uiTranslations.retry}
+            <span class="retry-text"></span>
           </button>
-        </div>`
-      : `<div class="empty-state">${uiTranslations.noAppsAvailable}</div>`;
-    appsGrid.innerHTML = errorHtml;
+        </div>
+      `;
+      const failedLoadAppsText = appsGrid.querySelector('.failed-load-apps-text');
+      if (failedLoadAppsText) failedLoadAppsText.textContent = uiTranslations.failedLoadApps;
+
+      const emptyStateDetail = appsGrid.querySelector('.empty-state-detail');
+      if (emptyStateDetail) emptyStateDetail.textContent = loadError;
+
+      const retryText = appsGrid.querySelector('.retry-text');
+      if (retryText) retryText.textContent = uiTranslations.retry;
+    } else {
+      appsGrid.innerHTML = '<div class="empty-state"></div>';
+      const emptyState = appsGrid.querySelector('.empty-state');
+      if (emptyState) emptyState.textContent = uiTranslations.noAppsAvailable;
+    }
     appsGrid.scrollTop = 0;
 
     // Attach retry handler
