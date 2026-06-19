@@ -19,6 +19,8 @@ const VIRTUAL_SCROLL_CONFIG = {
   scrollThreshold: 50,
 };
 
+let categoryColorMap = new Map<string, string>(); // Optimization: O(1) lookups for category colors
+
 // App type definition
 interface App {
   name: string;
@@ -340,14 +342,14 @@ async function init(): Promise<void> {
         console.log('[Renderer] Changing language to:', newLang);
         if (ipcRenderer.changeLanguage) {
           ipcRenderer.changeLanguage(newLang);
-          
+
           // Re-translate static UI and rebuild translated caches
           await translateUI();
           await updateTranslationCache();
-          
+
           // Re-render categories (since they might need new translated labels)
           renderCategories();
-          
+
           // Re-run other UI rendering updates
           if (activeView === 'dashboard') {
             updateDashboardView();
@@ -368,10 +370,19 @@ async function init(): Promise<void> {
   setupEventListeners();
 
   if (ipcRenderer && ipcRenderer.getCategories) {
-    ipcRenderer.getCategories()
+    ipcRenderer
+      .getCategories()
       .then((data: CategoryData) => {
         categoryDictionary = data;
-        CATEGORIES = ['All', 'Installed', ...Object.values(data.categories).map((c) => c.label)];
+        CATEGORIES = ['All', 'Installed'];
+        categoryColorMap.clear();
+
+        Object.values(data.categories).forEach((c) => {
+          CATEGORIES.push(c.label);
+          if (c.label && c.color) {
+            categoryColorMap.set(c.label, c.color);
+          }
+        });
 
         // Pre-compile fallback categories to optimize getCategoryForApp
         fallbackCategories = Object.values(data.categories).filter(
@@ -403,7 +414,6 @@ async function init(): Promise<void> {
     loadData();
   }
 }
-
 
 async function translateUI(): Promise<void> {
   const elements = document.querySelectorAll('[data-i18n]');
@@ -856,17 +866,17 @@ function setupEventListeners(): void {
   });
 
   ipcRenderer.on(
-  'service-action-complete',
-  async (_event: any, { action, service, success, error }: any) => {
-    console.log('[Renderer] Service action complete:', action, service, success, error);
-    if (success) {
-      ipcRenderer.send('get-brew-services');
-    } else {
-      const failedToMsg = await t('common.error');
-      alert(`${failedToMsg} ${action} ${service}: ${error}`);
-      ipcRenderer.send('get-brew-services');
+    'service-action-complete',
+    async (_event: any, { action, service, success, error }: any) => {
+      console.log('[Renderer] Service action complete:', action, service, success, error);
+      if (success) {
+        ipcRenderer.send('get-brew-services');
+      } else {
+        const failedToMsg = await t('common.error');
+        alert(`${failedToMsg} ${action} ${service}: ${error}`);
+        ipcRenderer.send('get-brew-services');
+      }
     }
-  }
   );
 
   // Upgrade all complete listener
@@ -1042,8 +1052,7 @@ function renderDashboardDonutChart(): void {
   // Define colors if missing
   const getCategoryColor = (label: string) => {
     if (label === 'Other') return 'hsl(215, 16%, 47%)';
-    const entry = Object.values(categoryDictionary!.categories).find((c) => c.label === label);
-    return entry ? entry.color : 'hsl(200, 10%, 50%)';
+    return categoryColorMap.get(label) || 'hsl(200, 10%, 50%)';
   };
 
   sortedCategories.forEach(([label, count]) => {
@@ -1224,8 +1233,7 @@ function renderApps(): void {
 
   // Show empty state when no filtered apps (but apps are loaded)
   if (filteredApps.length === 0 && allApps.length > 0) {
-    appsGrid.innerHTML =
-      `<div class="empty-state">${uiTranslations.noAppsFound}</div>`;
+    appsGrid.innerHTML = `<div class="empty-state">${uiTranslations.noAppsFound}</div>`;
     // Reset scroll position
     appsGrid.scrollTop = 0;
     return;
