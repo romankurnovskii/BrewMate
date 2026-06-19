@@ -1445,9 +1445,12 @@ function openAppDetail(app: App): void {
   sidebarOverlay.classList.add('visible');
 
   // Reset details state
-  sidebarExtendedDetails.style.display = 'none';
-  sidebarDetailsLoader.style.display = 'flex';
-  sidebarVulnRow.style.display = 'none'; // Will update if we have full vuln state
+  sidebarExtendedDetails.style.display = 'block';
+  sidebarDetailsLoader.style.display = 'none';
+  sidebarSize.textContent = uiTranslations.loading;
+  sidebarDependencies.innerHTML = uiTranslations.loading;
+  sidebarGithubStatsRow.style.display = 'none';
+  sidebarVulnRow.style.display = 'none';
 
   ipcRenderer.send('get-app-details', app.name, app.type);
 }
