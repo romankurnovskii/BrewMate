@@ -315,6 +315,8 @@ async function init(): Promise<void> {
     return;
   }
 
+  setupIpcListeners();
+
   // Initialize terminal output
   const welcomeMsg = await t('terminal.welcome');
   const lastLoginMsg = await t('terminal.last_login');
@@ -509,7 +511,87 @@ function setupEventListeners(): void {
     if (e.key === 'Escape') closeSidebar();
   });
 
-  // IPC listeners
+
+
+  // Tab Navigation Click Handlers
+  navButtons.forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const view = btn.dataset.view as 'dashboard' | 'explore' | 'updates' | 'services';
+      if (!view) return;
+
+      activeView = view;
+      navButtons.forEach((b) => b.classList.remove('active'));
+      btn.classList.add('active');
+
+      tabViews.forEach((v) => {
+        v.classList.remove('active');
+        if (v.id === `${view}View`) {
+          v.classList.add('active');
+        }
+      });
+
+      // Special action on tab switch
+      if (activeView === 'dashboard') {
+        updateDashboardView();
+      } else if (activeView === 'explore') {
+        calculateItemsPerRow();
+        updateVisibleItems();
+      } else if (activeView === 'updates') {
+        renderUpdatesView();
+      } else if (activeView === 'services') {
+        servicesLoading.style.display = 'flex';
+        servicesTable.style.display = 'none';
+        servicesEmptyState.style.display = 'none';
+        ipcRenderer.send('get-brew-services');
+      }
+    });
+  });
+
+  // Dashboard buttons
+  if (dashCleanupBtn) {
+    dashCleanupBtn.addEventListener('click', () => {
+      runCommand('brew cleanup --prune=all');
+    });
+  }
+
+  if (dashViewUpdatesBtn) {
+    dashViewUpdatesBtn.addEventListener('click', () => {
+      const updatesBtn = document.querySelector(
+        '.nav-button[data-view="updates"]'
+      ) as HTMLButtonElement;
+      if (updatesBtn) updatesBtn.click();
+    });
+  }
+
+  if (dashUpgradeAllBtn) {
+    dashUpgradeAllBtn.addEventListener('click', () => {
+      if (confirm(uiTranslations.confirmUpgradeAll)) {
+        upgradeAll();
+      }
+    });
+  }
+
+  if (dashScanVulnBtn) {
+    dashScanVulnBtn.addEventListener('click', () => {
+      dashScanVulnBtn.innerHTML = `
+        <div class="loading-spinner" style="width: 14px; height: 14px; border-width: 2px;"></div>
+        Scanning...
+      `;
+      dashScanVulnBtn.disabled = true;
+      ipcRenderer.send('scan-vulnerabilities');
+    });
+  }
+
+  if (updatesUpgradeAllBtn) {
+    updatesUpgradeAllBtn.addEventListener('click', () => {
+      if (confirm(uiTranslations.confirmUpgradeAll)) {
+        upgradeAll();
+      }
+    });
+  }
+}
+
+function setupIpcListeners(): void {
   if (!ipcRenderer) {
     console.error('[Renderer] Cannot setup IPC listeners - ipcRenderer not available');
     return;
@@ -733,83 +815,6 @@ function setupEventListeners(): void {
     filterApps();
   });
 
-  // Tab Navigation Click Handlers
-  navButtons.forEach((btn) => {
-    btn.addEventListener('click', () => {
-      const view = btn.dataset.view as 'dashboard' | 'explore' | 'updates' | 'services';
-      if (!view) return;
-
-      activeView = view;
-      navButtons.forEach((b) => b.classList.remove('active'));
-      btn.classList.add('active');
-
-      tabViews.forEach((v) => {
-        v.classList.remove('active');
-        if (v.id === `${view}View`) {
-          v.classList.add('active');
-        }
-      });
-
-      // Special action on tab switch
-      if (activeView === 'dashboard') {
-        updateDashboardView();
-      } else if (activeView === 'explore') {
-        calculateItemsPerRow();
-        updateVisibleItems();
-      } else if (activeView === 'updates') {
-        renderUpdatesView();
-      } else if (activeView === 'services') {
-        servicesLoading.style.display = 'flex';
-        servicesTable.style.display = 'none';
-        servicesEmptyState.style.display = 'none';
-        ipcRenderer.send('get-brew-services');
-      }
-    });
-  });
-
-  // Dashboard buttons
-  if (dashCleanupBtn) {
-    dashCleanupBtn.addEventListener('click', () => {
-      runCommand('brew cleanup --prune=all');
-    });
-  }
-
-  if (dashViewUpdatesBtn) {
-    dashViewUpdatesBtn.addEventListener('click', () => {
-      const updatesBtn = document.querySelector(
-        '.nav-button[data-view="updates"]'
-      ) as HTMLButtonElement;
-      if (updatesBtn) updatesBtn.click();
-    });
-  }
-
-  if (dashUpgradeAllBtn) {
-    dashUpgradeAllBtn.addEventListener('click', () => {
-      if (confirm(uiTranslations.confirmUpgradeAll)) {
-        upgradeAll();
-      }
-    });
-  }
-
-  if (dashScanVulnBtn) {
-    dashScanVulnBtn.addEventListener('click', () => {
-      dashScanVulnBtn.innerHTML = `
-        <div class="loading-spinner" style="width: 14px; height: 14px; border-width: 2px;"></div>
-        Scanning...
-      `;
-      dashScanVulnBtn.disabled = true;
-      ipcRenderer.send('scan-vulnerabilities');
-    });
-  }
-
-  if (updatesUpgradeAllBtn) {
-    updatesUpgradeAllBtn.addEventListener('click', () => {
-      if (confirm(uiTranslations.confirmUpgradeAll)) {
-        upgradeAll();
-      }
-    });
-  }
-
   // Outdated apps listener
   ipcRenderer.on('outdated-apps', (_event: any, apps: Array<OutdatedApp>) => {
     console.log('[Renderer] Received outdated apps:', apps.length);
@@ -856,17 +861,17 @@ function setupEventListeners(): void {
   });
 
   ipcRenderer.on(
-  'service-action-complete',
-  async (_event: any, { action, service, success, error }: any) => {
-    console.log('[Renderer] Service action complete:', action, service, success, error);
-    if (success) {
-      ipcRenderer.send('get-brew-services');
-    } else {
-      const failedToMsg = await t('common.error');
-      alert(`${failedToMsg} ${action} ${service}: ${error}`);
-      ipcRenderer.send('get-brew-services');
+    'service-action-complete',
+    async (_event: any, { action, service, success, error }: any) => {
+      console.log('[Renderer] Service action complete:', action, service, success, error);
+      if (success) {
+        ipcRenderer.send('get-brew-services');
+      } else {
+        const failedToMsg = await t('common.error');
+        alert(`${failedToMsg} ${action} ${service}: ${error}`);
+        ipcRenderer.send('get-brew-services');
+      }
     }
-  }
   );
 
   // Upgrade all complete listener
