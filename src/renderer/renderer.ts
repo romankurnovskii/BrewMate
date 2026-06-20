@@ -521,8 +521,6 @@ function setupEventListeners(): void {
     if (e.key === 'Escape') closeSidebar();
   });
 
-
-
   // Tab Navigation Click Handlers
   navButtons.forEach((btn) => {
     btn.addEventListener('click', () => {
@@ -1161,41 +1159,81 @@ function filterApps(): void {
     } else {
       // Reset filtered apps before filtering
       filteredApps = [];
-      filteredApps = allApps.filter((app) => {
-        if (selectedType === 'trending') {
-          const name =
-            app._nameLower !== undefined ? app._nameLower : (app.name || '').toLowerCase();
-          if (!trendingApps.has(name)) return false;
-        } else if (selectedType !== 'All' && app.type !== selectedType) {
-          return false;
-        }
 
-        if (selectedCategory === 'Installed') {
-          if (!installedApps.has(app.name)) return false;
-        } else if (selectedCategory !== 'All') {
-          const category = app._category !== undefined ? app._category : getCategoryForApp(app);
-          if (category !== selectedCategory) return false;
-        }
+      // Optimization: If selectedCategory is "Installed", iterate through the much smaller installedApps set
+      // instead of filtering the ~100k allApps array, changing complexity from O(N) to O(K) where K is installed apps count.
+      if (selectedCategory === 'Installed') {
+        for (const appName of installedApps) {
+          const app = allAppsMap.get(appName);
+          if (!app) continue;
 
-        if (searchLower) {
-          if (app._searchStr !== undefined) {
-            // Optimization: .indexOf is roughly 2x faster than .includes in tight loops
-            return app._searchStr.indexOf(searchLower) !== -1;
+          if (selectedType === 'trending') {
+            const name =
+              app._nameLower !== undefined ? app._nameLower : (app.name || '').toLowerCase();
+            if (!trendingApps.has(name)) continue;
+          } else if (selectedType !== 'All' && app.type !== selectedType) {
+            continue;
           }
 
-          // Fallback if _searchStr is somehow missing
-          const name =
-            app._nameLower !== undefined ? app._nameLower : (app.name || '').toLowerCase();
-          if (name.indexOf(searchLower) !== -1) return true;
-          const desc = (app.description || '').toLowerCase();
-          if (desc.indexOf(searchLower) !== -1) return true;
-          const homepage = (app.homepage || '').toLowerCase();
-          if (homepage.indexOf(searchLower) !== -1) return true;
-          return false;
+          if (searchLower) {
+            if (app._searchStr !== undefined) {
+              // Optimization: .indexOf is roughly 2x faster than .includes in tight loops
+              if (app._searchStr.indexOf(searchLower) === -1) continue;
+            } else {
+              // Fallback if _searchStr is somehow missing
+              const name =
+                app._nameLower !== undefined ? app._nameLower : (app.name || '').toLowerCase();
+              if (name.indexOf(searchLower) !== -1) {
+                // match
+              } else {
+                const desc = (app.description || '').toLowerCase();
+                if (desc.indexOf(searchLower) !== -1) {
+                  // match
+                } else {
+                  const homepage = (app.homepage || '').toLowerCase();
+                  if (homepage.indexOf(searchLower) === -1) continue;
+                }
+              }
+            }
+          }
+          filteredApps.push(app);
         }
+      } else {
+        filteredApps = allApps.filter((app) => {
+          if (selectedType === 'trending') {
+            const name =
+              app._nameLower !== undefined ? app._nameLower : (app.name || '').toLowerCase();
+            if (!trendingApps.has(name)) return false;
+          } else if (selectedType !== 'All' && app.type !== selectedType) {
+            return false;
+          }
 
-        return true;
-      });
+          if (selectedCategory !== 'All') {
+            const category =
+              app._category !== undefined ? app._category : getCategoryForApp(app);
+            if (category !== selectedCategory) return false;
+          }
+
+          if (searchLower) {
+            if (app._searchStr !== undefined) {
+              // Optimization: .indexOf is roughly 2x faster than .includes in tight loops
+              return app._searchStr.indexOf(searchLower) !== -1;
+            }
+
+            // Fallback if _searchStr is somehow missing
+            const name =
+              app._nameLower !== undefined ? app._nameLower : (app.name || '').toLowerCase();
+            if (name.indexOf(searchLower) !== -1) return true;
+            const desc = (app.description || '').toLowerCase();
+            if (desc.indexOf(searchLower) !== -1) return true;
+            const homepage = (app.homepage || '').toLowerCase();
+            if (homepage.indexOf(searchLower) !== -1) return true;
+            return false;
+          }
+
+          return true;
+        });
+      }
     }
 
     // Reset scroll position and visible items when filtering

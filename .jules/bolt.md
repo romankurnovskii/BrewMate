@@ -27,3 +27,7 @@
 ## 2024-03-24 - [String Optimization]
 **Learning:** V8 engine optimizes `String.indexOf(str) !== -1` significantly better than `String.includes(str)` in tight loops. Additionally, for repetitive HTML escaping, using `String.replace` with a dictionary object creates measurable garbage collection overhead; replacing it with a regex fast-path (`/[&<>"']/.exec()`) and a manual `charCodeAt` string-building loop doubles performance.
 **Action:** Default to `indexOf` instead of `includes` when filtering massive arrays (~100k items) on the frontend. Avoid regex `replace` maps for high-frequency utility functions (like `escapeHtml` during virtual scrolling); favor char-code iteration.
+
+## 2026-06-20 - Optimized subset filtering using Set iteration
+**Learning:** When filtering a massive dataset (~100k items) down to a known subset (like installed apps), iterating through the entire massive array and checking `subset.has(item.name)` is extremely slow ($O(N)$).
+**Action:** Instead of filtering the massive array, iterate through the smaller subset (`installedApps` Set) and pull the complete metadata directly from a precomputed $O(1)$ Map (`allAppsMap`), reducing time complexity to $O(K)$.
