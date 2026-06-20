@@ -24,3 +24,6 @@
 ## 2024-10-24 - [Optimizing Application Category Color Lookups]
 **Learning:** Using `Object.values().find()` inside a loop for rendering UI elements reallocates arrays and incurs O(N) lookup costs. In `renderDashboardDonutChart`, this was recalculating colors for every single donut chart segment unnecessarily.
 **Action:** Precompute and maintain a `Map` (like `categoryColorMap`) during data ingestion to enable O(1) lookups and eliminate redundant allocations during renders.
+## 2026-06-20 - Optimized subset filtering using Set iteration
+**Learning:** When filtering a massive dataset (~100k items) down to a known subset (like installed apps), iterating through the entire massive array and checking `subset.has(item.name)` is extremely slow ($O(N)$).
+**Action:** Instead of filtering the massive array, iterate through the smaller subset (`installedApps` Set) and pull the complete metadata directly from a precomputed $O(1)$ Map (`allAppsMap`), reducing time complexity to $O(K)$.

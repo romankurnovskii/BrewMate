@@ -521,8 +521,6 @@ function setupEventListeners(): void {
     if (e.key === 'Escape') closeSidebar();
   });
 
-
-
   // Tab Navigation Click Handlers
   navButtons.forEach((btn) => {
     btn.addEventListener('click', () => {
@@ -1160,40 +1158,79 @@ function filterApps(): void {
     } else {
       // Reset filtered apps before filtering
       filteredApps = [];
-      filteredApps = allApps.filter((app) => {
-        if (selectedType === 'trending') {
-          const name =
-            app._nameLower !== undefined ? app._nameLower : (app.name || '').toLowerCase();
-          if (!trendingApps.has(name)) return false;
-        } else if (selectedType !== 'All' && app.type !== selectedType) {
-          return false;
-        }
 
-        if (selectedCategory === 'Installed') {
-          if (!installedApps.has(app.name)) return false;
-        } else if (selectedCategory !== 'All') {
-          const category = app._category !== undefined ? app._category : getCategoryForApp(app);
-          if (category !== selectedCategory) return false;
-        }
+      // Optimization: If selectedCategory is "Installed", iterate through the much smaller installedApps set
+      // instead of filtering the ~100k allApps array, changing complexity from O(N) to O(K) where K is installed apps count.
+      if (selectedCategory === 'Installed') {
+        for (const appName of installedApps) {
+          const app = allAppsMap.get(appName);
+          if (!app) continue;
 
-        if (searchLower) {
-          if (app._searchStr !== undefined) {
-            return app._searchStr.includes(searchLower);
+          if (selectedType === 'trending') {
+            const name =
+              app._nameLower !== undefined ? app._nameLower : (app.name || '').toLowerCase();
+            if (!trendingApps.has(name)) continue;
+          } else if (selectedType !== 'All' && app.type !== selectedType) {
+            continue;
           }
 
-          // Fallback if _searchStr is somehow missing
-          const name =
-            app._nameLower !== undefined ? app._nameLower : (app.name || '').toLowerCase();
-          if (name.includes(searchLower)) return true;
-          const desc = (app.description || '').toLowerCase();
-          if (desc.includes(searchLower)) return true;
-          const homepage = (app.homepage || '').toLowerCase();
-          if (homepage.includes(searchLower)) return true;
-          return false;
+          if (searchLower) {
+            if (app._searchStr !== undefined) {
+              if (!app._searchStr.includes(searchLower)) continue;
+            } else {
+              // Fallback if _searchStr is somehow missing
+              const name =
+                app._nameLower !== undefined ? app._nameLower : (app.name || '').toLowerCase();
+              if (name.includes(searchLower)) {
+                // match
+              } else {
+                const desc = (app.description || '').toLowerCase();
+                if (desc.includes(searchLower)) {
+                  // match
+                } else {
+                  const homepage = (app.homepage || '').toLowerCase();
+                  if (!homepage.includes(searchLower)) continue;
+                }
+              }
+            }
+          }
+          filteredApps.push(app);
         }
+      } else {
+        filteredApps = allApps.filter((app) => {
+          if (selectedType === 'trending') {
+            const name =
+              app._nameLower !== undefined ? app._nameLower : (app.name || '').toLowerCase();
+            if (!trendingApps.has(name)) return false;
+          } else if (selectedType !== 'All' && app.type !== selectedType) {
+            return false;
+          }
 
-        return true;
-      });
+          if (selectedCategory !== 'All') {
+            const category =
+              app._category !== undefined ? app._category : getCategoryForApp(app);
+            if (category !== selectedCategory) return false;
+          }
+
+          if (searchLower) {
+            if (app._searchStr !== undefined) {
+              return app._searchStr.includes(searchLower);
+            }
+
+            // Fallback if _searchStr is somehow missing
+            const name =
+              app._nameLower !== undefined ? app._nameLower : (app.name || '').toLowerCase();
+            if (name.includes(searchLower)) return true;
+            const desc = (app.description || '').toLowerCase();
+            if (desc.includes(searchLower)) return true;
+            const homepage = (app.homepage || '').toLowerCase();
+            if (homepage.includes(searchLower)) return true;
+            return false;
+          }
+
+          return true;
+        });
+      }
     }
 
     // Reset scroll position and visible items when filtering
