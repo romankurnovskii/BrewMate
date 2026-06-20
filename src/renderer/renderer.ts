@@ -767,9 +767,9 @@ function setupIpcListeners(): void {
 
       const deps = details.dependencies || [];
       if (deps.length > 0) {
-        sidebarDependencies.innerHTML = deps.join(', ');
+        sidebarDependencies.textContent = deps.join(', ');
       } else {
-        sidebarDependencies.innerHTML = 'None';
+        sidebarDependencies.textContent = 'None';
       }
 
       if (details.githubStats && details.githubStats.stars !== undefined) {
@@ -780,7 +780,7 @@ function setupIpcListeners(): void {
       }
     } else {
       sidebarSize.textContent = 'Failed to load';
-      sidebarDependencies.innerHTML = '-';
+      sidebarDependencies.textContent = '-';
       sidebarGithubStatsRow.style.display = 'none';
     }
   });
@@ -1448,7 +1448,7 @@ function openAppDetail(app: App): void {
   sidebarExtendedDetails.style.display = 'block';
   sidebarDetailsLoader.style.display = 'none';
   sidebarSize.textContent = uiTranslations.loading;
-  sidebarDependencies.innerHTML = uiTranslations.loading;
+  sidebarDependencies.textContent = uiTranslations.loading;
   sidebarGithubStatsRow.style.display = 'none';
   sidebarVulnRow.style.display = 'none';
 
