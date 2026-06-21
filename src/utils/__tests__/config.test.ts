@@ -1,7 +1,7 @@
 /**
  * Tests for configuration file changes introduced in this PR:
  * - .gitignore: Added memory-bank/ pattern
- * - electron-builder.yml: Removed !**/node_modules/**\/* exclusion (node_modules now bundled in ASAR)
+ * - electron-builder.yml: Removed node_modules exclusion pattern (node_modules now bundled in ASAR)
  */
 
 import * as fs from 'fs';
