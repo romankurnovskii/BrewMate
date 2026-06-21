@@ -24,3 +24,6 @@
 ## 2024-10-24 - [Optimizing Application Category Color Lookups]
 **Learning:** Using `Object.values().find()` inside a loop for rendering UI elements reallocates arrays and incurs O(N) lookup costs. In `renderDashboardDonutChart`, this was recalculating colors for every single donut chart segment unnecessarily.
 **Action:** Precompute and maintain a `Map` (like `categoryColorMap`) during data ingestion to enable O(1) lookups and eliminate redundant allocations during renders.
+## 2024-03-24 - [String Optimization]
+**Learning:** V8 engine optimizes `String.indexOf(str) !== -1` significantly better than `String.includes(str)` in tight loops. Additionally, for repetitive HTML escaping, using `String.replace` with a dictionary object creates measurable garbage collection overhead; replacing it with a regex fast-path (`/[&<>"']/.exec()`) and a manual `charCodeAt` string-building loop doubles performance.
+**Action:** Default to `indexOf` instead of `includes` when filtering massive arrays (~100k items) on the frontend. Avoid regex `replace` maps for high-frequency utility functions (like `escapeHtml` during virtual scrolling); favor char-code iteration.
