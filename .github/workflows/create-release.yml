@@ -15,7 +15,7 @@ jobs:
   create-release:
     runs-on: macos-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - name: Get Version
         id: get_version
@@ -58,7 +58,7 @@ jobs:
           cat shasumver >> $GITHUB_STEP_SUMMARY
 
       - name: Checkout homebrew-cask repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           repository: romankurnovskii/homebrew-awesome-brew
           path: homebrew-cask
