@@ -445,6 +445,43 @@ function setupEventListeners(): void {
   });
 
   // Virtual scrolling - handle scroll with throttling
+  // Event delegation for app cards and buttons
+  // Optimization: Attach a single listener instead of querying and attaching multiple inside renderApps
+  appsGrid.addEventListener('click', (e) => {
+    const target = e.target as HTMLElement;
+
+    const btn = target.closest('.app-button') as HTMLElement;
+    if (btn) {
+      e.stopPropagation();
+      const appName = btn.dataset.app;
+      const appType = btn.dataset.type;
+      if (!appName || !appType) return;
+
+      const isInstalled = installedApps.has(appName);
+
+      if (isInstalled) {
+        ipcRenderer.send('uninstall-app', appName, appType);
+      } else {
+        ipcRenderer.send('install-app', appName, appType);
+      }
+
+      if (!terminalVisible) {
+        toggleTerminal();
+      }
+      return;
+    }
+
+    const card = target.closest('.app-card') as HTMLElement;
+    if (card) {
+      const cardBtn = card.querySelector('.app-button') as HTMLElement;
+      if (cardBtn && cardBtn.dataset.app) {
+        const appName = cardBtn.dataset.app;
+        const app = allAppsMap.get(appName); // Optimization: O(1) lookup instead of O(N)
+        if (app) openAppDetail(app);
+      }
+    }
+  });
+
   appsGrid.addEventListener(
     'scroll',
     () => {
@@ -1374,38 +1411,6 @@ function renderApps(): void {
       <div class="apps-grid-spacer" style="height: ${bottomSpacerHeight}px;"></div>
     </div>
   `;
-
-  appsGrid.querySelectorAll('.app-card').forEach((card) => {
-    card.addEventListener('click', () => {
-      const btn = card.querySelector('.app-button') as HTMLElement;
-      if (btn && btn.dataset.app) {
-        const appName = btn.dataset.app;
-        const app = allAppsMap.get(appName); // Optimization: O(1) lookup instead of O(N)
-        if (app) openAppDetail(app);
-      }
-    });
-  });
-
-  appsGrid.querySelectorAll('.app-button').forEach((btn) => {
-    btn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      const appName = (btn as HTMLElement).dataset.app;
-      const appType = (btn as HTMLElement).dataset.type;
-      if (!appName || !appType) return;
-
-      const isInstalled = installedApps.has(appName);
-
-      if (isInstalled) {
-        ipcRenderer.send('uninstall-app', appName, appType);
-      } else {
-        ipcRenderer.send('install-app', appName, appType);
-      }
-
-      if (!terminalVisible) {
-        toggleTerminal();
-      }
-    });
-  });
 }
 
 function renderAppCard(app: App, isInstalled: boolean): string {
@@ -1574,17 +1579,22 @@ function escapeHtml(text: string): string {
   let lastIndex = 0;
 
   for (let i = match.index; i < len; i++) {
-      const char = str.charCodeAt(i);
-      let escape;
-      if (char === 38) escape = '&amp;';      // &
-      else if (char === 60) escape = '&lt;';  // <
-      else if (char === 62) escape = '&gt;';  // >
-      else if (char === 34) escape = '&quot;';// "
-      else if (char === 39) escape = '&#39;'; // '
-      else continue;
+    const char = str.charCodeAt(i);
+    let escape;
+    if (char === 38)
+      escape = '&amp;'; // &
+    else if (char === 60)
+      escape = '&lt;'; // <
+    else if (char === 62)
+      escape = '&gt;'; // >
+    else if (char === 34)
+      escape = '&quot;'; // "
+    else if (char === 39)
+      escape = '&#39;'; // '
+    else continue;
 
-      res += str.substring(lastIndex, i) + escape;
-      lastIndex = i + 1;
+    res += str.substring(lastIndex, i) + escape;
+    lastIndex = i + 1;
   }
 
   return res + str.substring(lastIndex, len);
