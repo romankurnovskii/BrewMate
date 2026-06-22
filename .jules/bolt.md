@@ -37,3 +37,7 @@
 **Learning:** Using `Object.values().find()` inside a rendering loop reallocates arrays and incurs O(N) lookup costs, causing unnecessary overhead during frequent UI updates like chart rendering.
 **Action:** Precompute and maintain a `Map<string, string>` (e.g., `categoryColorMap`) during initial data ingestion to enable O(1) lookups and eliminate redundant allocations during render.
 >>>>>>> 190b8d5 (fix(renderer): eliminate innerHTML injection vulnerabilities)
+
+## 2024-11-20 - Optimized Event Listeners using Delegation
+**Learning:** In applications rendering many DOM elements (like `renderApps` inside a virtual scroll view), attaching event listeners (`addEventListener`) inside loops or iteration over elements via `querySelectorAll` incurs heavy performance penalties. Each listener allocates a new closure in memory, and executing O(N) DOM queries on every render severely degrades UI responsiveness.
+**Action:** When a high frequency function re-renders lists, utilize event delegation by attaching a single event listener to the parent container (`appsGrid`) and matching targets dynamically using `e.target.closest('selector')`. Ensure `e.stopPropagation()` logic translates correctly to early `return` checks inside the delegated event handler.
