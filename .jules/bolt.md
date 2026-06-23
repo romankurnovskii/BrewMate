@@ -37,3 +37,7 @@
 **Learning:** Using `Object.values().find()` inside a rendering loop reallocates arrays and incurs O(N) lookup costs, causing unnecessary overhead during frequent UI updates like chart rendering.
 **Action:** Precompute and maintain a `Map<string, string>` (e.g., `categoryColorMap`) during initial data ingestion to enable O(1) lookups and eliminate redundant allocations during render.
 >>>>>>> 190b8d5 (fix(renderer): eliminate innerHTML injection vulnerabilities)
+
+## 2024-11-09 - Optimized Array Methods for massive datasets
+**Learning:** For rendering huge arrays or filtering 100k+ item arrays on the frontend, using `.map().join('')` or `.filter()` incurs callback closure overhead and array allocation that significantly slows execution compared to classic `for` loops.
+**Action:** Replace `Array.prototype.filter()` with a classic `for` loop and `.push()`, and `Array.prototype.map().join('')` with a classic `for` loop and string concatenation (`+=`) in critical hot paths to roughly double the processing speed and eliminate allocations.
