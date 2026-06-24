@@ -37,3 +37,6 @@
 **Learning:** Using `Object.values().find()` inside a rendering loop reallocates arrays and incurs O(N) lookup costs, causing unnecessary overhead during frequent UI updates like chart rendering.
 **Action:** Precompute and maintain a `Map<string, string>` (e.g., `categoryColorMap`) during initial data ingestion to enable O(1) lookups and eliminate redundant allocations during render.
 >>>>>>> 190b8d5 (fix(renderer): eliminate innerHTML injection vulnerabilities)
+## 2024-10-25 - Optimized array filtering with native for loop
+**Learning:** In tight loops evaluating over large arrays (like the ~100k Homebrew apps dataset), using `Array.prototype.filter` combined with inline callback functions incurs massive performance overhead compared to a native `for` loop due to closure creation, function execution framing, and intermediate array allocations.
+**Action:** When performing high-frequency filtering operations over massive datasets, use a native `for` loop initialized with the target array length, directly mutate an initial empty array using `.push()`, and flatten any early return conditions into `continue` blocks.
