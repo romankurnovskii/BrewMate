@@ -37,3 +37,6 @@
 **Learning:** Using `Object.values().find()` inside a rendering loop reallocates arrays and incurs O(N) lookup costs, causing unnecessary overhead during frequent UI updates like chart rendering.
 **Action:** Precompute and maintain a `Map<string, string>` (e.g., `categoryColorMap`) during initial data ingestion to enable O(1) lookups and eliminate redundant allocations during render.
 >>>>>>> 190b8d5 (fix(renderer): eliminate innerHTML injection vulnerabilities)
+## 2026-06-25 - Native For Loops and Syntax Error Edge Cases
+**Learning:** When refactoring mapped components into strings via native for loops, ensure the `html` accumulator string is actually assigned to the target DOM element (e.g., `element.innerHTML = html`) after the loop, and completely remove trailing `}).join('');` syntax to prevent application-breaking syntax errors. Additionally, unintended lockfile modifications (like `pnpm-lock.yaml`) should be carefully excluded from git index via `git restore --staged pnpm-lock.yaml` before submitting performance patches.
+**Action:** Use `git diff --cached` to deeply verify the entire block replacement in `src/renderer/renderer.ts` for dangling brackets and missing DOM assignments, and regularly check `git status` to explicitly revert out-of-scope files before merging.

@@ -947,10 +947,13 @@ function retryLoad(): void {
 }
 
 function renderCategories(): void {
-  categoryChips.innerHTML = CATEGORIES.map((cat) => {
+  let html = '';
+  const len = CATEGORIES.length;
+  for (let i = 0; i < len; i++) {
+    const cat = CATEGORIES[i];
     const isInstalled = cat === uiTranslations.installed;
     const isActive = selectedCategory === cat;
-    return `
+    html += `
       <button class="category-chip ${isInstalled ? 'installed-category' : ''} ${
         isActive ? 'active' : ''
       }" 
@@ -958,7 +961,8 @@ function renderCategories(): void {
         ${cat}${isInstalled ? ' (' + installedApps.size + ')' : ''}
       </button>
     `;
-  }).join('');
+  }
+  categoryChips.innerHTML = html;
 
   categoryChips.querySelectorAll('.category-chip').forEach((btn) => {
     btn.addEventListener('click', () => {
@@ -1206,40 +1210,46 @@ function filterApps(): void {
           filteredApps.push(app);
         }
       } else {
-        filteredApps = allApps.filter((app) => {
+        const len = allApps.length;
+        for (let i = 0; i < len; i++) {
+          const app = allApps[i];
           if (selectedType === 'trending') {
             const name =
               app._nameLower !== undefined ? app._nameLower : (app.name || '').toLowerCase();
-            if (!trendingApps.has(name)) return false;
+            if (!trendingApps.has(name)) continue;
           } else if (selectedType !== 'All' && app.type !== selectedType) {
-            return false;
+            continue;
           }
 
           if (selectedCategory !== 'All') {
             const category =
               app._category !== undefined ? app._category : getCategoryForApp(app);
-            if (category !== selectedCategory) return false;
+            if (category !== selectedCategory) continue;
           }
 
           if (searchLower) {
             if (app._searchStr !== undefined) {
               // Optimization: .indexOf is roughly 2x faster than .includes in tight loops
-              return app._searchStr.indexOf(searchLower) !== -1;
+              if (app._searchStr.indexOf(searchLower) === -1) continue;
+            } else {
+              // Fallback if _searchStr is somehow missing
+              const name =
+                app._nameLower !== undefined ? app._nameLower : (app.name || '').toLowerCase();
+              if (name.indexOf(searchLower) !== -1) {
+                // matched
+              } else {
+                const desc = (app.description || '').toLowerCase();
+                if (desc.indexOf(searchLower) !== -1) {
+                  // matched
+                } else {
+                  const homepage = (app.homepage || '').toLowerCase();
+                  if (homepage.indexOf(searchLower) === -1) continue;
+                }
+              }
             }
-
-            // Fallback if _searchStr is somehow missing
-            const name =
-              app._nameLower !== undefined ? app._nameLower : (app.name || '').toLowerCase();
-            if (name.indexOf(searchLower) !== -1) return true;
-            const desc = (app.description || '').toLowerCase();
-            if (desc.indexOf(searchLower) !== -1) return true;
-            const homepage = (app.homepage || '').toLowerCase();
-            if (homepage.indexOf(searchLower) !== -1) return true;
-            return false;
           }
-
-          return true;
-        });
+          filteredApps.push(app);
+        }
       }
     }
 
@@ -1358,12 +1368,13 @@ function renderApps(): void {
   const bottomSpacerHeight = Math.max(0, (totalRows - endRow) * rowHeight);
   const totalHeight = totalRows * rowHeight;
 
-  const appsHTML = visibleApps
-    .map((app) => {
-      const isInstalled = installedApps.has(app.name);
-      return renderAppCard(app, isInstalled);
-    })
-    .join('');
+  let appsHTML = '';
+  const len = visibleApps.length;
+  for (let i = 0; i < len; i++) {
+    const app = visibleApps[i];
+    const isInstalled = installedApps.has(app.name);
+    appsHTML += renderAppCard(app, isInstalled);
+  }
 
   appsGrid.innerHTML = `
     <div style="height: ${totalHeight}px; position: relative;">
@@ -1683,9 +1694,11 @@ function renderUpdatesView(): void {
   if (updatesTable) updatesTable.style.display = 'table';
 
   if (updatesTableBody) {
-    updatesTableBody.innerHTML = outdatedApps
-      .map((app) => {
-        return `
+    let html = '';
+    const len = outdatedApps.length;
+    for (let i = 0; i < len; i++) {
+      const app = outdatedApps[i];
+      html += `
           <tr>
             <td>
               <div class="updates-app-name">${escapeHtml(app.name)}</div>
@@ -1708,8 +1721,8 @@ function renderUpdatesView(): void {
             </td>
           </tr>
         `;
-      })
-      .join('');
+    }
+    updatesTableBody.innerHTML = html;
 
     updatesTableBody.querySelectorAll('.action-upgrade-btn').forEach((btn) => {
       btn.addEventListener('click', () => {
