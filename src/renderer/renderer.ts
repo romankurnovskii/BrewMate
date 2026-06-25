@@ -947,22 +947,19 @@ function retryLoad(): void {
 }
 
 function renderCategories(): void {
-  let html = '';
+  categoryChips.innerHTML = '';
   const len = CATEGORIES.length;
   for (let i = 0; i < len; i++) {
     const cat = CATEGORIES[i];
     const isInstalled = cat === uiTranslations.installed;
     const isActive = selectedCategory === cat;
-    html += `
-      <button class="category-chip ${isInstalled ? 'installed-category' : ''} ${
-        isActive ? 'active' : ''
-      }" 
-              data-category="${escapeHtml(cat)}">
-        ${escapeHtml(cat)}${isInstalled ? ' (' + installedApps.size + ')' : ''}
-      </button>
-    `;
+
+    const btn = document.createElement('button');
+    btn.className = `category-chip ${isInstalled ? 'installed-category' : ''} ${isActive ? 'active' : ''}`;
+    btn.dataset.category = cat;
+    btn.textContent = cat + (isInstalled ? ' (' + installedApps.size + ')' : '');
+    categoryChips.appendChild(btn);
   }
-  categoryChips.innerHTML = html;
 
   categoryChips.querySelectorAll('.category-chip').forEach((btn) => {
     btn.addEventListener('click', () => {
@@ -1694,35 +1691,53 @@ function renderUpdatesView(): void {
   if (updatesTable) updatesTable.style.display = 'table';
 
   if (updatesTableBody) {
-    let html = '';
+    updatesTableBody.innerHTML = '';
     const len = outdatedApps.length;
     for (let i = 0; i < len; i++) {
       const app = outdatedApps[i];
-      html += `
-          <tr>
-            <td>
-              <div class="updates-app-name">${escapeHtml(app.name)}</div>
-            </td>
-            <td>
-              <span class="updates-app-type">${escapeHtml(app.type)}</span>
-            </td>
-            <td>
-              <span class="updates-version-badge">${escapeHtml(truncateVersion(app.installedVersion))}</span>
-            </td>
-            <td>
-              <span class="updates-version-badge latest">${escapeHtml(truncateVersion(app.latestVersion))}</span>
-            </td>
-            <td style="text-align: right;">
-              <button class="dashboard-action-btn primary action-upgrade-btn" 
-                      data-app="${escapeHtml(app.name)}" 
-                      data-type="${escapeHtml(app.type)}">
-                ${escapeHtml(uiTranslations.upgrade)}
-              </button>
-            </td>
-          </tr>
-        `;
+      const tr = document.createElement('tr');
+
+      const tdName = document.createElement('td');
+      const divName = document.createElement('div');
+      divName.className = 'updates-app-name';
+      divName.textContent = app.name;
+      tdName.appendChild(divName);
+
+      const tdType = document.createElement('td');
+      const spanType = document.createElement('span');
+      spanType.className = 'updates-app-type';
+      spanType.textContent = app.type;
+      tdType.appendChild(spanType);
+
+      const tdInst = document.createElement('td');
+      const spanInst = document.createElement('span');
+      spanInst.className = 'updates-version-badge';
+      spanInst.textContent = truncateVersion(app.installedVersion);
+      tdInst.appendChild(spanInst);
+
+      const tdLatest = document.createElement('td');
+      const spanLatest = document.createElement('span');
+      spanLatest.className = 'updates-version-badge latest';
+      spanLatest.textContent = truncateVersion(app.latestVersion);
+      tdLatest.appendChild(spanLatest);
+
+      const tdAction = document.createElement('td');
+      tdAction.style.textAlign = 'right';
+      const btn = document.createElement('button');
+      btn.className = 'dashboard-action-btn primary action-upgrade-btn';
+      btn.dataset.app = app.name;
+      btn.dataset.type = app.type;
+      btn.textContent = uiTranslations.upgrade;
+      tdAction.appendChild(btn);
+
+      tr.appendChild(tdName);
+      tr.appendChild(tdType);
+      tr.appendChild(tdInst);
+      tr.appendChild(tdLatest);
+      tr.appendChild(tdAction);
+
+      updatesTableBody.appendChild(tr);
     }
-    updatesTableBody.innerHTML = html;
 
     updatesTableBody.querySelectorAll('.action-upgrade-btn').forEach((btn) => {
       btn.addEventListener('click', () => {
