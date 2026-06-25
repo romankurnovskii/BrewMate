@@ -957,8 +957,8 @@ function renderCategories(): void {
       <button class="category-chip ${isInstalled ? 'installed-category' : ''} ${
         isActive ? 'active' : ''
       }" 
-              data-category="${cat}">
-        ${cat}${isInstalled ? ' (' + installedApps.size + ')' : ''}
+              data-category="${escapeHtml(cat)}">
+        ${escapeHtml(cat)}${isInstalled ? ' (' + installedApps.size + ')' : ''}
       </button>
     `;
   }
@@ -1704,7 +1704,7 @@ function renderUpdatesView(): void {
               <div class="updates-app-name">${escapeHtml(app.name)}</div>
             </td>
             <td>
-              <span class="updates-app-type">${app.type}</span>
+              <span class="updates-app-type">${escapeHtml(app.type)}</span>
             </td>
             <td>
               <span class="updates-version-badge">${escapeHtml(truncateVersion(app.installedVersion))}</span>
