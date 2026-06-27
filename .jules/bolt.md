@@ -37,3 +37,6 @@
 **Learning:** Using `Object.values().find()` inside a rendering loop reallocates arrays and incurs O(N) lookup costs, causing unnecessary overhead during frequent UI updates like chart rendering.
 **Action:** Precompute and maintain a `Map<string, string>` (e.g., `categoryColorMap`) during initial data ingestion to enable O(1) lookups and eliminate redundant allocations during render.
 >>>>>>> 190b8d5 (fix(renderer): eliminate innerHTML injection vulnerabilities)
+## 2024-03-24 - [Array Processing Optimization]
+**Learning:** Using spread syntax (`...`) and `.map()` to merge arrays creates massive intermediate memory spikes on large datasets (~100k items) in Node.js, and `.filter()` in tight loops introduces measurable callback closure overhead.
+**Action:** Always prefer native `for` loops with pre-allocated arrays (e.g., `new Array(len)`) and `.push()` for transformations and filtering on datasets over 10k items to drastically reduce GC pressure and CPU time.

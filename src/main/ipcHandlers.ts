@@ -73,22 +73,35 @@ export function setupIpcHandlers(): void {
           fetchJSON(HOMEBREW_FORMULAS_JSON_URL),
         ]);
 
-        const allApps: App[] = [
-          ...casks.map((cask: any) => ({
+        // Optimization: Pre-allocate array and use native for loops instead of .map() and spread operators.
+        // This avoids creating large intermediate arrays during ingestion of ~100k items, significantly
+        // reducing memory spikes and garbage collection overhead.
+        const casksLen = casks.length;
+        const formulasLen = formulas.length;
+        const allApps: App[] = new Array(casksLen + formulasLen);
+
+        let appIdx = 0;
+        for (let i = 0; i < casksLen; i++) {
+          const cask = casks[i];
+          allApps[appIdx++] = {
             name: cask.token || cask.name,
             description: cask.desc || '',
             homepage: cask.homepage || '',
             version: cask.version || 'N/A',
             type: 'cask' as const,
-          })),
-          ...formulas.map((formula: any) => ({
+          };
+        }
+
+        for (let i = 0; i < formulasLen; i++) {
+          const formula = formulas[i];
+          allApps[appIdx++] = {
             name: formula.name,
             description: formula.desc || '',
             homepage: formula.homepage || '',
             version: formula.versions?.stable || 'N/A',
             type: 'formula' as const,
-          })),
-        ];
+          };
+        }
 
         // Save to cache
         saveToCache(allApps); // Optimization: Now async, runs in background to unblock main thread
