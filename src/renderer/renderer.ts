@@ -1358,12 +1358,14 @@ function renderApps(): void {
   const bottomSpacerHeight = Math.max(0, (totalRows - endRow) * rowHeight);
   const totalHeight = totalRows * rowHeight;
 
-  const appsHTML = visibleApps
-    .map((app) => {
-      const isInstalled = installedApps.has(app.name);
-      return renderAppCard(app, isInstalled);
-    })
-    .join('');
+  // Optimization: Use native for loop with string concatenation instead of .map().join('')
+  // to avoid allocating intermediate arrays and callback closures, improving render speed.
+  let appsHTML = '';
+  for (let i = 0; i < visibleApps.length; i++) {
+    const app = visibleApps[i];
+    const isInstalled = installedApps.has(app.name);
+    appsHTML += renderAppCard(app, isInstalled);
+  }
 
   appsGrid.innerHTML = `
     <div style="height: ${totalHeight}px; position: relative;">
@@ -1683,33 +1685,36 @@ function renderUpdatesView(): void {
   if (updatesTable) updatesTable.style.display = 'table';
 
   if (updatesTableBody) {
-    updatesTableBody.innerHTML = outdatedApps
-      .map((app) => {
-        return `
-          <tr>
-            <td>
-              <div class="updates-app-name">${escapeHtml(app.name)}</div>
-            </td>
-            <td>
-              <span class="updates-app-type">${app.type}</span>
-            </td>
-            <td>
-              <span class="updates-version-badge">${escapeHtml(truncateVersion(app.installedVersion))}</span>
-            </td>
-            <td>
-              <span class="updates-version-badge latest">${escapeHtml(truncateVersion(app.latestVersion))}</span>
-            </td>
-            <td style="text-align: right;">
-              <button class="dashboard-action-btn primary action-upgrade-btn" 
-                      data-app="${escapeHtml(app.name)}" 
-                      data-type="${escapeHtml(app.type)}">
-                ${escapeHtml(uiTranslations.upgrade)}
-              </button>
-            </td>
-          </tr>
-        `;
-      })
-      .join('');
+    // Optimization: Use native for loop with string concatenation instead of .map().join('')
+    // to avoid allocating intermediate arrays and callback closures.
+    let updatesHTML = '';
+    for (let i = 0; i < outdatedApps.length; i++) {
+      const app = outdatedApps[i];
+      updatesHTML += `
+        <tr>
+          <td>
+            <div class="updates-app-name">${escapeHtml(app.name)}</div>
+          </td>
+          <td>
+            <span class="updates-app-type">${app.type}</span>
+          </td>
+          <td>
+            <span class="updates-version-badge">${escapeHtml(truncateVersion(app.installedVersion))}</span>
+          </td>
+          <td>
+            <span class="updates-version-badge latest">${escapeHtml(truncateVersion(app.latestVersion))}</span>
+          </td>
+          <td style="text-align: right;">
+            <button class="dashboard-action-btn primary action-upgrade-btn"
+                    data-app="${escapeHtml(app.name)}"
+                    data-type="${escapeHtml(app.type)}">
+              ${escapeHtml(uiTranslations.upgrade)}
+            </button>
+          </td>
+        </tr>
+      `;
+    }
+    updatesTableBody.innerHTML = updatesHTML;
 
     updatesTableBody.querySelectorAll('.action-upgrade-btn').forEach((btn) => {
       btn.addEventListener('click', () => {
