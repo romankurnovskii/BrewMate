@@ -37,3 +37,6 @@
 **Learning:** Using `Object.values().find()` inside a rendering loop reallocates arrays and incurs O(N) lookup costs, causing unnecessary overhead during frequent UI updates like chart rendering.
 **Action:** Precompute and maintain a `Map<string, string>` (e.g., `categoryColorMap`) during initial data ingestion to enable O(1) lookups and eliminate redundant allocations during render.
 >>>>>>> 190b8d5 (fix(renderer): eliminate innerHTML injection vulnerabilities)
+## 2024-11-09 - [String Building Optimization for UI Elements]
+**Learning:** Generating long HTML strings for virtualized UI lists or tables using `.map().join('')` allocates temporary closures and creates multiple intermediate array objects before joining. In frequent UI updates (like `renderApps` inside scroll events), this creates measurable GC pauses and reduces frame rates.
+**Action:** Default to using native `for` loops combined with string concatenation (`+=`) when building large string buffers for bulk DOM insertion, bypassing unnecessary allocations.
