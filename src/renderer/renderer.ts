@@ -1206,40 +1206,55 @@ function filterApps(): void {
           filteredApps.push(app);
         }
       } else {
-        filteredApps = allApps.filter((app) => {
+        // Optimization: Use native for loop instead of .filter() for O(N) over ~100k items.
+        // It avoids intermediate array allocations and closure overhead, significantly speeding up filtering.
+        for (let i = 0; i < allApps.length; i++) {
+          const app = allApps[i];
           if (selectedType === 'trending') {
             const name =
               app._nameLower !== undefined ? app._nameLower : (app.name || '').toLowerCase();
-            if (!trendingApps.has(name)) return false;
+            if (!trendingApps.has(name)) continue;
           } else if (selectedType !== 'All' && app.type !== selectedType) {
-            return false;
+            continue;
           }
 
           if (selectedCategory !== 'All') {
             const category =
               app._category !== undefined ? app._category : getCategoryForApp(app);
-            if (category !== selectedCategory) return false;
+            if (category !== selectedCategory) continue;
           }
 
           if (searchLower) {
             if (app._searchStr !== undefined) {
               // Optimization: .indexOf is roughly 2x faster than .includes in tight loops
-              return app._searchStr.indexOf(searchLower) !== -1;
+              if (app._searchStr.indexOf(searchLower) !== -1) {
+                filteredApps.push(app);
+              }
+              continue;
             }
 
             // Fallback if _searchStr is somehow missing
             const name =
               app._nameLower !== undefined ? app._nameLower : (app.name || '').toLowerCase();
-            if (name.indexOf(searchLower) !== -1) return true;
+            if (name.indexOf(searchLower) !== -1) {
+              filteredApps.push(app);
+              continue;
+            }
             const desc = (app.description || '').toLowerCase();
-            if (desc.indexOf(searchLower) !== -1) return true;
+            if (desc.indexOf(searchLower) !== -1) {
+              filteredApps.push(app);
+              continue;
+            }
             const homepage = (app.homepage || '').toLowerCase();
-            if (homepage.indexOf(searchLower) !== -1) return true;
-            return false;
+            if (homepage.indexOf(searchLower) !== -1) {
+              filteredApps.push(app);
+              continue;
+            }
+            continue;
           }
 
-          return true;
-        });
+          filteredApps.push(app);
+        }
       }
     }
 
@@ -1358,12 +1373,14 @@ function renderApps(): void {
   const bottomSpacerHeight = Math.max(0, (totalRows - endRow) * rowHeight);
   const totalHeight = totalRows * rowHeight;
 
-  const appsHTML = visibleApps
-    .map((app) => {
-      const isInstalled = installedApps.has(app.name);
-      return renderAppCard(app, isInstalled);
-    })
-    .join('');
+  let appsHTML = '';
+  // Optimization: Use native loop and string concatenation instead of .map().join('')
+  // to avoid intermediate array allocations and reduce GC pressure during virtual scrolling.
+  for (let i = 0; i < visibleApps.length; i++) {
+    const app = visibleApps[i];
+    const isInstalled = installedApps.has(app.name);
+    appsHTML += renderAppCard(app, isInstalled);
+  }
 
   appsGrid.innerHTML = `
     <div style="height: ${totalHeight}px; position: relative;">
@@ -1574,17 +1591,22 @@ function escapeHtml(text: string): string {
   let lastIndex = 0;
 
   for (let i = match.index; i < len; i++) {
-      const char = str.charCodeAt(i);
-      let escape;
-      if (char === 38) escape = '&amp;';      // &
-      else if (char === 60) escape = '&lt;';  // <
-      else if (char === 62) escape = '&gt;';  // >
-      else if (char === 34) escape = '&quot;';// "
-      else if (char === 39) escape = '&#39;'; // '
-      else continue;
+    const char = str.charCodeAt(i);
+    let escape;
+    if (char === 38)
+      escape = '&amp;'; // &
+    else if (char === 60)
+      escape = '&lt;'; // <
+    else if (char === 62)
+      escape = '&gt;'; // >
+    else if (char === 34)
+      escape = '&quot;'; // "
+    else if (char === 39)
+      escape = '&#39;'; // '
+    else continue;
 
-      res += str.substring(lastIndex, i) + escape;
-      lastIndex = i + 1;
+    res += str.substring(lastIndex, i) + escape;
+    lastIndex = i + 1;
   }
 
   return res + str.substring(lastIndex, len);
