@@ -37,3 +37,9 @@
 **Learning:** Using `Object.values().find()` inside a rendering loop reallocates arrays and incurs O(N) lookup costs, causing unnecessary overhead during frequent UI updates like chart rendering.
 **Action:** Precompute and maintain a `Map<string, string>` (e.g., `categoryColorMap`) during initial data ingestion to enable O(1) lookups and eliminate redundant allocations during render.
 >>>>>>> 190b8d5 (fix(renderer): eliminate innerHTML injection vulnerabilities)
+## 2024-07-01 - [DOM String Building Optimization]
+**Learning:** Using `.map().join('')` for HTML string construction inside high-frequency render functions (like virtualized scrolling) creates intermediate arrays and closure scopes, leading to memory bloat and GC pauses.
+**Action:** Always use native `for` loops with string concatenation (`+=`) when building large or frequently-updated HTML strings to minimize allocation overhead.
+## 2026-07-01 - [Array Filtering Optimization]
+**Learning:** Using `.filter()` on massive arrays (~100k items) invokes a callback closure for every single item, creating significant CPU overhead and blocking the main thread during frequent UI updates like searching.
+**Action:** When iterating over massive datasets to build a filtered array, always use a native `for` loop and manually `.push()` matching items to eliminate closure overhead.
