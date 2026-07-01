@@ -963,7 +963,8 @@ function renderCategories(): void {
       </button>
     `;
   }
-  categoryChips.innerHTML = categoriesHTML;
+  categoryChips.innerHTML = '';
+  categoryChips.insertAdjacentHTML('beforeend', categoriesHTML);
 
   categoryChips.querySelectorAll('.category-chip').forEach((btn) => {
     btn.addEventListener('click', () => {
@@ -1729,7 +1730,8 @@ function renderUpdatesView(): void {
           </tr>
         `;
     }
-    updatesTableBody.innerHTML = updatesHTML;
+    updatesTableBody.innerHTML = '';
+    updatesTableBody.insertAdjacentHTML('beforeend', updatesHTML);
 
     updatesTableBody.querySelectorAll('.action-upgrade-btn').forEach((btn) => {
       btn.addEventListener('click', () => {
