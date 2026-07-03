@@ -37,3 +37,6 @@
 **Learning:** Using `Object.values().find()` inside a rendering loop reallocates arrays and incurs O(N) lookup costs, causing unnecessary overhead during frequent UI updates like chart rendering.
 **Action:** Precompute and maintain a `Map<string, string>` (e.g., `categoryColorMap`) during initial data ingestion to enable O(1) lookups and eliminate redundant allocations during render.
 >>>>>>> 190b8d5 (fix(renderer): eliminate innerHTML injection vulnerabilities)
+## 2024-11-20 - [Optimizing Array Iteration for Massive Datasets]
+**Learning:** When iterating over massive arrays (~100k items) in V8, native `for` loops (e.g., `for (let i = 0; i < len; i++)`) consistently outperform `for...of` loops and array methods like `.filter()` by avoiding the iterator protocol and callback closure overhead.
+**Action:** Use native `for` loops instead of iterators and array methods when processing massive datasets to improve UI responsiveness.
