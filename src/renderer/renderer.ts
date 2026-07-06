@@ -1206,40 +1206,47 @@ function filterApps(): void {
           filteredApps.push(app);
         }
       } else {
-        filteredApps = allApps.filter((app) => {
+        // Optimization: Native for loop outperforms .filter() on massive arrays (~100k items) by avoiding callback overhead.
+        for (let i = 0, len = allApps.length; i < len; i++) {
+          const app = allApps[i];
           if (selectedType === 'trending') {
             const name =
               app._nameLower !== undefined ? app._nameLower : (app.name || '').toLowerCase();
-            if (!trendingApps.has(name)) return false;
+            if (!trendingApps.has(name)) continue;
           } else if (selectedType !== 'All' && app.type !== selectedType) {
-            return false;
+            continue;
           }
 
           if (selectedCategory !== 'All') {
             const category =
               app._category !== undefined ? app._category : getCategoryForApp(app);
-            if (category !== selectedCategory) return false;
+            if (category !== selectedCategory) continue;
           }
 
           if (searchLower) {
             if (app._searchStr !== undefined) {
               // Optimization: .indexOf is roughly 2x faster than .includes in tight loops
-              return app._searchStr.indexOf(searchLower) !== -1;
+              if (app._searchStr.indexOf(searchLower) === -1) continue;
+            } else {
+              // Fallback if _searchStr is somehow missing
+              const name =
+                app._nameLower !== undefined ? app._nameLower : (app.name || '').toLowerCase();
+              if (name.indexOf(searchLower) !== -1) {
+                // match
+              } else {
+                const desc = (app.description || '').toLowerCase();
+                if (desc.indexOf(searchLower) !== -1) {
+                  // match
+                } else {
+                  const homepage = (app.homepage || '').toLowerCase();
+                  if (homepage.indexOf(searchLower) === -1) continue;
+                }
+              }
             }
-
-            // Fallback if _searchStr is somehow missing
-            const name =
-              app._nameLower !== undefined ? app._nameLower : (app.name || '').toLowerCase();
-            if (name.indexOf(searchLower) !== -1) return true;
-            const desc = (app.description || '').toLowerCase();
-            if (desc.indexOf(searchLower) !== -1) return true;
-            const homepage = (app.homepage || '').toLowerCase();
-            if (homepage.indexOf(searchLower) !== -1) return true;
-            return false;
           }
 
-          return true;
-        });
+          filteredApps.push(app);
+        }
       }
     }
 
