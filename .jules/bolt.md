@@ -37,3 +37,6 @@
 **Learning:** Using `Object.values().find()` inside a rendering loop reallocates arrays and incurs O(N) lookup costs, causing unnecessary overhead during frequent UI updates like chart rendering.
 **Action:** Precompute and maintain a `Map<string, string>` (e.g., `categoryColorMap`) during initial data ingestion to enable O(1) lookups and eliminate redundant allocations during render.
 >>>>>>> 190b8d5 (fix(renderer): eliminate innerHTML injection vulnerabilities)
+## 2024-07-07 - Pre-allocated Array for Merging Massive Datasets
+**Learning:** When combining and mapping large datasets (e.g., merging multiple arrays of ~100k items like Homebrew casks and formulas), using the spread syntax (`...`) combined with `.map()` creates massive intermediate arrays and causes significant Garbage Collection (GC) overhead.
+**Action:** When working with massive arrays, avoid `.map()` and spread syntax. Instead, use a pre-allocated array (e.g., `new Array(totalLength)`) and populate it manually via native `for` loops. This avoids intermediate allocations and speeds up execution significantly.

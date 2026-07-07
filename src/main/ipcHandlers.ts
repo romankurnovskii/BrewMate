@@ -4,7 +4,13 @@ import * as path from 'path';
 import { fetchJSON } from '../utils/fetchData';
 import { loadFromCache, saveToCache } from '../utils/cache';
 import { getTerminalPromptInfo } from '../utils/terminal';
-import { getInstalledApps, getOutdatedApps, getCacheSize, getAppDetails, scanVulnerabilities } from '../utils/brew';
+import {
+  getInstalledApps,
+  getOutdatedApps,
+  getCacheSize,
+  getAppDetails,
+  scanVulnerabilities,
+} from '../utils/brew';
 import { logCommand, getLogFilePath } from '../utils/logger';
 import { getEnvWithBrewPath } from '../utils/path';
 import { HOMEBREW_CASKS_JSON_URL, HOMEBREW_FORMULAS_JSON_URL } from '../constants';
@@ -73,22 +79,30 @@ export function setupIpcHandlers(): void {
           fetchJSON(HOMEBREW_FORMULAS_JSON_URL),
         ]);
 
-        const allApps: App[] = [
-          ...casks.map((cask: any) => ({
+        // Optimization: Use pre-allocated array and native for loops to prevent massive GC overhead and intermediate array allocations when merging ~100k items.
+        const clen = casks.length;
+        const flen = formulas.length;
+        const allApps: App[] = new Array(clen + flen);
+        for (let i = 0; i < clen; i++) {
+          const cask = casks[i];
+          allApps[i] = {
             name: cask.token || cask.name,
             description: cask.desc || '',
             homepage: cask.homepage || '',
             version: cask.version || 'N/A',
             type: 'cask' as const,
-          })),
-          ...formulas.map((formula: any) => ({
+          };
+        }
+        for (let i = 0; i < flen; i++) {
+          const formula = formulas[i];
+          allApps[clen + i] = {
             name: formula.name,
             description: formula.desc || '',
             homepage: formula.homepage || '',
             version: formula.versions?.stable || 'N/A',
             type: 'formula' as const,
-          })),
-        ];
+          };
+        }
 
         // Save to cache
         saveToCache(allApps); // Optimization: Now async, runs in background to unblock main thread
@@ -305,16 +319,19 @@ export function setupIpcHandlers(): void {
   });
 
   // Get app details
-  ipcMain.on('get-app-details', async (event: IpcMainEvent, appName: string, type: 'cask' | 'formula') => {
-    console.log('[IPC] get-app-details received for:', appName);
-    try {
-      const details = await getAppDetails(appName, type);
-      event.reply('app-details', { appName, details });
-    } catch (error: any) {
-      console.error('[IPC] Error getting app details:', error);
-      event.reply('app-details', { appName, details: null });
+  ipcMain.on(
+    'get-app-details',
+    async (event: IpcMainEvent, appName: string, type: 'cask' | 'formula') => {
+      console.log('[IPC] get-app-details received for:', appName);
+      try {
+        const details = await getAppDetails(appName, type);
+        event.reply('app-details', { appName, details });
+      } catch (error: any) {
+        console.error('[IPC] Error getting app details:', error);
+        event.reply('app-details', { appName, details: null });
+      }
     }
-  });
+  );
 
   // Scan vulnerabilities
   ipcMain.on('scan-vulnerabilities', async (event: IpcMainEvent) => {
@@ -334,14 +351,13 @@ export function setupIpcHandlers(): void {
     try {
       const [formulaData, caskData] = await Promise.all([
         fetchJSON('https://formulae.brew.sh/api/analytics/install/30d.json'),
-        fetchJSON('https://formulae.brew.sh/api/analytics/cask-install/homebrew-cask/30d.json')
+        fetchJSON(
+          'https://formulae.brew.sh/api/analytics/cask-install/homebrew-cask/30d.json'
+        ),
       ]);
-      
-      const combinedItems = [
-        ...(formulaData?.items || []),
-        ...(caskData?.items || [])
-      ];
-      
+
+      const combinedItems = [...(formulaData?.items || []), ...(caskData?.items || [])];
+
       event.reply('trending-apps-result', { items: combinedItems });
     } catch (error: any) {
       console.error('[IPC] Error getting trending apps:', error);
@@ -479,37 +495,40 @@ export function setupIpcHandlers(): void {
   });
 
   // Execute Service Action
-  ipcMain.on('execute-service-action', (event: IpcMainEvent, action: string, serviceName: string) => {
-    if (!['start', 'stop', 'restart'].includes(action)) return;
-    const command = `brew services ${action} ${serviceName}`;
-    console.log('[IPC] Executing service action:', command);
-    let output = '';
-    logCommand(command);
+  ipcMain.on(
+    'execute-service-action',
+    (event: IpcMainEvent, action: string, serviceName: string) => {
+      if (!['start', 'stop', 'restart'].includes(action)) return;
+      const command = `brew services ${action} ${serviceName}`;
+      console.log('[IPC] Executing service action:', command);
+      let output = '';
+      logCommand(command);
 
-    const shell = spawn(command, [], {
-      shell: true,
-      cwd: process.env.HOME || process.cwd(),
-      env: getEnvWithBrewPath(),
-    });
+      const shell = spawn(command, [], {
+        shell: true,
+        cwd: process.env.HOME || process.cwd(),
+        env: getEnvWithBrewPath(),
+      });
 
-    shell.stdout.on('data', (data) => {
-      const dataStr = data.toString();
-      output += dataStr;
-      event.reply('terminal-output', dataStr);
-    });
+      shell.stdout.on('data', (data) => {
+        const dataStr = data.toString();
+        output += dataStr;
+        event.reply('terminal-output', dataStr);
+      });
 
-    shell.stderr.on('data', (data) => {
-      const dataStr = data.toString();
-      output += dataStr;
-      event.reply('terminal-output', dataStr);
-    });
+      shell.stderr.on('data', (data) => {
+        const dataStr = data.toString();
+        output += dataStr;
+        event.reply('terminal-output', dataStr);
+      });
 
-    shell.on('close', (code) => {
-      logCommand(command, output, code);
-      event.reply('service-action-complete', { serviceName, action, success: code === 0 });
-      event.reply('terminal-output', `\nProcess exited with code ${code}\n`);
-    });
-  });
+      shell.on('close', (code) => {
+        logCommand(command, output, code);
+        event.reply('service-action-complete', { serviceName, action, success: code === 0 });
+        event.reply('terminal-output', `\nProcess exited with code ${code}\n`);
+      });
+    }
+  );
 
   // Get categories configuration
   ipcMain.handle('get-categories', async () => {
@@ -529,4 +548,3 @@ export function setupIpcHandlers(): void {
     }
   });
 }
-
