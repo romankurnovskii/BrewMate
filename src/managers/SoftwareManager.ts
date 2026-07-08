@@ -37,8 +37,6 @@ export class SoftwareManager {
   }
 
   async query(filters: SoftwareQuery = {}): Promise<Software[]> {
-    let results = Array.from(this.softwareMap.values());
-
     const {
       keyword,
       category,
@@ -51,35 +49,35 @@ export class SoftwareManager {
       offset,
     } = filters;
 
-    // Keyword filter (matches name, description, tags)
-    if (keyword) {
-      const kw = keyword.toLowerCase();
-      results = results.filter(
-        (s) =>
-          s.name.toLowerCase().includes(kw) ||
-          s.description.toLowerCase().includes(kw) ||
-          s.tags.some((t) => t.toLowerCase().includes(kw))
-      );
-    }
+    let results: Software[] = [];
+    const kw = keyword ? keyword.toLowerCase() : undefined;
 
-    // Category filter
-    if (category) {
-      results = results.filter((s) => s.category === category);
-    }
+    // Optimization: Replaced chained .filter() and .includes() with a single native for loop and .indexOf() !== -1
+    // to avoid intermediate array allocations and reduce GC overhead.
+    for (const s of this.softwareMap.values()) {
+      if (kw) {
+        let tagMatch = false;
+        for (let i = 0; i < s.tags.length; i++) {
+          if (s.tags[i].toLowerCase().indexOf(kw) !== -1) {
+            tagMatch = true;
+            break;
+          }
+        }
+        if (
+          s.name.toLowerCase().indexOf(kw) === -1 &&
+          s.description.toLowerCase().indexOf(kw) === -1 &&
+          !tagMatch
+        ) {
+          continue;
+        }
+      }
 
-    // Tag filter
-    if (tag) {
-      results = results.filter((s) => s.tags.includes(tag));
-    }
+      if (category && s.category !== category) continue;
+      if (tag && s.tags.indexOf(tag) === -1) continue;
+      if (license && s.license !== license) continue;
+      if (status && status !== 'all' && s.status !== status) continue;
 
-    // License filter
-    if (license) {
-      results = results.filter((s) => s.license === license);
-    }
-
-    // Status filter
-    if (status && status !== 'all') {
-      results = results.filter((s) => s.status === status);
+      results.push(s);
     }
 
     // Sorting

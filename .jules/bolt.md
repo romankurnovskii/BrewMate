@@ -21,7 +21,6 @@
 ## 2024-10-24 - [Optimizing Application Category Fallback Resolution]
 **Learning:** For extremely large data lists (like the ~100k Homebrew apps), calculating fallbacks inside an inline loop for each app blocks the main thread noticeably because `Object.values(categoryDictionary.categories)` recalculates the array on every single item.
 **Action:** Always pre-compile constants arrays, like categories with keywords, outside of loop bodies and avoid Object.keys / Object.values in tight loops executing on high volumes of records.
-<<<<<<< HEAD
 ## 2024-10-24 - [Optimizing Application Category Color Lookups]
 **Learning:** Using `Object.values().find()` inside a loop for rendering UI elements reallocates arrays and incurs O(N) lookup costs. In `renderDashboardDonutChart`, this was recalculating colors for every single donut chart segment unnecessarily.
 **Action:** Precompute and maintain a `Map` (like `categoryColorMap`) during data ingestion to enable O(1) lookups and eliminate redundant allocations during renders.
@@ -32,8 +31,10 @@
 ## 2026-06-20 - Optimized subset filtering using Set iteration
 **Learning:** When filtering a massive dataset (~100k items) down to a known subset (like installed apps), iterating through the entire massive array and checking `subset.has(item.name)` is extremely slow ($O(N)$).
 **Action:** Instead of filtering the massive array, iterate through the smaller subset (`installedApps` Set) and pull the complete metadata directly from a precomputed $O(1)$ Map (`allAppsMap`), reducing time complexity to $O(K)$.
-=======
 ## 2024-11-08 - Optimized category color lookup with O(1) Map
 **Learning:** Using `Object.values().find()` inside a rendering loop reallocates arrays and incurs O(N) lookup costs, causing unnecessary overhead during frequent UI updates like chart rendering.
 **Action:** Precompute and maintain a `Map<string, string>` (e.g., `categoryColorMap`) during initial data ingestion to enable O(1) lookups and eliminate redundant allocations during render.
->>>>>>> 190b8d5 (fix(renderer): eliminate innerHTML injection vulnerabilities)
+
+## 2024-07-08 - [Optimize SoftwareManager queries]
+**Learning:** Chaining `.filter()` on large lists of objects like software items creates intermediate arrays, adding overhead to garbage collection and iteration speed. Native `for` loops combined with `.indexOf() !== -1` string checking consistently outperform array methods on these datasets, significantly improving data aggregation logic blocking times on the main thread.
+**Action:** Always employ native `for` loops and chunk filtering steps together inside one single iteration to avoid redundant array generation for frequently accessed datasets.
