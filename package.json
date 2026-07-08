@@ -1,13 +1,13 @@
 {
   "name": "brewmate",
-  "version": "1.0.29",
+  "version": "1.0.31",
   "description": "BrewMate - A modern package manager GUI for macOS",
   "author": "Roman Kurnovskii",
   "main": "dist/index.js",
   "scripts": {
     "build": "tsc && npm run build:renderer && npm run copy:static",
     "build:renderer": "tsc -p tsconfig.renderer.json",
-    "copy:static": "mkdir -p dist/renderer && mkdir -p dist/assets && mkdir -p dist/locales && cp src/renderer/index.html dist/renderer/ && cp src/renderer/styles.css dist/renderer/ && cp locales/*.json dist/locales/ && if [ -d src/assets ]; then cp -r src/assets/* dist/assets/; elif [ -d assets ]; then cp -r assets/* dist/assets/; fi",
+    "copy:static": "mkdir -p dist/renderer && mkdir -p dist/assets && mkdir -p dist/locales && cp src/renderer/index.html dist/renderer/ && cp src/renderer/styles.css dist/renderer/ && cp locales/*.json dist/locales/ && if [ -d src/assets ]; then cp -r src/assets/* dist/assets/; elif [ -d assets ]; then cp -r assets/* dist/assets/; fi && if [ -f src/assets/categories.json ]; then cp src/assets/categories.json dist/assets/categories.json; fi",
     "start": "electron .",
     "start:dev": "NODE_ENV=development npm start",
     "build:mac": "npm run build && electron-builder --mac",
@@ -31,7 +31,7 @@
     "electron": "^42.4.0",
     "electron-builder": "^26.15.3",
     "jest": "^30.3.0",
-    "lint-staged": "^17.0.8",
+    "lint-staged": "^17.0.7",
     "prettier": "^3.8.4",
     "ts-jest": "^29.4.11",
     "typescript": "^6.0.3"

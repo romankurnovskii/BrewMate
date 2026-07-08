@@ -514,19 +514,46 @@ export function setupIpcHandlers(): void {
   // Get categories configuration
   ipcMain.handle('get-categories', async () => {
     const fs = require('fs').promises;
-    let assetPath: string;
+
+    // Collect context for diagnostics
+    const context = {
+      isPackaged: app.isPackaged,
+      resourcesPath: process.resourcesPath,
+      dirname: __dirname,
+      cwd: process.cwd(),
+    };
+
+    // Build list of paths to try — primary first, then fallbacks
+    const pathsToTry: string[] = [];
     if (app.isPackaged) {
-      assetPath = path.join(process.resourcesPath, 'assets', 'categories.json');
+      // Production: extraResources puts assets at Resources/assets/
+      pathsToTry.push(path.join(process.resourcesPath, 'assets', 'categories.json'));
+      // Fallback: dev-style path in case the build structure differs
+      pathsToTry.push(path.join(__dirname, '../assets', 'categories.json'));
+      // Fallback: project root assets/ (for some self-compiled scenarios)
+      pathsToTry.push(path.join(process.cwd(), 'assets', 'categories.json'));
     } else {
-      assetPath = path.join(__dirname, '../assets', 'categories.json');
+      // Development: compiled output at dist/, assets at dist/assets/
+      pathsToTry.push(path.join(__dirname, '../assets', 'categories.json'));
+      // Fallback: source directory directly
+      pathsToTry.push(path.join(__dirname, '../../src/assets', 'categories.json'));
     }
-    try {
-      const data = await fs.readFile(assetPath, 'utf8');
-      return JSON.parse(data);
-    } catch (error) {
-      console.error('[IPC] Error reading categories.json:', error);
-      throw error;
+
+    let lastError: Error | null = null;
+    for (const assetPath of pathsToTry) {
+      try {
+        const data = await fs.readFile(assetPath, 'utf8');
+        return JSON.parse(data);
+      } catch (error) {
+        lastError = error as Error;
+        console.error(`[IPC] Failed to read categories from: ${assetPath}`, error);
+      }
     }
+
+    // All paths failed — log full context and throw
+    console.error('[IPC] All category paths failed:', JSON.stringify(context, null, 2));
+    console.error('[IPC] Last error:', lastError);
+    throw lastError || new Error('Unable to load categories from any path');
   });
 }
 

@@ -401,11 +401,12 @@ async function init(): Promise<void> {
         renderCategories();
         loadData();
 
-        // Log error in the terminal
+        // Log error in the terminal with diagnostic info
         if (terminalOutput) {
+          const errMsg = err?.message || String(err);
           terminalOutput.insertAdjacentHTML(
             'beforeend',
-            `<span class="terminal-prompt" style="color: #ff4d4f;">[Error]</span> Failed to load categories. Please check your installation.\n`
+            `<span class="terminal-prompt" style="color: #ff4d4f;">[Error]</span> Failed to load categories. Using fallback categories. Details: ${errMsg}\n`
           );
         }
       });
