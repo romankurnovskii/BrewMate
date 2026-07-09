@@ -37,3 +37,7 @@
 **Learning:** Using `Object.values().find()` inside a rendering loop reallocates arrays and incurs O(N) lookup costs, causing unnecessary overhead during frequent UI updates like chart rendering.
 **Action:** Precompute and maintain a `Map<string, string>` (e.g., `categoryColorMap`) during initial data ingestion to enable O(1) lookups and eliminate redundant allocations during render.
 >>>>>>> 190b8d5 (fix(renderer): eliminate innerHTML injection vulnerabilities)
+
+## 2026-07-09 - [Optimizing for...of Loops on Massive Arrays]
+**Learning:** In modern V8 engines (Electron/Node), replacing `for...of` loops with native `for` loops on arrays is a negligible micro-optimization. When processing massive arrays (~100k items), focus on eliminating inner loop bottlenecks like string creation (e.g., `.toLowerCase()`), concatenation, object property access, and Map insertions.
+**Action:** Reserve loop unrolling and native `for` loops for operations where iteration protocol overhead is truly measurable; otherwise, prioritize refactoring the core logic inside the loops to achieve meaningful performance gains.

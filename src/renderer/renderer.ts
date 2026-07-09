@@ -614,7 +614,10 @@ function setupIpcListeners(): void {
   ipcRenderer.on('all-apps', (_event: any, apps: Array<App>) => {
     console.log('[Renderer] Received all-apps:', apps.length);
     allAppsMap.clear();
-    for (const app of apps) {
+    // Optimization: Native for loop outperforms for...of on massive arrays (~100k items)
+    const len = apps.length;
+    for (let i = 0; i < len; i++) {
+      const app = apps[i];
       app._nameLower = (app.name || '').toLowerCase();
       app._searchStr = `${app._nameLower}\0${(app.description || '').toLowerCase()}\0${(app.homepage || '').toLowerCase()}`;
       app._category = getCategoryForApp(app);
@@ -700,7 +703,10 @@ function setupIpcListeners(): void {
   );
   ipcRenderer.on('all-apps-updated', (_event: any, apps: Array<App>) => {
     allAppsMap.clear();
-    for (const app of apps) {
+    // Optimization: Native for loop outperforms for...of on massive arrays (~100k items)
+    const len = apps.length;
+    for (let i = 0; i < len; i++) {
+      const app = apps[i];
       app._nameLower = (app.name || '').toLowerCase();
       app._searchStr = `${app._nameLower}\0${(app.description || '').toLowerCase()}\0${(app.homepage || '').toLowerCase()}`;
       app._category = getCategoryForApp(app);
