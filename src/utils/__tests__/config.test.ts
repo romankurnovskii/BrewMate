@@ -23,17 +23,17 @@ describe('.gitignore', () => {
     lines = content.split('\n').map((l) => l.replace(/\r$/, '')); // normalise CRLF
   });
 
-  it('should contain the memory-bank/ pattern added in this PR', () => {
-    expect(lines).toContain('memory-bank/');
+  it('should contain the .memory-bank/ pattern added in this PR', () => {
+    expect(lines).toContain('.memory-bank/');
   });
 
-  it('should have memory-bank/ as a standalone entry (exact line match)', () => {
-    const matchingLines = lines.filter((l) => l.trim() === 'memory-bank/');
+  it('should have .memory-bank/ as a standalone entry (exact line match)', () => {
+    const matchingLines = lines.filter((l) => l.trim() === '.memory-bank/');
     expect(matchingLines).toHaveLength(1);
   });
 
-  it('memory-bank/ pattern should use the trailing-slash directory syntax', () => {
-    const entry = lines.find((l) => l.trim() === 'memory-bank/');
+  it('.memory-bank/ pattern should use the trailing-slash directory syntax', () => {
+    const entry = lines.find((l) => l.trim() === '.memory-bank/');
     expect(entry).toBeDefined();
     // Gitignore directory patterns end with '/'
     expect(entry!.endsWith('/')).toBe(true);
@@ -47,18 +47,18 @@ describe('.gitignore', () => {
     expect(lines).toContain('dist/');
   });
 
-  it('memory-bank/ should appear only once (no duplicate entries)', () => {
-    const count = lines.filter((l) => l.trim() === 'memory-bank/').length;
+  it('.memory-bank/ should appear only once (no duplicate entries)', () => {
+    const count = lines.filter((l) => l.trim() === '.memory-bank/').length;
     expect(count).toBe(1);
   });
 
-  it('should not have a blank line inserted between memory-bank/ and the previous entry', () => {
-    const idx = lines.findIndex((l) => l.trim() === 'memory-bank/');
+  it('should not have a blank line inserted between .memory-bank/ and the previous entry', () => {
+    const idx = lines.findIndex((l) => l.trim() === '.memory-bank/');
     expect(idx).toBeGreaterThan(0);
-    // The line directly before should not be another memory-bank/ and should exist
+    // The line directly before should not be another .memory-bank/ and should exist
     const previous = lines[idx - 1];
     expect(previous).toBeDefined();
-    expect(previous.trim()).not.toBe('memory-bank/');
+    expect(previous.trim()).not.toBe('.memory-bank/');
   });
 
   it('should be readable as a UTF-8 text file without errors', () => {

@@ -25,7 +25,7 @@ files:
 extraMetadata:
   main: dist/index.js
 
-extraFiles:
+extraResources:
   - from: dist/assets
     to: assets
     filter:

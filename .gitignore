@@ -6,6 +6,7 @@ out/
 
 # Build artifacts
 build/icon.iconset/
+ipcHandlers.js
 
 # Test coverage
 coverage/
@@ -38,4 +39,4 @@ yarn-error.log*
 docs/
 .dev/
 AGENTS.md
-memory-bank/
+.memory-bank/
