@@ -1191,6 +1191,48 @@ function filterApps(): void {
               // Fallback if _searchStr is somehow missing
               const name =
                 app._nameLower !== undefined ? app._nameLower : (app.name || '').toLowerCase();
+              const desc = (app.description || '').toLowerCase();
+              const homepage = (app.homepage || '').toLowerCase();
+
+              if (
+                name.indexOf(searchLower) === -1 &&
+                desc.indexOf(searchLower) === -1 &&
+                homepage.indexOf(searchLower) === -1
+              ) {
+                continue;
+              }
+            }
+          }
+          filteredApps.push(app);
+        }
+      } else {
+        // Optimization: Replacing chained .filter() with a native for loop on massive arrays (~100k)
+        // significantly outperforms the higher-order function by avoiding intermediate allocations.
+        for (let i = 0; i < allApps.length; i++) {
+          const app = allApps[i];
+
+          if (selectedType === 'trending') {
+            const name =
+              app._nameLower !== undefined ? app._nameLower : (app.name || '').toLowerCase();
+            if (!trendingApps.has(name)) continue;
+          } else if (selectedType !== 'All' && app.type !== selectedType) {
+            continue;
+          }
+
+          if (selectedCategory !== 'All') {
+            const category =
+              app._category !== undefined ? app._category : getCategoryForApp(app);
+            if (category !== selectedCategory) continue;
+          }
+
+          if (searchLower) {
+            if (app._searchStr !== undefined) {
+              // Optimization: .indexOf is roughly 2x faster than .includes in tight loops
+              if (app._searchStr.indexOf(searchLower) === -1) continue;
+            } else {
+              // Fallback if _searchStr is somehow missing
+              const name =
+                app._nameLower !== undefined ? app._nameLower : (app.name || '').toLowerCase();
               if (name.indexOf(searchLower) !== -1) {
                 // match
               } else {
@@ -1206,41 +1248,6 @@ function filterApps(): void {
           }
           filteredApps.push(app);
         }
-      } else {
-        filteredApps = allApps.filter((app) => {
-          if (selectedType === 'trending') {
-            const name =
-              app._nameLower !== undefined ? app._nameLower : (app.name || '').toLowerCase();
-            if (!trendingApps.has(name)) return false;
-          } else if (selectedType !== 'All' && app.type !== selectedType) {
-            return false;
-          }
-
-          if (selectedCategory !== 'All') {
-            const category =
-              app._category !== undefined ? app._category : getCategoryForApp(app);
-            if (category !== selectedCategory) return false;
-          }
-
-          if (searchLower) {
-            if (app._searchStr !== undefined) {
-              // Optimization: .indexOf is roughly 2x faster than .includes in tight loops
-              return app._searchStr.indexOf(searchLower) !== -1;
-            }
-
-            // Fallback if _searchStr is somehow missing
-            const name =
-              app._nameLower !== undefined ? app._nameLower : (app.name || '').toLowerCase();
-            if (name.indexOf(searchLower) !== -1) return true;
-            const desc = (app.description || '').toLowerCase();
-            if (desc.indexOf(searchLower) !== -1) return true;
-            const homepage = (app.homepage || '').toLowerCase();
-            if (homepage.indexOf(searchLower) !== -1) return true;
-            return false;
-          }
-
-          return true;
-        });
       }
     }
 
@@ -1575,17 +1582,22 @@ function escapeHtml(text: string): string {
   let lastIndex = 0;
 
   for (let i = match.index; i < len; i++) {
-      const char = str.charCodeAt(i);
-      let escape;
-      if (char === 38) escape = '&amp;';      // &
-      else if (char === 60) escape = '&lt;';  // <
-      else if (char === 62) escape = '&gt;';  // >
-      else if (char === 34) escape = '&quot;';// "
-      else if (char === 39) escape = '&#39;'; // '
-      else continue;
+    const char = str.charCodeAt(i);
+    let escape;
+    if (char === 38)
+      escape = '&amp;'; // &
+    else if (char === 60)
+      escape = '&lt;'; // <
+    else if (char === 62)
+      escape = '&gt;'; // >
+    else if (char === 34)
+      escape = '&quot;'; // "
+    else if (char === 39)
+      escape = '&#39;'; // '
+    else continue;
 
-      res += str.substring(lastIndex, i) + escape;
-      lastIndex = i + 1;
+    res += str.substring(lastIndex, i) + escape;
+    lastIndex = i + 1;
   }
 
   return res + str.substring(lastIndex, len);
