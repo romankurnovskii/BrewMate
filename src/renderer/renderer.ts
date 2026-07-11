@@ -1192,19 +1192,21 @@ function filterApps(): void {
               if (app._searchStr.indexOf(searchLower) === -1) continue;
             } else {
               // Fallback if _searchStr is somehow missing
+              let matchFound = false;
               const name =
                 app._nameLower !== undefined ? app._nameLower : (app.name || '').toLowerCase();
               if (name.indexOf(searchLower) !== -1) {
-                // match
+                matchFound = true;
               } else {
                 const desc = (app.description || '').toLowerCase();
                 if (desc.indexOf(searchLower) !== -1) {
-                  // match
+                  matchFound = true;
                 } else {
                   const homepage = (app.homepage || '').toLowerCase();
-                  if (homepage.indexOf(searchLower) === -1) continue;
+                  if (homepage.indexOf(searchLower) !== -1) matchFound = true;
                 }
               }
+              if (!matchFound) continue;
             }
           }
           filteredApps.push(app);
@@ -1233,19 +1235,21 @@ function filterApps(): void {
               if (app._searchStr.indexOf(searchLower) === -1) continue;
             } else {
               // Fallback if _searchStr is somehow missing
+              let matchFound = false;
               const name =
                 app._nameLower !== undefined ? app._nameLower : (app.name || '').toLowerCase();
               if (name.indexOf(searchLower) !== -1) {
-                // match
+                matchFound = true;
               } else {
                 const desc = (app.description || '').toLowerCase();
                 if (desc.indexOf(searchLower) !== -1) {
-                  // match
+                  matchFound = true;
                 } else {
                   const homepage = (app.homepage || '').toLowerCase();
-                  if (homepage.indexOf(searchLower) === -1) continue;
+                  if (homepage.indexOf(searchLower) !== -1) matchFound = true;
                 }
               }
+              if (!matchFound) continue;
             }
           }
 
