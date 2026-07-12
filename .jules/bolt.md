@@ -37,3 +37,6 @@
 **Learning:** Using `Object.values().find()` inside a rendering loop reallocates arrays and incurs O(N) lookup costs, causing unnecessary overhead during frequent UI updates like chart rendering.
 **Action:** Precompute and maintain a `Map<string, string>` (e.g., `categoryColorMap`) during initial data ingestion to enable O(1) lookups and eliminate redundant allocations during render.
 >>>>>>> 190b8d5 (fix(renderer): eliminate innerHTML injection vulnerabilities)
+## 2024-07-11 - Chain Methods vs Single Pass Loops
+**Learning:** In V8/JavaScript, chaining multiple array methods (`Object.entries(obj).sort().filter().slice()`) creates several intermediate arrays that trigger Garbage Collection and delay execution. When this runs frequently on the UI thread (like chart rendering), it causes stuttering.
+**Action:** When extracting data from objects (especially with conditionals and limits), always replace chained array methods with a single-pass `for` loop over `Object.keys()` to populate an array, and then apply `sort()` and `length` truncation directly.
