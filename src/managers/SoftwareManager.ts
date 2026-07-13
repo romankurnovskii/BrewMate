@@ -37,8 +37,6 @@ export class SoftwareManager {
   }
 
   async query(filters: SoftwareQuery = {}): Promise<Software[]> {
-    let results = Array.from(this.softwareMap.values());
-
     const {
       keyword,
       category,
@@ -51,35 +49,44 @@ export class SoftwareManager {
       offset,
     } = filters;
 
-    // Keyword filter (matches name, description, tags)
-    if (keyword) {
-      const kw = keyword.toLowerCase();
-      results = results.filter(
-        (s) =>
-          s.name.toLowerCase().includes(kw) ||
-          s.description.toLowerCase().includes(kw) ||
-          s.tags.some((t) => t.toLowerCase().includes(kw))
-      );
-    }
+    const results: Software[] = [];
+    const kw = keyword ? keyword.toLowerCase() : '';
 
-    // Category filter
-    if (category) {
-      results = results.filter((s) => s.category === category);
-    }
+    // Optimization: Single-pass for-of loop over values, replacing multiple chained .filter() allocations.
+    // Iterates the Map's values iterator directly to avoid an intermediate Array.from() allocation.
+    for (const s of this.softwareMap.values()) {
 
-    // Tag filter
-    if (tag) {
-      results = results.filter((s) => s.tags.includes(tag));
-    }
+      // Keyword filter (matches name, description, tags)
+      if (kw) {
+        let match = false;
+        if (s.name.toLowerCase().indexOf(kw) !== -1) {
+          match = true;
+        } else if (s.description.toLowerCase().indexOf(kw) !== -1) {
+          match = true;
+        } else {
+          for (let j = 0; j < s.tags.length; j++) {
+            if (s.tags[j].toLowerCase().indexOf(kw) !== -1) {
+              match = true;
+              break;
+            }
+          }
+        }
+        if (!match) continue;
+      }
 
-    // License filter
-    if (license) {
-      results = results.filter((s) => s.license === license);
-    }
+      // Category filter
+      if (category && s.category !== category) continue;
 
-    // Status filter
-    if (status && status !== 'all') {
-      results = results.filter((s) => s.status === status);
+      // Tag filter
+      if (tag && s.tags.indexOf(tag) === -1) continue;
+
+      // License filter
+      if (license && s.license !== license) continue;
+
+      // Status filter
+      if (status && status !== 'all' && s.status !== status) continue;
+
+      results.push(s);
     }
 
     // Sorting
@@ -107,14 +114,15 @@ export class SoftwareManager {
     }
 
     // Pagination
+    let paginatedResults = results;
     if (offset !== undefined) {
-      results = results.slice(offset);
+      paginatedResults = paginatedResults.slice(offset);
     }
     if (limit !== undefined) {
-      results = results.slice(0, limit);
+      paginatedResults = paginatedResults.slice(0, limit);
     }
 
-    return results;
+    return paginatedResults;
   }
 
   async add(software: Omit<Software, 'id' | 'installedAt' | 'updatedAt'>): Promise<Software> {
