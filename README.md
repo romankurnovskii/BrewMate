@@ -36,7 +36,7 @@ Before you begin, ensure you have met the following requirements:
 In terminal:
 
 ```sh
-brew install romankurnovskii/awesome-brew/brewmate --cask
+brew install romankurnovskii/BrewMate/brewmate --cask
 ```
 
 ### Option 2

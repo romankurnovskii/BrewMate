@@ -57,56 +57,72 @@ jobs:
           echo "SHA 256:" >> $GITHUB_STEP_SUMMARY
           cat shasumver >> $GITHUB_STEP_SUMMARY
 
-      - name: Checkout homebrew-cask repository
-        uses: actions/checkout@v7
-        with:
-          repository: romankurnovskii/homebrew-awesome-brew
-          path: homebrew-cask
-          token: ${{ secrets.TOKEN_HOMEBREW_CASK }}
-          # https://github.com/settings/tokens/
-          # https://github.com/romankurnovskii/BrewMate/settings/secrets/actions
+      # ═══════════════════════════════════════════════════════════════
+      # NOTE: Cask is now maintained in-repo at Casks/brewmate.rb.
+      # The old flow checked out romankurnovskii/homebrew-awesome-brew,
+      # updated the cask there, and opened a PR. That logic has been
+      # replaced with a local cask update and direct push below.
+      # ═══════════════════════════════════════════════════════════════
+      # - name: Checkout homebrew-cask repository
+      #   uses: actions/checkout@v7
+      #   with:
+      #     repository: romankurnovskii/homebrew-awesome-brew
+      #     path: homebrew-cask
+      #     token: ${{ secrets.TOKEN_HOMEBREW_CASK }}
+      #
+      # - name: Update Cask | Create Pull Request
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      #     TOKEN_HOMEBREW_CASK: ${{ secrets.TOKEN_HOMEBREW_CASK }}
+      #   run: |
+      #     VERSION=$(jq -r .version package.json)
+      #     BRANCH_NAME=update-version-${VERSION}
+      #     SHA256=$(shasum -a 256 ./dist-app/BrewMate-${VERSION}-universal.zip | awk '{print $1}')
+      #     git -C homebrew-cask config user.name "R K"
+      #     git -C homebrew-cask config user.email "email@example.com"
+      #     git -C homebrew-cask checkout -b ${BRANCH_NAME}
+      #     sed -i '' "s/version .*/version '${VERSION}'/" homebrew-cask/Casks/brewmate.rb
+      #     sed -i '' "s/sha256 .*/sha256 '${SHA256}'/" homebrew-cask/Casks/brewmate.rb
+      #     git -C homebrew-cask add .
+      #     git -C homebrew-cask commit -m "update to version ${VERSION}"
+      #     REPO_URL=$(git -C homebrew-cask remote get-url origin)
+      #     REPO_URL_WITH_TOKEN=$(echo "${REPO_URL}" | sed "s://://${TOKEN_HOMEBREW_CASK}@:")
+      #     git -C homebrew-cask remote set-url origin "${REPO_URL_WITH_TOKEN}"
+      #     git -C homebrew-cask push origin --delete ${BRANCH_NAME} || true
+      #     git -C homebrew-cask push origin ${BRANCH_NAME}
+      #     PR_URL="https://api.github.com/repos/romankurnovskii/homebrew-awesome-brew/pulls"
+      #     curl --request POST \
+      #     --url $PR_URL \
+      #     --header "authorization: token ${TOKEN_HOMEBREW_CASK}" \
+      #     --header 'content-type: application/json' \
+      #     --data @- << EOF
+      #     {
+      #       "title": "Update BrewMate to ${VERSION}",
+      #       "body": " **${GITHUB_WORKFLOW}**. \n\n commit: _${GITHUB_SHA}_.",
+      #       "head": "${BRANCH_NAME}", 
+      #       "base": "main"
+      #     }
+      #     EOF
 
-      - name: Update Cask | Create Pull Request
+      - name: Update Cask (in-repo)
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          TOKEN_HOMEBREW_CASK: ${{ secrets.TOKEN_HOMEBREW_CASK }}
         run: |
           VERSION=$(jq -r .version package.json)
-          BRANCH_NAME=update-version-${VERSION}
           SHA256=$(shasum -a 256 ./dist-app/BrewMate-${VERSION}-universal.zip | awk '{print $1}')
 
-          git -C homebrew-cask config user.name "R K"
-          git -C homebrew-cask config user.email "email@example.com"
-          git -C homebrew-cask checkout -b ${BRANCH_NAME}
+          # Switch to main so we can push the cask update back
+          git fetch origin main
+          git checkout main
+          git reset --hard origin/main
 
-          # Set new version
-          sed -i '' "s/version .*/version '${VERSION}'/" homebrew-cask/Casks/brewmate.rb
-          sed -i '' "s/sha256 .*/sha256 '${SHA256}'/" homebrew-cask/Casks/brewmate.rb
+          # Update version and sha256 in Casks/brewmate.rb
+          sed -i '' "s/version .*/version '${VERSION}'/" Casks/brewmate.rb
+          sed -i '' "s/sha256 .*/sha256 '${SHA256}'/" Casks/brewmate.rb
 
-          git -C homebrew-cask add .
-          git -C homebrew-cask commit -m "update to version ${VERSION}"
-
-          REPO_URL=$(git -C homebrew-cask remote get-url origin)
-          REPO_URL_WITH_TOKEN=$(echo "${REPO_URL}" | sed "s://://${TOKEN_HOMEBREW_CASK}@:")
-          git -C homebrew-cask remote set-url origin "${REPO_URL_WITH_TOKEN}"
-
-          # Delete the remote branch if it exists
-          git -C homebrew-cask push origin --delete ${BRANCH_NAME} || true
-
-          # Push the branch
-          git -C homebrew-cask push origin ${BRANCH_NAME}
-
-          # Create PR
-          PR_URL="https://api.github.com/repos/romankurnovskii/homebrew-awesome-brew/pulls"
-          curl --request POST \
-          --url $PR_URL \
-          --header "authorization: token ${TOKEN_HOMEBREW_CASK}" \
-          --header 'content-type: application/json' \
-          --data @- << EOF
-          {
-            "title": "Update BrewMate to ${VERSION}",
-            "body": " **${GITHUB_WORKFLOW}**. \n\n commit: _${GITHUB_SHA}_.",
-            "head": "${BRANCH_NAME}", 
-            "base": "main"
-          }
-          EOF
+          # Commit and push with [skip ci] to avoid loop
+          git config user.name "R K"
+          git config user.email "email@example.com"
+          git add Casks/brewmate.rb
+          git commit -m "chore: update cask to version ${VERSION} [skip ci]"
+          git push origin main
