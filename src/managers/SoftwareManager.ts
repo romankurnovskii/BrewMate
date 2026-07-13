@@ -50,12 +50,11 @@ export class SoftwareManager {
     } = filters;
 
     const results: Software[] = [];
-    const values = Array.from(this.softwareMap.values());
     const kw = keyword ? keyword.toLowerCase() : '';
 
-    // Optimization: Single-pass for loop over values, replacing multiple chained .filter() allocations
-    for (let i = 0; i < values.length; i++) {
-      const s = values[i];
+    // Optimization: Single-pass for-of loop over values, replacing multiple chained .filter() allocations.
+    // Iterates the Map's values iterator directly to avoid an intermediate Array.from() allocation.
+    for (const s of this.softwareMap.values()) {
 
       // Keyword filter (matches name, description, tags)
       if (kw) {
