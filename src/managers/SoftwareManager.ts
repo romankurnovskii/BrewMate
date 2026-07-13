@@ -115,14 +115,15 @@ export class SoftwareManager {
     }
 
     // Pagination
+    let paginatedResults = results;
     if (offset !== undefined) {
-      results = results.slice(offset);
+      paginatedResults = paginatedResults.slice(offset);
     }
     if (limit !== undefined) {
-      results = results.slice(0, limit);
+      paginatedResults = paginatedResults.slice(0, limit);
     }
 
-    return results;
+    return paginatedResults;
   }
 
   async add(software: Omit<Software, 'id' | 'installedAt' | 'updatedAt'>): Promise<Software> {
