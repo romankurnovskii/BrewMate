@@ -37,8 +37,6 @@ export class SoftwareManager {
   }
 
   async query(filters: SoftwareQuery = {}): Promise<Software[]> {
-    let results = Array.from(this.softwareMap.values());
-
     const {
       keyword,
       category,
@@ -51,35 +49,45 @@ export class SoftwareManager {
       offset,
     } = filters;
 
-    // Keyword filter (matches name, description, tags)
-    if (keyword) {
-      const kw = keyword.toLowerCase();
-      results = results.filter(
-        (s) =>
-          s.name.toLowerCase().includes(kw) ||
-          s.description.toLowerCase().includes(kw) ||
-          s.tags.some((t) => t.toLowerCase().includes(kw))
-      );
-    }
+    const results: Software[] = [];
+    const values = Array.from(this.softwareMap.values());
+    const kw = keyword ? keyword.toLowerCase() : '';
 
-    // Category filter
-    if (category) {
-      results = results.filter((s) => s.category === category);
-    }
+    // Optimization: Single-pass for loop over values, replacing multiple chained .filter() allocations
+    for (let i = 0; i < values.length; i++) {
+      const s = values[i];
 
-    // Tag filter
-    if (tag) {
-      results = results.filter((s) => s.tags.includes(tag));
-    }
+      // Keyword filter (matches name, description, tags)
+      if (kw) {
+        let match = false;
+        if (s.name.toLowerCase().indexOf(kw) !== -1) {
+          match = true;
+        } else if (s.description.toLowerCase().indexOf(kw) !== -1) {
+          match = true;
+        } else {
+          for (let j = 0; j < s.tags.length; j++) {
+            if (s.tags[j].toLowerCase().indexOf(kw) !== -1) {
+              match = true;
+              break;
+            }
+          }
+        }
+        if (!match) continue;
+      }
 
-    // License filter
-    if (license) {
-      results = results.filter((s) => s.license === license);
-    }
+      // Category filter
+      if (category && s.category !== category) continue;
 
-    // Status filter
-    if (status && status !== 'all') {
-      results = results.filter((s) => s.status === status);
+      // Tag filter
+      if (tag && s.tags.indexOf(tag) === -1) continue;
+
+      // License filter
+      if (license && s.license !== license) continue;
+
+      // Status filter
+      if (status && status !== 'all' && s.status !== status) continue;
+
+      results.push(s);
     }
 
     // Sorting

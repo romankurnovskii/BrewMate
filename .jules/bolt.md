@@ -40,3 +40,6 @@
 ## 2024-07-11 - Chain Methods vs Single Pass Loops
 **Learning:** In V8/JavaScript, chaining multiple array methods (`Object.entries(obj).sort().filter().slice()`) creates several intermediate arrays that trigger Garbage Collection and delay execution. When this runs frequently on the UI thread (like chart rendering), it causes stuttering.
 **Action:** When extracting data from objects (especially with conditionals and limits), always replace chained array methods with a single-pass `for` loop over `Object.keys()` to populate an array, and then apply `sort()` and `length` truncation directly.
+## 2026-07-13 - [Optimizing Query Method with Single Pass Loop]
+**Learning:** When applying multiple sequential filters to a dataset (e.g., chained `.filter()` calls in `SoftwareManager.query()`), it creates several intermediate array allocations causing high memory overhead.
+**Action:** Consolidating multiple chained `.filter()` calls into a single native `for` loop significantly outperforms the chain by eliminating multiple intermediate array allocations and redundant iterations.
