@@ -32,7 +32,7 @@
     "electron-builder": "^26.15.3",
     "jest": "^30.3.0",
     "lint-staged": "^17.0.7",
-    "prettier": "^3.9.4",
+    "prettier": "^3.9.5",
     "ts-jest": "^29.4.11",
     "typescript": "^6.0.3"
   },
