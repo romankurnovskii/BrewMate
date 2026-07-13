@@ -42,4 +42,4 @@
 **Action:** When extracting data from objects (especially with conditionals and limits), always replace chained array methods with a single-pass `for` loop over `Object.keys()` to populate an array, and then apply `sort()` and `length` truncation directly.
 ## 2026-07-13 - [Optimizing Query Method with Single Pass Loop]
 **Learning:** When applying multiple sequential filters to a dataset (e.g., chained `.filter()` calls in `SoftwareManager.query()`), it creates several intermediate array allocations causing high memory overhead.
-**Action:** Consolidating multiple chained `.filter()` calls into a single native `for` loop significantly outperforms the chain by eliminating multiple intermediate array allocations and redundant iterations.
+**Action:** Consolidate multiple chained `.filter()` calls into a single `for...of` loop over the source iterable. Iterating a Map's `.values()` iterator directly avoids the intermediate array that `Array.from()` or `[...map.values()]` would allocate, eliminating both filter-chain intermediates and the materialization allocation.
