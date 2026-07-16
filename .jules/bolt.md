@@ -43,3 +43,6 @@
 ## 2026-07-13 - [Optimizing Query Method with Single Pass Loop]
 **Learning:** When applying multiple sequential filters to a dataset (e.g., chained `.filter()` calls in `SoftwareManager.query()`), it creates several intermediate array allocations causing high memory overhead.
 **Action:** Consolidate multiple chained `.filter()` calls into a single `for...of` loop over the source iterable. Iterating a Map's `.values()` iterator directly avoids the intermediate array that `Array.from()` or `[...map.values()]` would allocate, eliminating both filter-chain intermediates and the materialization allocation.
+## 2025-03-02 - Optimize Array Allocation
+**Learning:** In V8, spreading massive arrays inside another array definition (`[...casks.map(...), ...formulas.map(...)]`) creates multiple intermediate arrays, causing significant GC overhead.
+**Action:** When merging arrays of objects larger than a few hundred items, pre-allocate the array size using `new Array(totalLength)` and construct objects in a native `for` loop to avoid GC pauses and intermediate memory allocations.
