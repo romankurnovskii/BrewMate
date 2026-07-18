@@ -1,0 +1,47 @@
+<<<<<<< SEARCH
+        const allApps: App[] = [
+          ...casks.map((cask: any) => ({
+            name: cask.token || cask.name,
+            description: cask.desc || '',
+            homepage: cask.homepage || '',
+            version: cask.version || 'N/A',
+            type: 'cask' as const,
+          })),
+          ...formulas.map((formula: any) => ({
+            name: formula.name,
+            description: formula.desc || '',
+            homepage: formula.homepage || '',
+            version: formula.versions?.stable || 'N/A',
+            type: 'formula' as const,
+          })),
+        ];
+=======
+        // Optimization: Avoid spread syntax and .map() which create multiple intermediate arrays.
+        // Pre-allocate the array and use native for loops to reduce memory allocations and GC overhead
+        // when merging large datasets (~100k items).
+        const totalLen = casks.length + formulas.length;
+        const allApps: App[] = new Array(totalLen);
+        let appIdx = 0;
+
+        for (let i = 0; i < casks.length; i++) {
+          const cask = casks[i];
+          allApps[appIdx++] = {
+            name: cask.token || cask.name,
+            description: cask.desc || '',
+            homepage: cask.homepage || '',
+            version: cask.version || 'N/A',
+            type: 'cask' as const,
+          };
+        }
+
+        for (let i = 0; i < formulas.length; i++) {
+          const formula = formulas[i];
+          allApps[appIdx++] = {
+            name: formula.name,
+            description: formula.desc || '',
+            homepage: formula.homepage || '',
+            version: formula.versions?.stable || 'N/A',
+            type: 'formula' as const,
+          };
+        }
+>>>>>>> REPLACE
