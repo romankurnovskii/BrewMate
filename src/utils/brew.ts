@@ -108,16 +108,23 @@ export async function getInstalledApps(): Promise<InstalledApp[]> {
       .filter(Boolean)
       .map((formula) => formula.trim());
 
-    return [
-      ...installedCasks.map((cask: string) => ({
-        name: cask,
+    // Optimization: Pre-allocate array and use native for loops to avoid GC overhead and intermediate array allocations
+    const totalLength = installedCasks.length + installedFormulas.length;
+    const result: InstalledApp[] = new Array(totalLength);
+    let index = 0;
+    for (let i = 0; i < installedCasks.length; i++) {
+      result[index++] = {
+        name: installedCasks[i],
         type: 'cask' as const,
-      })),
-      ...installedFormulas.map((formula: string) => ({
-        name: formula,
+      };
+    }
+    for (let i = 0; i < installedFormulas.length; i++) {
+      result[index++] = {
+        name: installedFormulas[i],
         type: 'formula' as const,
-      })),
-    ];
+      };
+    }
+    return result;
   } catch (error) {
     console.error('[Brew] Error getting installed apps:', error);
     return [];
