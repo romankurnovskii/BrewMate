@@ -43,3 +43,6 @@
 ## 2026-07-13 - [Optimizing Query Method with Single Pass Loop]
 **Learning:** When applying multiple sequential filters to a dataset (e.g., chained `.filter()` calls in `SoftwareManager.query()`), it creates several intermediate array allocations causing high memory overhead.
 **Action:** Consolidate multiple chained `.filter()` calls into a single `for...of` loop over the source iterable. Iterating a Map's `.values()` iterator directly avoids the intermediate array that `Array.from()` or `[...map.values()]` would allocate, eliminating both filter-chain intermediates and the materialization allocation.
+## 2024-05-24 - Avoid Spread with .map() on Massive Arrays
+**Learning:** Combining large datasets (~100k items) using the spread operator (`...`) with `.map()` creates multiple intermediate arrays, leading to high memory allocations and Garbage Collection (GC) overhead in V8.
+**Action:** When merging massive arrays, pre-allocate the target array (`new Array(totalLength)`) and populate it using native `for` loops to minimize memory overhead and improve performance.
