@@ -43,3 +43,6 @@
 ## 2026-07-13 - [Optimizing Query Method with Single Pass Loop]
 **Learning:** When applying multiple sequential filters to a dataset (e.g., chained `.filter()` calls in `SoftwareManager.query()`), it creates several intermediate array allocations causing high memory overhead.
 **Action:** Consolidate multiple chained `.filter()` calls into a single `for...of` loop over the source iterable. Iterating a Map's `.values()` iterator directly avoids the intermediate array that `Array.from()` or `[...map.values()]` would allocate, eliminating both filter-chain intermediates and the materialization allocation.
+## 2025-02-27 - Main process IPC Handler array combination optimization
+**Learning:** Combining large arrays from JSON files (such as 150k+ apps from Homebrew endpoints) using spread syntax and `.map()` on the main thread causes severe performance issues in V8 engines due to high memory allocations and intermediate arrays being generated, leading to huge Garbage Collection overhead and UI freezing.
+**Action:** When handling combinations of large data payloads, pre-allocate arrays using `new Array(totalLength)` and populate items natively in `for` loops.
