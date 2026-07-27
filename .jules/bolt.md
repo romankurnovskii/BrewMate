@@ -43,3 +43,6 @@
 ## 2026-07-13 - [Optimizing Query Method with Single Pass Loop]
 **Learning:** When applying multiple sequential filters to a dataset (e.g., chained `.filter()` calls in `SoftwareManager.query()`), it creates several intermediate array allocations causing high memory overhead.
 **Action:** Consolidate multiple chained `.filter()` calls into a single `for...of` loop over the source iterable. Iterating a Map's `.values()` iterator directly avoids the intermediate array that `Array.from()` or `[...map.values()]` would allocate, eliminating both filter-chain intermediates and the materialization allocation.
+## 2024-05-18 - [Optimize IPC Data Merging]
+**Learning:** When fetching massive datasets (~150k items) from external APIs (like Homebrew JSON endpoints), using `.map()` arrays alongside spread syntax `[...arr1, ...arr2]` within the Electron main process causes excessive intermediate array allocations and blocks the main thread with GC pauses.
+**Action:** Always utilize a single pre-allocated array (`new Array(totalLength)`) and native `for` loops to combine large datasets, minimizing allocations and avoiding spread syntax overhead.
