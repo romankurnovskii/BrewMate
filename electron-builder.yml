@@ -31,6 +31,13 @@ extraResources:
     filter:
       - '**/*'
 
+linux:
+  target:
+    - AppImage
+    - deb
+  category: Development
+  icon: build/icon.icns
+
 mac:
   category: public.app-category.utilities
   target:

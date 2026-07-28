@@ -126,3 +126,36 @@ jobs:
           git add Casks/brewmate.rb
           git commit -m "chore: update cask to version ${VERSION} [skip ci]"
           git push origin main
+
+  build-linux:
+    needs: create-release
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Get Version
+        id: get_version
+        run: echo "VERSION=$(jq -r .version package.json)" >> $GITHUB_ENV
+
+      - name: Install Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libgtk-3-dev libnotify-dev libnss3 libxss1 libasound2
+          npm install
+        working-directory: .
+
+      - name: Build Linux App
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: npm run build:linux
+        working-directory: .
+
+      - name: Upload Assets to Release
+        uses: softprops/action-gh-release@v3
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          files: |
+            ./dist-app/*.AppImage
+            ./dist-app/*.deb
+          tag_name: ${{ env.VERSION }}

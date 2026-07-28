@@ -26,6 +26,7 @@ describe('path utilities', () => {
       expect(paths).toContain('/opt/homebrew/sbin');
       expect(paths).toContain('/usr/local/sbin');
       expect(paths).toContain('/home/linuxbrew/.linuxbrew/bin');
+      expect(paths).toContain(`${process.env.HOME || ''}/.linuxbrew/bin`);
     });
 
     it('should prepend brew paths to existing PATH', () => {
@@ -41,6 +42,7 @@ describe('path utilities', () => {
       expect(paths[2]).toBe('/opt/homebrew/sbin');
       expect(paths[3]).toBe('/usr/local/sbin');
       expect(paths[4]).toBe('/home/linuxbrew/.linuxbrew/bin');
+      expect(paths[5]).toBe(`${process.env.HOME || ''}/.linuxbrew/bin`);
 
       // Original paths should still be present
       expect(paths).toContain('/usr/bin');

@@ -24,7 +24,8 @@ export function getEnvWithBrewPath(): NodeJS.ProcessEnv {
     '/usr/local/bin', // Intel Mac
     '/opt/homebrew/sbin', // Apple Silicon sbin
     '/usr/local/sbin', // Intel Mac sbin
-    '/home/linuxbrew/.linuxbrew/bin', // Linux (if applicable)
+    '/home/linuxbrew/.linuxbrew/bin', // Linux system-wide
+    `${process.env.HOME || ''}/.linuxbrew/bin`, // Linux user-local
   ];
 
   // Add brew paths to PATH if they're not already there
