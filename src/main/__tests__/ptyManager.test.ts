@@ -79,19 +79,27 @@ describe('PTY Manager', () => {
     expect(ipcMain.handle).toHaveBeenCalledWith('open-external-terminal', expect.any(Function));
   });
 
-  it('should start a PTY and forward sudo error detection', async () => {
+  it('should start a PTY and forward pty-data, sudo detection, and pty-exit', async () => {
     const promise = ptyManager.startCaskUpgradePty('test-cask');
     const mockPty = getLastPtyInstance();
     expect(mockPty).toBeDefined();
 
+    // Simulate normal output before sudo prompt
+    mockPty._triggerData('==> Downloading test-cask...\n');
+    expect(mockSend).toHaveBeenCalledWith('pty-data', '==> Downloading test-cask...\n');
+
     // Simulate sudo error output
     mockPty._triggerData('sudo: a terminal is required to read the password\n');
 
-    // Verify renderer got cask-sudo-required message
+    // Verify renderer got cask-sudo-required AND pty-data
     expect(mockSend).toHaveBeenCalledWith('cask-sudo-required', 'test-cask');
+    expect(mockSend).toHaveBeenCalledWith('pty-data', 'sudo: a terminal is required to read the password\n');
 
     // Simulate exit
     mockPty._triggerExit(1);
+
+    // Verify pty-exit was sent with correct payload
+    expect(mockSend).toHaveBeenCalledWith('pty-exit', { cask: 'test-cask', code: 1 });
 
     const result = await promise;
     expect(result.code).toBe(1);

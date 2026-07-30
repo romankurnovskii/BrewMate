@@ -117,13 +117,19 @@ export function setupPtyIpcHandlers(): void {
 
   // Fallback: open macOS Terminal.app with the same brew command
   ipcMain.handle('open-external-terminal', async (_event, caskName: string) => {
+    if (process.platform !== 'darwin') {
+      throw new Error('Opening external Terminal is only supported on macOS');
+    }
+
     const cmd = `brew upgrade --cask ${caskName}`;
-    const { exec } = require('child_process');
+    const { execFile } = require('child_process');
 
     return new Promise<void>((resolve, reject) => {
-      // Use osascript to open Terminal and run the command
-      const script = `tell application "Terminal" to do script "${cmd.replace(/"/g, '\\"')}"`;
-      exec(`osascript -e '${script}'`, (err: Error | null) => {
+      // Use execFile to avoid shell injection — arguments are passed literally
+      // Double quotes within the AppleScript string must still be escaped
+      const escapedCmd = cmd.replace(/"/g, '\\"');
+      const script = `tell application "Terminal" to do script "${escapedCmd}"`;
+      execFile('osascript', ['-e', script], (err: Error | null) => {
         if (err) {
           reject(err);
         } else {

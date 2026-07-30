@@ -1835,16 +1835,15 @@ async function upgradeAll(): Promise<void> {
     toggleTerminal();
   }
 
-  // First, get the outdated list and send to main process
+  // Get the outdated list and send it directly with upgrade-all message
   const outdated = await requestOutdatedList();
-  ipcRenderer.send('renderer-outdated-list', outdated);
 
   terminalOutput.insertAdjacentHTML(
     'beforeend',
     `<span class="terminal-prompt">${terminalPrompt}</span> ${uiTranslations.upgradingAll}\n`
   );
   terminalOutput.scrollTop = terminalOutput.scrollHeight;
-  ipcRenderer.send('upgrade-all');
+  ipcRenderer.send('upgrade-all', outdated);
 }
 
 async function upgradeApp(name: string, type: string): Promise<void> {

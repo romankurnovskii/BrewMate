@@ -14,7 +14,7 @@ import categoriesData from '../data/categories';
 
 export function setupIpcHandlers(): void {
   // Set up PTY IPC handlers for interactive cask upgrades
-  const { setupPtyIpcHandlers, startCaskUpgradePty, isPtyActive, killPty } = require('./ptyManager');
+  const { setupPtyIpcHandlers, startCaskUpgradePty } = require('./ptyManager');
   setupPtyIpcHandlers();
 
   // Store latest outdated apps for batch upgrades
@@ -367,19 +367,8 @@ export function setupIpcHandlers(): void {
   ipcMain.on('upgrade-app', async (event: IpcMainEvent, appName: string, appType: string) => {
     console.log('[IPC] Upgrading app:', appName, appType);
 
-    // For casks, use PTY (for sudo support)
-    if (appType === 'cask') {
-      try {
-        await startCaskUpgradePty(appName);
-        event.reply('upgrade-complete', { appName, success: true });
-      } catch (err: any) {
-        console.error('[IPC] PTY upgrade failed for', appName, err);
-        event.reply('upgrade-complete', { appName, success: false });
-      }
-      return;
-    }
-
-    // For formulas, use existing spawn path
+    // Note: casks are handled by the renderer directly via upgrade-cask-pty IPC
+    // so this handler only receives formulas
     const command = `brew upgrade ${appName}`;
     let output = '';
     logCommand(command);
@@ -410,13 +399,8 @@ export function setupIpcHandlers(): void {
   });
 
   // Upgrade all outdated apps (new per-cask flow)
-  ipcMain.on('upgrade-all', async (event: IpcMainEvent) => {
+  ipcMain.on('upgrade-all', async (event: IpcMainEvent, outdated: Array<{ name: string; type: string }>) => {
     console.log('[IPC] Upgrading all outdated apps (per-cask flow)');
-
-    // Get the outdated list from renderer (sent before upgrade-all)
-    const outdated: Array<{ name: string; type: string }> = await new Promise((res) => {
-      ipcMain.once('renderer-outdated-list', (e, list) => res(list));
-    });
 
     if (!outdated || outdated.length === 0) {
       console.log('[IPC] No outdated apps to upgrade');
