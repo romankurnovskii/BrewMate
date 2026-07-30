@@ -1420,3 +1420,115 @@ body {
   opacity: 0.5;
   cursor: not-allowed;
 }
+
+/* Sudo Modal (for cask upgrades requiring admin rights) */
+.sudo-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+  animation: sudoModalFadeIn 0.2s ease;
+}
+
+.sudo-modal.hidden {
+  display: none;
+}
+
+@keyframes sudoModalFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.sudo-modal-content {
+  background: #1a1a2e;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 16px;
+  padding: 28px;
+  max-width: 420px;
+  width: 90%;
+  text-align: center;
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.5);
+  animation: sudoModalSlideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes sudoModalSlideUp {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.sudo-modal-content h3 {
+  font-size: 18px;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 8px;
+}
+
+.sudo-modal-content p {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.6);
+  margin-bottom: 20px;
+  line-height: 1.5;
+}
+
+.sudo-modal-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.sudo-modal-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 12px 20px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: inherit;
+  border: 1px solid transparent;
+  width: 100%;
+}
+
+.sudo-modal-btn.primary {
+  background: #63ffd2;
+  color: #000;
+  border-color: #63ffd2;
+}
+
+.sudo-modal-btn.primary:hover {
+  background: #50e0b8;
+  box-shadow: 0 4px 16px rgba(99, 255, 210, 0.3);
+}
+
+.sudo-modal-btn.secondary {
+  background: rgba(99, 255, 210, 0.08);
+  color: #63ffd2;
+  border-color: rgba(99, 255, 210, 0.25);
+}
+
+.sudo-modal-btn.secondary:hover {
+  background: rgba(99, 255, 210, 0.15);
+  border-color: rgba(99, 255, 210, 0.4);
+}
+
+.sudo-modal-btn.tertiary {
+  background: rgba(255, 255, 255, 0.05);
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.sudo-modal-btn.tertiary:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+
+.sudo-modal-btn svg {
+  flex-shrink: 0;
+}

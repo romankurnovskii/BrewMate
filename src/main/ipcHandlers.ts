@@ -13,6 +13,13 @@ import { t, changeLanguage, getCurrentLanguage } from './i18n';
 import categoriesData from '../data/categories';
 
 export function setupIpcHandlers(): void {
+  // Set up PTY IPC handlers for interactive cask upgrades
+  const { setupPtyIpcHandlers, startCaskUpgradePty, isPtyActive, killPty } = require('./ptyManager');
+  setupPtyIpcHandlers();
+
+  // Store latest outdated apps for batch upgrades
+  let latestOutdated: Array<{ name: string; type: string }> = [];
+
   // i18n handlers
   ipcMain.handle('i18n-t', (_event, key: string, options?: object) => {
     return t(key, options);
@@ -286,11 +293,17 @@ export function setupIpcHandlers(): void {
     console.log('[IPC] get-outdated-apps received');
     try {
       const outdated = await getOutdatedApps();
+      latestOutdated = outdated; // Store for upgrade-all
       event.reply('outdated-apps', outdated);
     } catch (error: any) {
       console.error('[IPC] Error getting outdated apps:', error);
       event.reply('outdated-apps', []);
     }
+  });
+
+  // Provide stored outdated list to renderer for batch upgrade
+  ipcMain.on('renderer-outdated-list', (event: IpcMainEvent) => {
+    event.reply('renderer-outdated-list', latestOutdated);
   });
 
   // Get cache size
@@ -351,13 +364,23 @@ export function setupIpcHandlers(): void {
   });
 
   // Upgrade individual app
-  ipcMain.on('upgrade-app', (event: IpcMainEvent, appName: string, appType: string) => {
-    const command =
-      appType === 'cask'
-        ? `brew upgrade --cask --greedy ${appName}`
-        : `brew upgrade ${appName}`;
-
+  ipcMain.on('upgrade-app', async (event: IpcMainEvent, appName: string, appType: string) => {
     console.log('[IPC] Upgrading app:', appName, appType);
+
+    // For casks, use PTY (for sudo support)
+    if (appType === 'cask') {
+      try {
+        await startCaskUpgradePty(appName);
+        event.reply('upgrade-complete', { appName, success: true });
+      } catch (err: any) {
+        console.error('[IPC] PTY upgrade failed for', appName, err);
+        event.reply('upgrade-complete', { appName, success: false });
+      }
+      return;
+    }
+
+    // For formulas, use existing spawn path
+    const command = `brew upgrade ${appName}`;
     let output = '';
     logCommand(command);
 
@@ -386,46 +409,62 @@ export function setupIpcHandlers(): void {
     });
   });
 
-  // Upgrade all outdated apps
-  ipcMain.on('upgrade-all', (event: IpcMainEvent) => {
-    const command = `brew upgrade --greedy`;
+  // Upgrade all outdated apps (new per-cask flow)
+  ipcMain.on('upgrade-all', async (event: IpcMainEvent) => {
+    console.log('[IPC] Upgrading all outdated apps (per-cask flow)');
 
-    console.log('[IPC] Upgrading all outdated apps');
-    let output = '';
-    logCommand(command);
-
-    const shell = spawn(command, [], {
-      shell: true,
-      cwd: process.env.HOME || process.cwd(),
-      env: getEnvWithBrewPath(),
+    // Get the outdated list from renderer (sent before upgrade-all)
+    const outdated: Array<{ name: string; type: string }> = await new Promise((res) => {
+      ipcMain.once('renderer-outdated-list', (e, list) => res(list));
     });
 
-    shell.stdout.on('data', (data) => {
-      const dataStr = data.toString();
-      output += dataStr;
-      event.reply('terminal-output', dataStr);
+    if (!outdated || outdated.length === 0) {
+      console.log('[IPC] No outdated apps to upgrade');
+      event.reply('upgrade-all-complete', { success: true });
+      return;
+    }
 
-      // Optimistically emit completion for UI responsiveness
-      const lines = dataStr.split('\n');
-      for (const line of lines) {
-        const match = line.match(/==>\s+Upgrading\s+(?:cask\s+)?([^\s]+)/i);
-        if (match && match[1]) {
-          event.reply('upgrade-complete', { appName: match[1], success: true });
-        }
+    // Separate casks and formulas
+    const casks = outdated.filter((a) => a.type === 'cask');
+    const formulas = outdated.filter((a) => a.type === 'formula');
+
+    // Upgrade formulas first (they don't need sudo)
+    for (const f of formulas) {
+      const command = `brew upgrade ${f.name}`;
+      console.log('[IPC] Upgrading formula:', f.name);
+      logCommand(command);
+
+      const shell = spawn(command, [], {
+        shell: true,
+        cwd: process.env.HOME || process.cwd(),
+        env: getEnvWithBrewPath(),
+      });
+
+      shell.stdout.on('data', (d) => event.reply('terminal-output', d.toString()));
+      shell.stderr.on('data', (d) => event.reply('terminal-output', d.toString()));
+
+      await new Promise<void>((res) => shell.on('close', () => res()));
+      event.reply('upgrade-complete', { appName: f.name, success: true });
+    }
+
+    // Upgrade casks one-by-one using PTY (for sudo support)
+    for (const c of casks) {
+      console.log('[IPC] Upgrading cask:', c.name);
+      event.reply('upgrade-start', { appName: c.name });
+
+      try {
+        await startCaskUpgradePty(c.name);
+        event.reply('upgrade-complete', { appName: c.name, success: true });
+      } catch (err: any) {
+        console.error('[IPC] PTY upgrade failed for', c.name, err);
+        event.reply('upgrade-complete', { appName: c.name, success: false });
       }
-    });
 
-    shell.stderr.on('data', (data) => {
-      const dataStr = data.toString();
-      output += dataStr;
-      event.reply('terminal-output', dataStr);
-    });
+      // Wait a bit between casks to avoid overwhelming the system
+      await new Promise((r) => setTimeout(r, 500));
+    }
 
-    shell.on('close', (code) => {
-      logCommand(command, output, code);
-      event.reply('upgrade-all-complete', { success: code === 0 });
-      event.reply('terminal-output', `\nProcess exited with code ${code}\n`);
-    });
+    event.reply('upgrade-all-complete', { success: true });
   });
 
   // Handle command execution
