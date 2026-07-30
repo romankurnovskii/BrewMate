@@ -41,6 +41,17 @@ console.log('[Renderer] renderer.ts script loaded');
 const ipcRenderer = (window as any).electronAPI;
 console.log('[Renderer] ipcRenderer loaded:', !!ipcRenderer);
 
+// PTY state (used for interactive cask sudo prompts)
+let isPtyActive = false;
+
+// Helper to load the outdated list from main process
+async function requestOutdatedList(): Promise<Array<{ name: string; type: string }>> {
+  return new Promise((resolve) => {
+    ipcRenderer.once('renderer-outdated-list', (_e: any, list: Array<{ name: string; type: string }>) => resolve(list));
+    ipcRenderer.send('renderer-outdated-list');
+  });
+}
+
 // i18n helper
 async function t(key: string, options?: object): Promise<string> {
   if (ipcRenderer && ipcRenderer.t) {
@@ -606,6 +617,70 @@ function setupIpcListeners(): void {
   ipcRenderer.on('terminal-output', (_event: any, data: string) => {
     // Optimization: Use insertAdjacentHTML instead of innerHTML += to avoid O(N^2) DOM serialization overhead
     terminalOutput.insertAdjacentHTML('beforeend', escapeHtml(data));
+    terminalOutput.scrollTop = terminalOutput.scrollHeight;
+  });
+
+  // PTY data (used for cask upgrades that need sudo)
+  ipcRenderer.on('pty-data', (_e: any, data: string) => {
+    isPtyActive = true;
+    terminalOutput.insertAdjacentHTML('beforeend', escapeHtml(data));
+    terminalOutput.scrollTop = terminalOutput.scrollHeight;
+  });
+
+  // PTY exited - mark completion
+  ipcRenderer.on('pty-exit', (_e: any, { cask, code }: { cask: string; code: number }) => {
+    isPtyActive = false;
+  });
+
+  // Sudo error detected - pause batch and show modal
+  ipcRenderer.on('cask-sudo-required', async (_e: any, caskName: string) => {
+    terminalOutput.insertAdjacentHTML(
+      'beforeend',
+      `<span class="terminal-prompt">🔐</span> ${escapeHtml(caskName)} requires admin rights — choose how to proceed:\n`
+    );
+    const choice = await showSudoModal(caskName);
+    if (choice === 'embedded') {
+      // Keep the PTY open; user can type password directly in the terminal
+      terminalOutput.insertAdjacentHTML(
+        'beforeend',
+        `<span class="terminal-prompt">🔑</span> Type your password in the terminal above and press Enter.\n`
+      );
+      terminalOutput.scrollTop = terminalOutput.scrollHeight;
+    } else if (choice === 'external') {
+      // Kill PTY, launch Terminal.app
+      if (ipcRenderer.killPty) {
+        await ipcRenderer.killPty();
+      }
+      if (ipcRenderer.openExternalTerminal) {
+        await ipcRenderer.openExternalTerminal(caskName);
+      }
+      terminalOutput.insertAdjacentHTML(
+        'beforeend',
+        `<span class="terminal-prompt">🖥️</span> Opened Terminal.app for ${escapeHtml(caskName)} upgrade.\n`
+      );
+      terminalOutput.scrollTop = terminalOutput.scrollHeight;
+      // Mark as "success" so the UI removes it from the list
+      ipcRenderer.send('upgrade-complete', { appName: caskName, success: true });
+    } else {
+      // Skip
+      if (ipcRenderer.killPty) {
+        await ipcRenderer.killPty();
+      }
+      terminalOutput.insertAdjacentHTML(
+        'beforeend',
+        `<span class="terminal-prompt">⏭️</span> Skipped ${escapeHtml(caskName)}.\n`
+      );
+      terminalOutput.scrollTop = terminalOutput.scrollHeight;
+      ipcRenderer.send('upgrade-complete', { appName: caskName, success: true });
+    }
+  });
+
+  // Upgrade start (for UI feedback during batch)
+  ipcRenderer.on('upgrade-start', (_e: any, { appName }: { appName: string }) => {
+    terminalOutput.insertAdjacentHTML(
+      'beforeend',
+      `<span class="terminal-prompt">→</span> Upgrading ${escapeHtml(appName)}...\n`
+    );
     terminalOutput.scrollTop = terminalOutput.scrollHeight;
   });
   ipcRenderer.on('all-apps', (_event: any, apps: Array<App>) => {
@@ -1755,19 +1830,23 @@ function updateUpdatesBadge(): void {
   }
 }
 
-function upgradeAll(): void {
+async function upgradeAll(): Promise<void> {
   if (!terminalVisible) {
     toggleTerminal();
   }
+
+  // Get the outdated list and send it directly with upgrade-all message
+  const outdated = await requestOutdatedList();
+
   terminalOutput.insertAdjacentHTML(
     'beforeend',
     `<span class="terminal-prompt">${terminalPrompt}</span> ${uiTranslations.upgradingAll}\n`
   );
   terminalOutput.scrollTop = terminalOutput.scrollHeight;
-  ipcRenderer.send('upgrade-all');
+  ipcRenderer.send('upgrade-all', outdated);
 }
 
-function upgradeApp(name: string, type: string): void {
+async function upgradeApp(name: string, type: string): Promise<void> {
   if (!terminalVisible) {
     toggleTerminal();
   }
@@ -1776,7 +1855,20 @@ function upgradeApp(name: string, type: string): void {
     `<span class="terminal-prompt">${terminalPrompt}</span> ${uiTranslations.upgrading} ${escapeHtml(name)}...\n`
   );
   terminalOutput.scrollTop = terminalOutput.scrollHeight;
-  ipcRenderer.send('upgrade-app', name, type);
+
+  // For casks, use PTY (interactive sudo support)
+  if (type === 'cask' && ipcRenderer.upgradeCaskPty) {
+    try {
+      await ipcRenderer.upgradeCaskPty(name);
+      ipcRenderer.send('upgrade-complete', { appName: name, success: true });
+    } catch (err: any) {
+      console.error('[Renderer] PTY upgrade failed:', err);
+      ipcRenderer.send('upgrade-complete', { appName: name, success: false });
+    }
+  } else {
+    // For formulas, use the existing spawn path
+    ipcRenderer.send('upgrade-app', name, type);
+  }
 }
 
 function renderServices(services: any[]): void {
@@ -1877,6 +1969,55 @@ function renderServices(services: any[]): void {
         ipcRenderer.send('execute-service-action', 'restart', serviceName);
       }
     });
+  });
+}
+
+/**
+ * Show a modal when a cask upgrade requires sudo.
+ * Returns the user's choice: 'embedded' | 'external' | 'skip'
+ */
+function showSudoModal(caskName: string): Promise<'embedded' | 'external' | 'skip'> {
+  return new Promise((resolve) => {
+    const modal = document.getElementById('sudoModal') as HTMLElement;
+    const title = document.getElementById('sudoModalTitle') as HTMLElement;
+    const btnEmbedded = document.getElementById('sudoEmbeddedBtn') as HTMLButtonElement;
+    const btnExternal = document.getElementById('sudoExternalBtn') as HTMLButtonElement;
+    const btnSkip = document.getElementById('sudoSkipBtn') as HTMLButtonElement;
+
+    if (!modal || !title || !btnEmbedded || !btnExternal || !btnSkip) {
+      // Fallback if modal elements don't exist: just log and auto-skip
+      console.warn('[Renderer] Sudo modal elements missing, skipping cask:', caskName);
+      resolve('skip');
+      return;
+    }
+
+    title.textContent = `Upgrade "${caskName}" requires administrator privileges`;
+
+    const cleanup = () => {
+      modal.classList.add('hidden');
+      btnEmbedded.removeEventListener('click', onEmbedded);
+      btnExternal.removeEventListener('click', onExternal);
+      btnSkip.removeEventListener('click', onSkip);
+    };
+
+    const onEmbedded = () => {
+      cleanup();
+      resolve('embedded');
+    };
+    const onExternal = () => {
+      cleanup();
+      resolve('external');
+    };
+    const onSkip = () => {
+      cleanup();
+      resolve('skip');
+    };
+
+    btnEmbedded.addEventListener('click', onEmbedded);
+    btnExternal.addEventListener('click', onExternal);
+    btnSkip.addEventListener('click', onSkip);
+
+    modal.classList.remove('hidden');
   });
 }
 

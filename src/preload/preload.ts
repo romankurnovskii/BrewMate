@@ -15,6 +15,9 @@ const validSendChannels = [
   'upgrade-all',
   'get-brew-services',
   'execute-service-action',
+  'renderer-outdated-list',
+  'pty-input',
+  'kill-pty',
 ];
 
 const validReceiveChannels = [
@@ -41,6 +44,9 @@ const validReceiveChannels = [
   'asset-path',
   'trending-apps-result',
   'vulnerabilities-result',
+  'pty-data',
+  'cask-sudo-required',
+  'pty-exit',
 ];
 
 contextBridge.exposeInMainWorld('electronAPI', {
@@ -69,6 +75,16 @@ contextBridge.exposeInMainWorld('electronAPI', {
   },
   getCategories: () => {
     return ipcRenderer.invoke('get-categories');
+  },
+  // PTY upgrade helpers (interactive sudo support)
+  upgradeCaskPty: (cask: string) => {
+    return ipcRenderer.invoke('upgrade-cask-pty', cask);
+  },
+  openExternalTerminal: (cask: string) => {
+    return ipcRenderer.invoke('open-external-terminal', cask);
+  },
+  killPty: () => {
+    return ipcRenderer.invoke('kill-pty');
   },
 });
 
