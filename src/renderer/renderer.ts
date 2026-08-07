@@ -807,6 +807,12 @@ function setupIpcListeners(): void {
     filterApps();
   });
 
+  ipcRenderer.on('brew-update-complete', () => {
+    console.log('[Renderer] Brew update complete, refreshing app data...');
+    ipcRenderer.send('get-all-apps');
+    ipcRenderer.send('get-installed-apps');
+  });
+
   ipcRenderer.on('installed-apps-error', (_event: any, errorMessage: string) => {
     console.error('[Renderer] Error getting installed apps:', errorMessage);
   });

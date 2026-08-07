@@ -47,6 +47,7 @@ const validReceiveChannels = [
   'pty-data',
   'cask-sudo-required',
   'pty-exit',
+  'brew-update-complete',
 ];
 
 contextBridge.exposeInMainWorld('electronAPI', {

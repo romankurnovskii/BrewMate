@@ -1,10 +1,11 @@
 import { ipcMain, IpcMainEvent, app } from 'electron';
 import { spawn, exec } from 'child_process';
 import * as path from 'path';
+import * as os from 'os'; // Import the 'os' module
 import { fetchJSON } from '../utils/fetchData';
 import { loadFromCache, saveToCache } from '../utils/cache';
 import { getTerminalPromptInfo } from '../utils/terminal';
-import { getInstalledApps, getOutdatedApps, getCacheSize, getAppDetails, scanVulnerabilities } from '../utils/brew';
+import { getInstalledApps, getOutdatedApps, getCacheSize, getAppDetails, scanVulnerabilities, getAllTapCaskNames, getThirdPartyCaskInfo } from '../utils/brew';
 import { logCommand, getLogFilePath } from '../utils/logger';
 import { getEnvWithBrewPath } from '../utils/path';
 import { HOMEBREW_CASKS_JSON_URL, HOMEBREW_FORMULAS_JSON_URL } from '../constants';
@@ -12,11 +13,13 @@ import { App, LoadingStatus } from '../types';
 import { t, changeLanguage, getCurrentLanguage } from './i18n';
 import categoriesData from '../data/categories';
 
-export function setupIpcHandlers(): void {
-  // Set up PTY IPC handlers for interactive cask upgrades
-  const { setupPtyIpcHandlers, startCaskUpgradePty } = require('./ptyManager');
-  setupPtyIpcHandlers();
+// Placeholder for ptyManager import. It will be loaded dynamically.
+let ptyManager: any;
 
+export function setupIpcHandlers(): void {
+  // Dynamically import ptyManager to avoid issues during initial setup if it's not needed
+  ptyManager = require('./ptyManager');
+  ptyManager.setupPtyIpcHandlers();
   // Store latest outdated apps for batch upgrades
   let latestOutdated: Array<{ name: string; type: string }> = [];
 
@@ -97,6 +100,65 @@ export function setupIpcHandlers(): void {
             type: 'formula' as const,
           })),
         ];
+
+        // Supplement with casks from third-party taps (not in the official API).
+        // brew search --casks queries ALL installed taps, so casks like
+        // "user/tap/caskname" that aren't on formulae.brew.sh still show up in Explore.
+        try {
+          const allTapCaskNames = await getAllTapCaskNames();
+          if (allTapCaskNames.length > 0) {
+            const apiCaskNames = new Set(
+              casks.map((c: any) => (c.token || c.name).toLowerCase())
+            );
+
+            // Casks in taps but missing from the official API list.
+            // Compare by short name (last path segment) but keep the
+            // tap-qualified name for `brew info --cask` lookups.
+            const missingCaskNames = allTapCaskNames.filter((name) => {
+              const shortName = name.split('/').pop()?.toLowerCase() || '';
+              return shortName && !apiCaskNames.has(shortName);
+            });
+
+            console.log(
+              `[IPC] Found ${missingCaskNames.length} casks from third-party taps`
+            );
+
+            if (missingCaskNames.length > 0) {
+              // Fetch details in parallel, chunked to avoid overwhelming brew
+              const chunkSize = 20;
+              for (let i = 0; i < missingCaskNames.length; i += chunkSize) {
+                const chunk = missingCaskNames.slice(i, i + chunkSize);
+                const results = await Promise.all(
+                  chunk.map(async (qualifiedName) => {
+                    const info = await getThirdPartyCaskInfo(qualifiedName);
+                    const shortName = qualifiedName.split('/').pop() || qualifiedName;
+                    if (info) {
+                      return {
+                        name: info.token || info.name || shortName,
+                        description: info.desc || '',
+                        homepage: info.homepage || '',
+                        version: info.version || 'N/A',
+                        type: 'cask' as const,
+                      };
+                    }
+                    // Info fetch failed — still add minimal entry so the cask shows up
+                    return {
+                      name: shortName,
+                      description: '',
+                      homepage: '',
+                      version: 'N/A',
+                      type: 'cask' as const,
+                    };
+                  })
+                );
+                allApps.push(...results);
+              }
+            }
+          }
+        } catch (tapError: any) {
+          console.error('[IPC] Error fetching third-party tap casks:', tapError.message);
+          // Don't fail the whole load — official API data is still valid
+        }
 
         // Save to cache
         saveToCache(allApps); // Optimization: Now async, runs in background to unblock main thread
@@ -437,7 +499,7 @@ export function setupIpcHandlers(): void {
       event.reply('upgrade-start', { appName: c.name });
 
       try {
-        await startCaskUpgradePty(c.name);
+        await ptyManager.startCaskUpgradePty(c.name);
         event.reply('upgrade-complete', { appName: c.name, success: true });
       } catch (err: any) {
         console.error('[IPC] PTY upgrade failed for', c.name, err);
@@ -479,6 +541,21 @@ export function setupIpcHandlers(): void {
     shell.on('close', (code) => {
       logCommand(command, output, code);
       event.reply('terminal-output', `\nProcess exited with code ${code}\n`);
+
+      // After brew update succeeds, invalidate the apps cache so the next
+      // get-all-apps request fetches fresh data from the Homebrew API.
+      if (command.trim() === 'brew update' && code === 0) {
+        try {
+          const cachePath = path.join(os.homedir(), '.brewmate', 'apps-cache.json');
+          const fs = require('fs');
+          if (fs.existsSync(cachePath)) {
+            fs.unlinkSync(cachePath);
+          }
+        } catch (e) {
+          // Ignore cache deletion errors
+        }
+        event.reply('brew-update-complete');
+      }
     });
   });
 

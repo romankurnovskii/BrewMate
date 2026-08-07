@@ -157,6 +157,64 @@ export async function getAppDetails(appName: string, type: 'cask' | 'formula'): 
   }
 }
 
+/**
+ * Fetch all cask names available from ALL installed taps (including third-party taps).
+ * Uses `brew search --casks` which queries every tap, not just homebrew-cask.
+ * Returns the raw names as reported by brew. Names from third-party taps may be
+ * tap-qualified (e.g. "user/tap/caskname") — the caller can strip the prefix for
+ * display but should keep it for `brew info --cask` lookups.
+ */
+export async function getAllTapCaskNames(): Promise<string[]> {
+  try {
+    const env = getEnvWithBrewPath();
+    const { stdout } = await execAsync('brew search --casks', { env });
+    const names: string[] = [];
+    // With --casks, brew should only emit cask names. Track section headers
+    // defensively so a "==> Formulae" section can never leak formula names in.
+    let inCasksSection = true;
+    for (const line of stdout.split('\n')) {
+      const trimmed = line.trim();
+      if (!trimmed) continue;
+      if (trimmed.startsWith('==>')) {
+        inCasksSection = trimmed.toLowerCase().includes('cask');
+        continue;
+      }
+      if (inCasksSection) {
+        names.push(
+          ...trimmed
+            .split(/\s+/)
+            .filter(Boolean)
+            .map((name) => name.trim())
+        );
+      }
+    }
+    return names;
+  } catch (error) {
+    console.error('[Brew] Error fetching tap cask names:', error);
+    return [];
+  }
+}
+
+/**
+ * Fetch details for a single cask that exists only in a third-party tap
+ * (not in the official Homebrew API).
+ * Uses `brew info --cask --json=v2` to get name, desc, homepage, and version.
+ */
+export async function getThirdPartyCaskInfo(caskName: string): Promise<any | null> {
+  try {
+    const env = getEnvWithBrewPath();
+    const { stdout } = await execAsync(`brew info --cask --json=v2 ${caskName}`, { env });
+    const data = JSON.parse(stdout);
+    if (data.casks && data.casks.length > 0) {
+      return data.casks[0];
+    }
+    return null;
+  } catch (error) {
+    // Cask info not available — skip silently
+    return null;
+  }
+}
+
 export async function scanVulnerabilities(): Promise<any[]> {
   try {
     const env = getEnvWithBrewPath();

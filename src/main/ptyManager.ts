@@ -57,8 +57,8 @@ export async function startCaskUpgradePty(caskName: string): Promise<{ code: num
       }
     });
 
-    activePty.onExit(({ exitCode }) => {
-      const code = exitCode ?? 0;
+    activePty.onExit((exitInfo: { exitCode: number }) => {
+      const code = exitInfo.exitCode ?? 0;
       sendToRenderer('pty-exit', { cask: caskName, code });
       activePty = null;
       resolve({ code });
