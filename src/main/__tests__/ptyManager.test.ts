@@ -158,4 +158,26 @@ describe('PTY Manager', () => {
     const mockPty = getLastPtyInstance();
     mockPty._triggerExit(0);
   });
+
+  it('open-external-terminal soft-fails with a clear message on non-darwin', async () => {
+    const originalPlatform = Object.getOwnPropertyDescriptor(process, 'platform');
+    Object.defineProperty(process, 'platform', { value: 'linux' });
+
+    jest.clearAllMocks();
+    ptyManager.setupPtyIpcHandlers();
+    const handleCalls = (ipcMain.handle as jest.Mock).mock.calls;
+    const openExternalCall = handleCalls.find(
+      (call: unknown[]) => call[0] === 'open-external-terminal'
+    );
+    expect(openExternalCall).toBeDefined();
+    const handler = openExternalCall[1] as (event: unknown, cask: string) => Promise<void>;
+
+    await expect(handler({}, 'some-cask')).rejects.toThrow(
+      /only supported on macOS|in-app terminal/i
+    );
+
+    if (originalPlatform) {
+      Object.defineProperty(process, 'platform', originalPlatform);
+    }
+  });
 });

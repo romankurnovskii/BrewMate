@@ -84,29 +84,40 @@ export async function getOutdatedApps(): Promise<OutdatedApp[]> {
   }
 }
 
+function parseBrewListOutput(stdout: string): string[] {
+  return stdout
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean)
+    .map((name) => name.trim());
+}
+
 export async function getInstalledApps(): Promise<InstalledApp[]> {
   try {
     const env = getEnvWithBrewPath();
 
-    // Optimization: Parallelize fetching casks and formulas to significantly reduce I/O wait time
-    const [casksResult, formulasResult] = await Promise.all([
+    // Fetch casks and formulas independently so a cask-list failure (common on
+    // Linux / limited Homebrew installs) does not wipe the formula list.
+    const [casksSettled, formulasSettled] = await Promise.allSettled([
       execAsync('brew list --casks', { env }),
       execAsync('brew list --formula', { env }),
     ]);
 
-    // Get installed casks (brew list --casks returns space-separated list)
-    const installedCasks = casksResult.stdout
-      .trim()
-      .split(/\s+/)
-      .filter(Boolean)
-      .map((cask) => cask.trim());
+    const installedCasks =
+      casksSettled.status === 'fulfilled'
+        ? parseBrewListOutput(casksSettled.value.stdout)
+        : [];
+    if (casksSettled.status === 'rejected') {
+      console.error('[Brew] Error listing casks:', casksSettled.reason);
+    }
 
-    // Get installed formulas
-    const installedFormulas = formulasResult.stdout
-      .trim()
-      .split(/\s+/)
-      .filter(Boolean)
-      .map((formula) => formula.trim());
+    const installedFormulas =
+      formulasSettled.status === 'fulfilled'
+        ? parseBrewListOutput(formulasSettled.value.stdout)
+        : [];
+    if (formulasSettled.status === 'rejected') {
+      console.error('[Brew] Error listing formulas:', formulasSettled.reason);
+    }
 
     return [
       ...installedCasks.map((cask: string) => ({

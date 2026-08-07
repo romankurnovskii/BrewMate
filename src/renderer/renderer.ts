@@ -647,20 +647,30 @@ function setupIpcListeners(): void {
       );
       terminalOutput.scrollTop = terminalOutput.scrollHeight;
     } else if (choice === 'external') {
-      // Kill PTY, launch Terminal.app
+      // Kill PTY, launch external terminal (macOS Terminal.app)
       if (ipcRenderer.killPty) {
         await ipcRenderer.killPty();
       }
-      if (ipcRenderer.openExternalTerminal) {
-        await ipcRenderer.openExternalTerminal(caskName);
+      try {
+        if (ipcRenderer.openExternalTerminal) {
+          await ipcRenderer.openExternalTerminal(caskName);
+        }
+        terminalOutput.insertAdjacentHTML(
+          'beforeend',
+          `<span class="terminal-prompt">🖥️</span> Opened external terminal for ${escapeHtml(caskName)} upgrade.\n`
+        );
+        // Mark as "success" so the UI removes it from the list
+        ipcRenderer.send('upgrade-complete', { appName: caskName, success: true });
+      } catch (err: any) {
+        const message = err?.message || String(err);
+        terminalOutput.insertAdjacentHTML(
+          'beforeend',
+          `<span class="terminal-prompt">⚠️</span> Could not open external terminal: ${escapeHtml(message)}\n` +
+            `<span class="terminal-prompt">💡</span> Use the in-app terminal (embedded option) to enter your password.\n`
+        );
+        ipcRenderer.send('upgrade-complete', { appName: caskName, success: false });
       }
-      terminalOutput.insertAdjacentHTML(
-        'beforeend',
-        `<span class="terminal-prompt">🖥️</span> Opened Terminal.app for ${escapeHtml(caskName)} upgrade.\n`
-      );
       terminalOutput.scrollTop = terminalOutput.scrollHeight;
-      // Mark as "success" so the UI removes it from the list
-      ipcRenderer.send('upgrade-complete', { appName: caskName, success: true });
     } else {
       // Skip
       if (ipcRenderer.killPty) {
