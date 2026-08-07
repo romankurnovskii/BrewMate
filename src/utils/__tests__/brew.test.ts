@@ -179,15 +179,17 @@ describe('brew utilities', () => {
       );
     });
 
-    it('should return empty array on error', async () => {
-      mockExecAsync.mockRejectedValueOnce(new Error('brew command failed'));
+    it('should return empty array when both cask and formula lists fail', async () => {
+      mockExecAsync
+        .mockRejectedValueOnce(new Error('cask list failed'))
+        .mockRejectedValueOnce(new Error('formula list failed'));
 
       const result = await getInstalledApps();
 
       expect(result).toEqual([]);
     });
 
-    it('should handle errors from brew list --formula', async () => {
+    it('should still return casks when brew list --formula fails', async () => {
       mockExecAsync
         .mockResolvedValueOnce({
           stdout: 'cask1',
@@ -197,20 +199,23 @@ describe('brew utilities', () => {
 
       const result = await getInstalledApps();
 
-      expect(result).toEqual([]);
+      expect(result).toEqual([{ name: 'cask1', type: 'cask' }]);
     });
 
-    it('should handle errors from brew list --casks', async () => {
+    it('should still return formulas when brew list --casks fails', async () => {
       mockExecAsync
         .mockRejectedValueOnce(new Error('cask list failed'))
         .mockResolvedValueOnce({
-          stdout: 'formula1',
+          stdout: 'formula1 formula2',
           stderr: '',
         });
 
       const result = await getInstalledApps();
 
-      expect(result).toEqual([]);
+      expect(result).toEqual([
+        { name: 'formula1', type: 'formula' },
+        { name: 'formula2', type: 'formula' },
+      ]);
     });
 
     it('should preserve app names exactly as returned by brew', async () => {

@@ -115,10 +115,14 @@ export function setupPtyIpcHandlers(): void {
     return true;
   });
 
-  // Fallback: open macOS Terminal.app with the same brew command
+  // Fallback: open an external terminal with the same brew command (macOS only).
+  // On Linux/Windows the in-app PTY is the supported interactive path; soft-fail
+  // with a clear error so the renderer can keep using embedded terminal input.
   ipcMain.handle('open-external-terminal', async (_event, caskName: string) => {
     if (process.platform !== 'darwin') {
-      throw new Error('Opening external Terminal is only supported on macOS');
+      throw new Error(
+        'Opening an external terminal is only supported on macOS. Use the in-app terminal to enter your password.'
+      );
     }
 
     const cmd = `brew upgrade --cask ${caskName}`;

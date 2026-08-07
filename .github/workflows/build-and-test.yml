@@ -48,3 +48,48 @@ jobs:
           echo "Launching application from ASAR..."
           npx electron "$ASAR_PATH" --test-startup --no-sandbox
         working-directory: .
+
+  build-and-test-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential python3 libgtk-3-0 libnotify4 libnss3 libxss1 libasound2t64 || \
+          sudo apt-get install -y build-essential python3 libgtk-3-0 libnotify4 libnss3 libxss1 libasound2
+
+      - name: Install Dependencies
+        run: npm install
+        working-directory: .
+
+      - name: Tests
+        run: npm test
+        working-directory: .
+
+      - name: Build Electron App
+        run: npm run build
+        working-directory: .
+
+      - name: Package App (Linux Dry Run)
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: false
+        run: npx electron-builder --linux --dir
+        working-directory: .
+
+      - name: Verify Startup (Smoke Test)
+        timeout-minutes: 2
+        env:
+          TEST_STARTUP: 'true'
+          ELECTRON_ENABLE_LOGGING: '1'
+        run: |
+          ASAR_PATH=$(find dist-app -name "app.asar" | head -n 1)
+          if [ -z "$ASAR_PATH" ]; then
+            echo "Error: app.asar not found!"
+            exit 1
+          fi
+          echo "Found ASAR at: $ASAR_PATH"
+          echo "Launching application from ASAR..."
+          npx electron "$ASAR_PATH" --test-startup --no-sandbox
+        working-directory: .

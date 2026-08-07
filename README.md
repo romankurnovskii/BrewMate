@@ -2,7 +2,7 @@
 
 **BrewMate - Homebrew GUI**
 
-BrewMate is a macOS GUI application that makes it easy to search for, install, and uninstall Homebrew casks. You can also see the top downloaded casks.
+BrewMate is a GUI application for [Homebrew](https://brew.sh/) on **macOS** and **Linux**. Search, install, upgrade, and uninstall formulae and casks (where Homebrew supports them). You can also browse top downloads and manage brew services.
 
 Includes third party apps + from [awesome-brew](https://github.com/romankurnovskii/homebrew-awesome-brew/)
 
@@ -15,6 +15,7 @@ Includes third party apps + from [awesome-brew](https://github.com/romankurnovsk
 - [x] list local installed
 - [x] top installs
 - [x] show logs on install/uninstall
+- [x] Linux support (Homebrew / Linuxbrew; formula-primary)
 - [ ] add 3rd party taps
 - [ ] handle apps required sudo/pass on install/uninstall
 
@@ -22,30 +23,52 @@ Includes third party apps + from [awesome-brew](https://github.com/romankurnovsk
 
 Before you begin, ensure you have met the following requirements:
 
-- **macOS**: This package is designed to work on macOS. Ensure you are using a compatible version.
-- **Homebrew**: This package requires [Homebrew](https://brew.sh/) to be installed on your system. Homebrew is a package manager for macOS that simplifies the installation of software. If you don't have Homebrew installed, you can install it by running the following command in your terminal:
+- **macOS** or **Linux** (Ubuntu 22.04+ / Debian-class recommended for Linux)
+- **Homebrew**: Required on both platforms. Install with:
 
 ```sh
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 ```
 
+On Linux, use the official prefix `/home/linuxbrew/.linuxbrew` when possible (best bottle support). Follow the installer’s “Next steps” to add `brew` to your `PATH`.
+
+### Linux system packages
+
+For running Electron / building from source on Debian/Ubuntu:
+
+```sh
+sudo apt-get install build-essential procps curl file git \
+  libgtk-3-dev libnotify-dev libnss3 libxss1 libasound2
+```
+
 # Install
 
-### Option 1
-
-In terminal:
+### macOS — Option 1 (Homebrew cask)
 
 ```sh
 brew install romankurnovskii/BrewMate/brewmate --cask
 ```
 
-### Option 2
+### macOS — Option 2 (DMG)
 
 1. Download the latest DMG file from the [releases page](https://github.com/romankurnovskii/BrewMate/releases).
 2. Double-click the DMG file to open it.
 3. Drag the BrewMate app to your Applications folder.
 
-## First time launch
+### Linux (from source / local package)
+
+Linux release artifacts may be produced with electron-builder (AppImage / `.deb`). From a clone:
+
+```sh
+npm install
+npm run build:linux
+```
+
+Artifacts land in `dist-app/`. You can also run in development after `npm run build` with `npm start`.
+
+> **Note:** On Linux, Homebrew is formula-primary. Casks are shown when available, but many macOS-only casks will not install. Interactive upgrades use the in-app terminal (external Terminal.app is macOS-only).
+
+## First time launch (macOS)
 
 1. Navigate to your "Applications" folder.
 1. Find the app `BrewMate` and right-click on it.
@@ -55,7 +78,8 @@ brew install romankurnovskii/BrewMate/brewmate --cask
 
 # Requirements
 
-- macOS 10.15 or later.
+- macOS 10.15 or later, **or**
+- Linux with Homebrew (Ubuntu 22.04+ recommended)
 
 # Development / Build
 
@@ -66,9 +90,7 @@ brew install romankurnovskii/BrewMate/brewmate --cask
 
 ## Build Types
 
-BrewMate supports two build types:
-
-### Local Test Build
+### Local Test Build (macOS)
 
 Build a version you can run and test on your Mac (direct distribution):
 
@@ -77,6 +99,14 @@ npm run build:mac
 ```
 
 This creates a DMG in `dist-app/` that you can install and run locally.
+
+### Local Test Build (Linux)
+
+```bash
+npm run build:linux
+```
+
+This creates AppImage and/or `.deb` packages in `dist-app/` (see `electron-builder.yml`).
 
 ### Mac App Store Build
 
