@@ -1,9 +1,9 @@
 import { ipcMain, IpcMainEvent, app } from 'electron';
 import { spawn, exec } from 'child_process';
+import * as fs from 'fs';
 import * as path from 'path';
-import * as os from 'os'; // Import the 'os' module
 import { fetchJSON } from '../utils/fetchData';
-import { loadFromCache, saveToCache } from '../utils/cache';
+import { loadFromCache, saveToCache, getCachePath } from '../utils/cache';
 import { getTerminalPromptInfo } from '../utils/terminal';
 import { getInstalledApps, getOutdatedApps, getCacheSize, getAppDetails, scanVulnerabilities, getAllTapCaskNames, getThirdPartyCaskInfo } from '../utils/brew';
 import { logCommand, getLogFilePath } from '../utils/logger';
@@ -13,13 +13,10 @@ import { App, LoadingStatus } from '../types';
 import { t, changeLanguage, getCurrentLanguage } from './i18n';
 import categoriesData from '../data/categories';
 
-// Placeholder for ptyManager import. It will be loaded dynamically.
-let ptyManager: any;
-
 export function setupIpcHandlers(): void {
-  // Dynamically import ptyManager to avoid issues during initial setup if it's not needed
-  ptyManager = require('./ptyManager');
-  ptyManager.setupPtyIpcHandlers();
+  // Set up PTY IPC handlers for interactive cask upgrades
+  const { setupPtyIpcHandlers, startCaskUpgradePty } = require('./ptyManager');
+  setupPtyIpcHandlers();
   // Store latest outdated apps for batch upgrades
   let latestOutdated: Array<{ name: string; type: string }> = [];
 
@@ -499,7 +496,7 @@ export function setupIpcHandlers(): void {
       event.reply('upgrade-start', { appName: c.name });
 
       try {
-        await ptyManager.startCaskUpgradePty(c.name);
+        await startCaskUpgradePty(c.name);
         event.reply('upgrade-complete', { appName: c.name, success: true });
       } catch (err: any) {
         console.error('[IPC] PTY upgrade failed for', c.name, err);
@@ -545,15 +542,10 @@ export function setupIpcHandlers(): void {
       // After brew update succeeds, invalidate the apps cache so the next
       // get-all-apps request fetches fresh data from the Homebrew API.
       if (command.trim() === 'brew update' && code === 0) {
-        try {
-          const cachePath = path.join(os.homedir(), '.brewmate', 'apps-cache.json');
-          const fs = require('fs');
-          if (fs.existsSync(cachePath)) {
-            fs.unlinkSync(cachePath);
-          }
-        } catch (e) {
+        // Unlink is async and the cache may not exist yet — ignore deletion errors.
+        fs.promises.unlink(getCachePath()).catch(() => {
           // Ignore cache deletion errors
-        }
+        });
         event.reply('brew-update-complete');
       }
     });

@@ -337,10 +337,23 @@ describe('brew utilities', () => {
       });
 
       const result = await getAllTapCaskNames();
-
       expect(result).toEqual([
         'firefox',
         'romankurnovskii/awesome-brew/orca',
+      ]);
+    });
+
+    it('should skip brew warning/error/note lines', async () => {
+      mockExecAsync.mockResolvedValueOnce({
+        stdout:
+          'Warning: some upgrade notice\nfirefox\nError: something failed\nromankurnovskii/awesome-brew/etemaro\nNote: run brew update',
+        stderr: '',
+      });
+
+      const result = await getAllTapCaskNames();
+      expect(result).toEqual([
+        'firefox',
+        'romankurnovskii/awesome-brew/etemaro',
       ]);
     });
 

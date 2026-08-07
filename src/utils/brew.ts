@@ -175,6 +175,8 @@ export async function getAllTapCaskNames(): Promise<string[]> {
     for (const line of stdout.split('\n')) {
       const trimmed = line.trim();
       if (!trimmed) continue;
+      // Skip brew notices (upgrade warnings, errors, etc.) — they are not cask names.
+      if (/^(Warning|Error|Note):/i.test(trimmed)) continue;
       if (trimmed.startsWith('==>')) {
         inCasksSection = trimmed.toLowerCase().includes('cask');
         continue;
