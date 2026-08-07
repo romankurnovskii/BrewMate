@@ -535,15 +535,16 @@ export function setupIpcHandlers(): void {
       event.reply('terminal-output', dataStr);
     });
 
-    shell.on('close', (code) => {
+    shell.on('close', async (code) => {
       logCommand(command, output, code);
       event.reply('terminal-output', `\nProcess exited with code ${code}\n`);
 
       // After brew update succeeds, invalidate the apps cache so the next
       // get-all-apps request fetches fresh data from the Homebrew API.
       if (command.trim() === 'brew update' && code === 0) {
-        // Unlink is async and the cache may not exist yet — ignore deletion errors.
-        fs.promises.unlink(getCachePath()).catch(() => {
+        // Await deletion so the renderer can't re-read the stale cache before
+        // it's gone. The cache may not exist yet — ignore deletion errors.
+        await fs.promises.unlink(getCachePath()).catch(() => {
           // Ignore cache deletion errors
         });
         event.reply('brew-update-complete');
