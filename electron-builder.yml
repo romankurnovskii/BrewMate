@@ -18,6 +18,7 @@ files:
   - 'node_modules/**/*'
   - 'package.json'
   - '!**/src/**/*'
+  - '!**/node_modules/node-pty/prebuilds/**'
   - '!**/*.{iml,o,hprof,orig,pyc,pyo,rbc,swp,csproj,sln,xproj}'
   - '!.editorconfig'
   - '!**/._*'
