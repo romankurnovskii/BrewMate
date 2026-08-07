@@ -44,9 +44,19 @@ jobs:
           TEST_STARTUP: 'true'
           ELECTRON_ENABLE_LOGGING: '1'
         run: |
-          ASAR_PATH=$(find dist-app -name "app.asar" | head -n 1)
+          # Smoke-test the universal build that ships in the DMG/ZIP.
+          # Do NOT use `find | head -1`: it can pick a host-arch staging app
+          # (dist-app/mac) whose native addon was never rebuilt for Electron.
+          if [ -f "dist-app/mac-universal/BrewMate.app/Contents/Resources/app.asar" ]; then
+            ASAR_PATH="dist-app/mac-universal/BrewMate.app/Contents/Resources/app.asar"
+          else
+            ASAR_PATH=$(find dist-app -path "*mac-universal*" -name app.asar | head -n 1)
+          fi
           if [ -z "$ASAR_PATH" ]; then
-            echo "Error: app.asar not found!"
+            echo "Error: universal app.asar not found!"
+            echo "--- dist-app contents ---"
+            ls -la dist-app || true
+            find dist-app -name "app.asar" 2>/dev/null || true
             exit 1
           fi
           echo "Found ASAR at: $ASAR_PATH"
