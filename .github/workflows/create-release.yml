@@ -38,6 +38,22 @@ jobs:
           ls -la dist-app || true
         working-directory: .
 
+      - name: Verify Startup (Smoke Test)
+        timeout-minutes: 2
+        env:
+          TEST_STARTUP: 'true'
+          ELECTRON_ENABLE_LOGGING: '1'
+        run: |
+          ASAR_PATH=$(find dist-app -name "app.asar" | head -n 1)
+          if [ -z "$ASAR_PATH" ]; then
+            echo "Error: app.asar not found!"
+            exit 1
+          fi
+          echo "Found ASAR at: $ASAR_PATH"
+          echo "Launching application from ASAR..."
+          npx electron "$ASAR_PATH" --test-startup --no-sandbox
+        working-directory: .
+
       - name: Upload Assets to Release
         uses: softprops/action-gh-release@v3
         env:
@@ -53,7 +69,7 @@ jobs:
 
       - name: Generate SHA256 Checksum
         run: |
-          shasum -a 256 ./dist-app/BrewMate-${{ env.VERSION }}-universal.zip | awk '{print $1}' >> shasumver
+          shasum -a 256 ./dist-app/BrewMate-${{ env.VERSION }}-universal.dmg | awk '{print $1}' >> shasumver
           echo "SHA 256:" >> $GITHUB_STEP_SUMMARY
           cat shasumver >> $GITHUB_STEP_SUMMARY
 
@@ -109,7 +125,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           VERSION=$(jq -r .version package.json)
-          SHA256=$(shasum -a 256 ./dist-app/BrewMate-${VERSION}-universal.zip | awk '{print $1}')
+          SHA256=$(shasum -a 256 ./dist-app/BrewMate-${VERSION}-universal.dmg | awk '{print $1}')
 
           # Switch to main so we can push the cask update back
           git fetch origin main
@@ -140,7 +156,7 @@ jobs:
       - name: Install Dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y libgtk-3-dev libnotify-dev libnss3 libxss1 libasound2
+          sudo apt-get install -y libgtk-3-dev libnotify-dev libnss3 libxss1 libasound2t64
           npm install
         working-directory: .
 

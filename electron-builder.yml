@@ -8,6 +8,10 @@ copyright: © 2025 Roman Kurnovskii
 
 asar: true
 
+# node-pty ships a native addon that must live outside the asar
+asarUnpack:
+  - '**/node_modules/node-pty/**'
+
 files:
   - 'dist/**/*'
   - 'locales/**/*'
