@@ -87,13 +87,16 @@ describe('electron-builder.yml', () => {
     expect(hasExclusion).toBe(false);
   });
 
-  it('node_modules should not be excluded anywhere in the files section', () => {
-    // Any variant that explicitly excludes node_modules would break the bundle
-    const nodeModulesExclusionPattern = /!\*\*\/node_modules/;
-    const hasAnyNodeModulesExclusion = lines.some((l) =>
-      nodeModulesExclusionPattern.test(l)
+  it('node_modules should not be excluded wholesale from the files section', () => {
+    // The bundle needs node_modules included; a bare !**/node_modules exclusion
+    // (e.g. !**/node_modules/**/*) would break it. Targeted exclusions of a
+    // specific package subdirectory (node-pty prebuilds, which are only a
+    // runtime fallback and are rebuilt per-arch into build/Release) are allowed.
+    const nodeModulesWholesaleExclusion = /!\*\*\/node_modules(?:\/\*\*(?:\/\*)?|\/)\s*$/;
+    const hasWholesaleExclusion = lines.some((l) =>
+      nodeModulesWholesaleExclusion.test(l.trim())
     );
-    expect(hasAnyNodeModulesExclusion).toBe(false);
+    expect(hasWholesaleExclusion).toBe(false);
   });
 
   // -- Regressions: existing file patterns should be preserved ---------------
