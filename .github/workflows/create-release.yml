@@ -171,8 +171,10 @@ jobs:
         working-directory: .
 
       - name: Build Linux App
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        # Do NOT pass GITHUB_TOKEN here: it makes electron-builder try to
+        # auto-publish, which fails when the release already exists (the
+        # create-release job creates it, and the upload step below attaches
+        # assets via softprops/action-gh-release).
         run: npm run build:linux
         working-directory: .
 
