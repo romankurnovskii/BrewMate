@@ -2,7 +2,10 @@
   "name": "brewmate",
   "version": "1.0.36",
   "description": "BrewMate - A modern Homebrew package manager GUI for macOS and Linux",
-  "author": "Roman Kurnovskii",
+  "author": {
+    "name": "Roman Kurnovskii",
+    "email": "romankurnovskii@gmail.com"
+  },
   "main": "dist/index.js",
   "scripts": {
     "build": "tsc && npm run build:renderer && npm run copy:static",
