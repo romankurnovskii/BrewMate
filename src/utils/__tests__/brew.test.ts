@@ -316,10 +316,17 @@ describe('brew utilities', () => {
 
   describe('getAllTapCaskNames', () => {
     it('should return all cask names from all taps', async () => {
+      // First call: `brew tap` lists installed taps.
+      mockExecAsync.mockResolvedValueOnce({
+        stdout: 'romankurnovskii/awesome-brew\noven-sh/bun',
+        stderr: '',
+      });
+      // Then one `brew search --casks <tap>` per tap. Formula-only taps reject.
       mockExecAsync.mockResolvedValueOnce({
         stdout: 'firefox\ngoogle-chrome\nromankurnovskii/awesome-brew/etemaro',
         stderr: '',
       });
+      mockExecAsync.mockRejectedValueOnce(new Error('Error: No formulae or casks found'));
 
       const result = await getAllTapCaskNames();
 
@@ -328,9 +335,24 @@ describe('brew utilities', () => {
         'google-chrome',
         'romankurnovskii/awesome-brew/etemaro',
       ]);
+      expect(mockExecAsync).toHaveBeenNthCalledWith(1, 'brew tap', expect.anything());
+      expect(mockExecAsync).toHaveBeenNthCalledWith(
+        2,
+        'brew search --casks romankurnovskii/awesome-brew',
+        expect.anything()
+      );
+      expect(mockExecAsync).toHaveBeenNthCalledWith(
+        3,
+        'brew search --casks oven-sh/bun',
+        expect.anything()
+      );
     });
 
     it('should strip section headers from output', async () => {
+      mockExecAsync.mockResolvedValueOnce({
+        stdout: 'romankurnovskii/awesome-brew',
+        stderr: '',
+      });
       mockExecAsync.mockResolvedValueOnce({
         stdout: '==> Casks\nfirefox\nromankurnovskii/awesome-brew/orca\n==> Formulae\nsome-formula',
         stderr: '',
@@ -345,6 +367,10 @@ describe('brew utilities', () => {
 
     it('should skip brew warning/error/note lines', async () => {
       mockExecAsync.mockResolvedValueOnce({
+        stdout: 'romankurnovskii/awesome-brew',
+        stderr: '',
+      });
+      mockExecAsync.mockResolvedValueOnce({
         stdout:
           'Warning: some upgrade notice\nfirefox\nError: something failed\nromankurnovskii/awesome-brew/etemaro\nNote: run brew update',
         stderr: '',
@@ -355,6 +381,53 @@ describe('brew utilities', () => {
         'firefox',
         'romankurnovskii/awesome-brew/etemaro',
       ]);
+    });
+
+    it('should skip formula-only taps that error out', async () => {
+      mockExecAsync.mockResolvedValueOnce({
+        stdout: 'romankurnovskii/awesome-brew\noven-sh/bun',
+        stderr: '',
+      });
+      mockExecAsync.mockResolvedValueOnce({
+        stdout:
+          'romankurnovskii/awesome-brew/brewmate\nromankurnovskii/awesome-brew/etemaro',
+        stderr: '',
+      });
+      mockExecAsync.mockRejectedValueOnce(new Error('Error: No formulae or casks found'));
+
+      const result = await getAllTapCaskNames();
+      expect(result).toEqual([
+        'romankurnovskii/awesome-brew/brewmate',
+        'romankurnovskii/awesome-brew/etemaro',
+      ]);
+    });
+
+    it('should dedupe cask names reported by multiple taps', async () => {
+      mockExecAsync.mockResolvedValueOnce({
+        stdout: 'a/tap\nb/tap',
+        stderr: '',
+      });
+      mockExecAsync.mockResolvedValueOnce({
+        stdout: 'shared-cask\na/tap/foo',
+        stderr: '',
+      });
+      mockExecAsync.mockResolvedValueOnce({
+        stdout: 'shared-cask\nb/tap/bar',
+        stderr: '',
+      });
+
+      const result = await getAllTapCaskNames();
+      expect(result).toEqual(['shared-cask', 'a/tap/foo', 'b/tap/bar']);
+    });
+
+    it('should return empty array when no taps are installed', async () => {
+      mockExecAsync.mockResolvedValueOnce({
+        stdout: '',
+        stderr: '',
+      });
+
+      const result = await getAllTapCaskNames();
+      expect(result).toEqual([]);
     });
 
     it('should return empty array on error', async () => {
