@@ -1,6 +1,6 @@
 {
   "name": "brewmate",
-  "version": "1.0.35",
+  "version": "1.0.36",
   "description": "BrewMate - A modern Homebrew package manager GUI for macOS and Linux",
   "author": "Roman Kurnovskii",
   "main": "dist/index.js",
