@@ -150,8 +150,9 @@ jobs:
           git config user.name "R K"
           git config user.email "email@example.com"
           git add Casks/brewmate.rb
-          git commit -m "chore: update cask to version ${VERSION} [skip ci]"
-          git push origin main
+          # Only commit if the cask actually changed (safe to re-run)
+          git diff --cached --quiet || git commit -m "chore: update cask to version ${VERSION} [skip ci]"
+          git push origin main || true
 
   build-linux:
     needs: create-release
