@@ -36,6 +36,9 @@
     "title": "Actualizaciones Disponibles",
     "subtitle": "Seleccione aplicaciones para actualizar",
     "upgrade_all": "Actualizar Todos los Paquetes",
+    "upgrade_formulas": "Actualizar Fórmulas",
+    "upgrade_casks": "Actualizar Casks",
+    "upgrade_selected": "Actualizar Seleccionados",
     "all_up_to_date": "Todos los Paquetes al Día",
     "up_to_date_msg": "Todo está funcionando en las últimas versiones.",
     "table": {
@@ -43,9 +46,12 @@
       "type": "Tipo",
       "installed": "Instalado",
       "latest": "Último",
-      "action": "Acción"
+      "action": "Acción",
+      "select": "Seleccionar"
     },
-    "upgrade": "Actualizar"
+    "upgrade": "Actualizar",
+    "select_all": "Seleccionar todos los paquetes",
+    "select_package": "Seleccionar {{name}}"
   },
   "services": {
     "title": "Servicios",
@@ -99,6 +105,7 @@
     "error": "Error:",
     "retry": "Reintentar",
     "confirm_upgrade_all": "¿Está seguro de que desea actualizar todos los paquetes obsoletos?",
+    "confirm_upgrade_selected": "¿Está seguro de que desea actualizar los paquetes seleccionados?",
     "no_apps_found": "No se encontraron aplicaciones que coincidan con sus criterios.",
     "failed_load_apps": "Error al cargar las aplicaciones.",
     "no_apps_available": "No hay aplicaciones disponibles. Por favor, compruebe su conexión."

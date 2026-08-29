@@ -1285,6 +1285,42 @@ body {
   color: #63ffd2;
 }
 
+.updates-upgrade-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.updates-check-col {
+  width: 56px;
+  text-align: center;
+}
+
+.updates-check-col .select-all-label {
+  display: block;
+  margin-bottom: 6px;
+}
+
+.updates-check-col input[type="checkbox"],
+.update-select {
+  width: 16px;
+  height: 16px;
+  accent-color: #63ffd2;
+  cursor: pointer;
+  vertical-align: middle;
+}
+
+.dashboard-action-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.dashboard-action-btn:disabled:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
 /* Adjustments for explore tab wrap */
 #exploreView {
   height: 100%;

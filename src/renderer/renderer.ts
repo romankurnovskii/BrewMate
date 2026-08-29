@@ -79,6 +79,7 @@ const uiTranslations = {
   retry: 'Retry',
   noAppsAvailable: 'No apps available. Please check your connection.',
   confirmUpgradeAll: 'Are you sure you want to upgrade all outdated packages?',
+  confirmUpgradeSelected: 'Are you sure you want to upgrade the selected packages?',
   upgradingAll: 'upgrading all packages...',
   upgrading: 'upgrading',
   allUpToDate: 'All your applications are up to date.',
@@ -88,6 +89,8 @@ const uiTranslations = {
   available: 'available',
   all: 'All',
   installed: 'Installed',
+  select: 'Select',
+  selectAll: 'Select all packages',
 };
 
 async function updateTranslationCache(): Promise<void> {
@@ -108,11 +111,14 @@ async function updateTranslationCache(): Promise<void> {
   uiTranslations.retry = await t('common.retry');
   uiTranslations.noAppsAvailable = await t('common.no_apps_available');
   uiTranslations.confirmUpgradeAll = await t('common.confirm_upgrade_all');
+  uiTranslations.confirmUpgradeSelected = await t('common.confirm_upgrade_selected');
   uiTranslations.upgradingAll = await t('updates.upgrade_all');
   uiTranslations.allUpToDate = await t('dashboard.up_to_date');
   uiTranslations.noAppsInstalled = await t('dashboard.no_apps_installed');
   uiTranslations.all = await t('explore.all_types');
   uiTranslations.installed = await t('dashboard.installed_apps');
+  uiTranslations.select = await t('updates.table.select');
+  uiTranslations.selectAll = await t('updates.select_all');
 
   // Update CATEGORIES with translated labels
   CATEGORIES = [uiTranslations.all, uiTranslations.installed];
@@ -144,6 +150,7 @@ interface OutdatedApp {
 
 let activeView: 'dashboard' | 'explore' | 'updates' | 'services' = 'dashboard';
 let outdatedApps: Array<OutdatedApp> = [];
+let selectedUpgradeKeys = new Set<string>();
 let cacheSize = 0;
 
 // Virtual scrolling state
@@ -189,6 +196,11 @@ let dashScanVulnBtn: HTMLButtonElement;
 
 // Updates View elements
 let updatesUpgradeAllBtn: HTMLButtonElement;
+let updatesUpgradeFormulasBtn: HTMLButtonElement;
+let updatesUpgradeCasksBtn: HTMLButtonElement;
+let updatesUpgradeSelectedBtn: HTMLButtonElement;
+let updatesUpgradeActions: HTMLElement;
+let updatesSelectAllCb: HTMLInputElement;
 let updatesEmptyState: HTMLElement;
 let updatesTable: HTMLElement;
 let updatesTableBody: HTMLElement;
@@ -283,6 +295,11 @@ async function init(): Promise<void> {
   dashScanVulnBtn = document.getElementById('dashScanVulnBtn') as HTMLButtonElement;
 
   updatesUpgradeAllBtn = document.getElementById('updatesUpgradeAllBtn') as HTMLButtonElement;
+  updatesUpgradeFormulasBtn = document.getElementById('updatesUpgradeFormulasBtn') as HTMLButtonElement;
+  updatesUpgradeCasksBtn = document.getElementById('updatesUpgradeCasksBtn') as HTMLButtonElement;
+  updatesUpgradeSelectedBtn = document.getElementById('updatesUpgradeSelectedBtn') as HTMLButtonElement;
+  updatesUpgradeActions = document.getElementById('updatesUpgradeActions') as HTMLElement;
+  updatesSelectAllCb = document.getElementById('updatesSelectAllCb') as HTMLInputElement;
   updatesEmptyState = document.getElementById('updatesEmptyState') as HTMLElement;
   updatesTable = document.getElementById('updatesTable') as HTMLElement;
   updatesTableBody = document.getElementById('updatesTableBody') as HTMLElement;
@@ -603,6 +620,59 @@ function setupEventListeners(): void {
       if (confirm(uiTranslations.confirmUpgradeAll)) {
         upgradeAll();
       }
+    });
+  }
+
+  // Upgrade only formulas
+  if (updatesUpgradeFormulasBtn) {
+    updatesUpgradeFormulasBtn.addEventListener('click', () => {
+      const targets = filterUpgradeScopeLocal(outdatedApps, 'formula');
+      if (targets.length > 0) {
+        upgradeTargets(targets);
+      }
+    });
+  }
+
+  // Upgrade only casks
+  if (updatesUpgradeCasksBtn) {
+    updatesUpgradeCasksBtn.addEventListener('click', () => {
+      const targets = filterUpgradeScopeLocal(outdatedApps, 'cask');
+      if (targets.length > 0) {
+        upgradeTargets(targets);
+      }
+    });
+  }
+
+  // Upgrade the packages the user has checked
+  if (updatesUpgradeSelectedBtn) {
+    updatesUpgradeSelectedBtn.addEventListener('click', () => {
+      if (confirm(uiTranslations.confirmUpgradeSelected)) {
+        const targets = buildUpgradeTargetsLocal(outdatedApps, selectedUpgradeKeys);
+        if (targets.length > 0) {
+          upgradeTargets(targets);
+        }
+      }
+    });
+  }
+
+  // Master "select all" checkbox (static element, wired once)
+  if (updatesSelectAllCb) {
+    updatesSelectAllCb.addEventListener('change', () => {
+      const shouldCheck = updatesSelectAllCb.checked;
+      const rowCbs = updatesTableBody
+        ? updatesTableBody.querySelectorAll<HTMLInputElement>('.update-select')
+        : [];
+      rowCbs.forEach((cb) => {
+        cb.checked = shouldCheck;
+        const app = cb.dataset.app;
+        const type = cb.dataset.type;
+        if (app && type) {
+          const key = `${type}:${app}`;
+          if (shouldCheck) selectedUpgradeKeys.add(key);
+          else selectedUpgradeKeys.delete(key);
+        }
+      });
+      syncSelectionUi();
     });
   }
 }
@@ -982,6 +1052,8 @@ function setupIpcListeners(): void {
   ipcRenderer.on('upgrade-all-complete', (_event: any, { success }: { success: boolean }) => {
     console.log('[Renderer] Upgrade all complete:', success);
     if (success) {
+      // Clear any per-package selections so stale keys never survive a completed batch upgrade
+      selectedUpgradeKeys.clear();
       ipcRenderer.send('get-outdated-apps');
       ipcRenderer.send('get-installed-apps');
       ipcRenderer.send('get-cache-size');
@@ -1780,13 +1852,23 @@ function updateDashboardView(): void {
 function renderUpdatesView(): void {
   const updatesCount = outdatedApps.length;
 
-  if (updatesUpgradeAllBtn) {
-    updatesUpgradeAllBtn.style.display = updatesCount > 0 ? 'inline-flex' : 'none';
+  // Drop selection keys for packages that are no longer in the outdated list
+  if (selectedUpgradeKeys.size > 0) {
+    const validKeys = new Set(outdatedApps.map((app) => `${app.type}:${app.name}`));
+    for (const key of Array.from(selectedUpgradeKeys)) {
+      if (!validKeys.has(key)) selectedUpgradeKeys.delete(key);
+    }
+  }
+
+  // Wrapper controls visibility of all upgrade action buttons
+  if (updatesUpgradeActions) {
+    updatesUpgradeActions.style.display = updatesCount > 0 ? 'flex' : 'none';
   }
 
   if (updatesCount === 0) {
     if (updatesEmptyState) updatesEmptyState.style.display = 'flex';
     if (updatesTable) updatesTable.style.display = 'none';
+    syncSelectionUi();
     return;
   }
 
@@ -1796,8 +1878,17 @@ function renderUpdatesView(): void {
   if (updatesTableBody) {
     updatesTableBody.innerHTML = outdatedApps
       .map((app) => {
+        const key = `${app.type}:${app.name}`;
+        const checked = selectedUpgradeKeys.has(key) ? 'checked' : '';
         return `
           <tr>
+            <td class="updates-check-col">
+              <input type="checkbox" class="update-select"
+                     data-app="${escapeHtml(app.name)}"
+                     data-type="${escapeHtml(app.type)}"
+                     ${checked}
+                     aria-label="${escapeHtml(uiTranslations.select)} ${escapeHtml(app.name)}">
+            </td>
             <td>
               <div class="updates-app-name">${escapeHtml(app.name)}</div>
             </td>
@@ -1831,6 +1922,35 @@ function renderUpdatesView(): void {
         }
       });
     });
+
+    updatesTableBody.querySelectorAll<HTMLInputElement>('.update-select').forEach((cb) => {
+      cb.addEventListener('change', () => {
+        const app = cb.dataset.app;
+        const type = cb.dataset.type;
+        if (!app || !type) return;
+        const key = `${type}:${app}`;
+        if (cb.checked) selectedUpgradeKeys.add(key);
+        else selectedUpgradeKeys.delete(key);
+        syncSelectionUi();
+      });
+    });
+  }
+
+  syncSelectionUi();
+}
+
+function syncSelectionUi(): void {
+  const rowCbs = updatesTableBody
+    ? updatesTableBody.querySelectorAll<HTMLInputElement>('.update-select')
+    : [];
+  const checkedCount = Array.from(rowCbs).filter((cb) => cb.checked).length;
+  if (updatesUpgradeSelectedBtn) {
+    updatesUpgradeSelectedBtn.disabled = checkedCount === 0;
+  }
+  if (updatesSelectAllCb) {
+    updatesSelectAllCb.checked = checkedCount > 0 && checkedCount === rowCbs.length;
+    updatesSelectAllCb.indeterminate = checkedCount > 0 && checkedCount < rowCbs.length;
+    updatesSelectAllCb.setAttribute('aria-label', uiTranslations.selectAll);
   }
 }
 
@@ -1846,20 +1966,46 @@ function updateUpdatesBadge(): void {
   }
 }
 
-async function upgradeAll(): Promise<void> {
+// Local mirrors of the pure helpers in src/utils/upgrade.ts (which are unit-tested).
+// The renderer cannot import modules (tsconfig.renderer.json compiles with "module": "none"),
+// so it keeps inline copies — the same established pattern as truncateVersion below/format.ts.
+function filterUpgradeScopeLocal(
+  outdated: Array<{ name: string; type: string }>,
+  scope: 'all' | 'cask' | 'formula'
+): Array<{ name: string; type: string }> {
+  if (scope === 'all') return outdated.filter(() => true);
+  return outdated.filter((app) => app.type === scope);
+}
+
+function buildUpgradeTargetsLocal(
+  outdated: Array<OutdatedApp>,
+  selectedKeys: Set<string>
+): Array<{ name: string; type: string }> {
+  return outdated.filter((app) => selectedKeys.has(`${app.type}:${app.name}`));
+}
+
+// Shared seam for every bulk upgrade flow (all / formulas / casks / selected).
+// Sends an arbitrary target list to the existing upgrade-all IPC handler
+// (ipcHandlers.ts:461 already consumes Array<{ name, type }>) — the contract is unchanged.
+async function upgradeTargets(targets: Array<{ name: string; type: string }>): Promise<void> {
+  if (!targets || targets.length === 0) {
+    return;
+  }
   if (!terminalVisible) {
     toggleTerminal();
   }
-
-  // Get the outdated list and send it directly with upgrade-all message
-  const outdated = await requestOutdatedList();
-
   terminalOutput.insertAdjacentHTML(
     'beforeend',
     `<span class="terminal-prompt">${terminalPrompt}</span> ${uiTranslations.upgradingAll}\n`
   );
   terminalOutput.scrollTop = terminalOutput.scrollHeight;
-  ipcRenderer.send('upgrade-all', outdated);
+  ipcRenderer.send('upgrade-all', targets);
+}
+
+async function upgradeAll(): Promise<void> {
+  // Get the outdated list and send it directly with upgrade-all message
+  const outdated = await requestOutdatedList();
+  await upgradeTargets(outdated);
 }
 
 async function upgradeApp(name: string, type: string): Promise<void> {

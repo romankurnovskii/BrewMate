@@ -36,6 +36,9 @@
     "title": "Available Updates",
     "subtitle": "Select applications to upgrade",
     "upgrade_all": "Upgrade All Packages",
+    "upgrade_formulas": "Upgrade Formulas",
+    "upgrade_casks": "Upgrade Casks",
+    "upgrade_selected": "Upgrade Selected",
     "all_up_to_date": "All Packages Up to Date",
     "up_to_date_msg": "Everything is running on the latest versions.",
     "table": {
@@ -43,9 +46,12 @@
       "type": "Type",
       "installed": "Installed",
       "latest": "Latest",
-      "action": "Action"
+      "action": "Action",
+      "select": "Select"
     },
-    "upgrade": "Upgrade"
+    "upgrade": "Upgrade",
+    "select_all": "Select all packages",
+    "select_package": "Select {{name}}"
   },
   "services": {
     "title": "Services",
@@ -99,6 +105,7 @@
     "error": "Error:",
     "retry": "Retry",
     "confirm_upgrade_all": "Are you sure you want to upgrade all outdated packages?",
+    "confirm_upgrade_selected": "Are you sure you want to upgrade the selected packages?",
     "no_apps_found": "No apps found matching your criteria.",
     "failed_load_apps": "Failed to load apps.",
     "no_apps_available": "No apps available. Please check your connection."
