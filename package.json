@@ -33,7 +33,7 @@
     "@types/jest": "^30.0.0",
     "@types/node": "^26.2.0",
     "dotenv": "^17.2.3",
-    "electron": "^43.4.0",
+    "electron": "^43.4.1",
     "electron-builder": "^26.15.3",
     "electron-rebuild": "^3.2.9",
     "jest": "^30.3.0",
