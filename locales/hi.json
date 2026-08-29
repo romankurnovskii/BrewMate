@@ -50,8 +50,7 @@
       "select": "चुनें"
     },
     "upgrade": "अपग्रेड करें",
-    "select_all": "सभी पैकेज चुनें",
-    "select_package": "{{name}} चुनें"
+    "select_all": "सभी पैकेज चुनें"
   },
   "services": {
     "title": "सेवाएं",

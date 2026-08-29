@@ -50,8 +50,7 @@
       "select": "Select"
     },
     "upgrade": "Upgrade",
-    "select_all": "Select all packages",
-    "select_package": "Select {{name}}"
+    "select_all": "Select all packages"
   },
   "services": {
     "title": "Services",

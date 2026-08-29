@@ -50,8 +50,7 @@
       "select": "Вибрати"
     },
     "upgrade": "Оновити",
-    "select_all": "Вибрати всі пакети",
-    "select_package": "Вибрати {{name}}"
+    "select_all": "Вибрати всі пакети"
   },
   "services": {
     "title": "Сервіси",

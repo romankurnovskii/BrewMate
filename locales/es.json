@@ -50,8 +50,7 @@
       "select": "Seleccionar"
     },
     "upgrade": "Actualizar",
-    "select_all": "Seleccionar todos los paquetes",
-    "select_package": "Seleccionar {{name}}"
+    "select_all": "Seleccionar todos los paquetes"
   },
   "services": {
     "title": "Servicios",

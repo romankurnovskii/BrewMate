@@ -91,6 +91,9 @@ const uiTranslations = {
   installed: 'Installed',
   select: 'Select',
   selectAll: 'Select all packages',
+  upgradeFormulas: 'Upgrade Formulas',
+  upgradeCasks: 'Upgrade Casks',
+  upgradeSelected: 'Upgrade Selected',
 };
 
 async function updateTranslationCache(): Promise<void> {
@@ -119,6 +122,9 @@ async function updateTranslationCache(): Promise<void> {
   uiTranslations.installed = await t('dashboard.installed_apps');
   uiTranslations.select = await t('updates.table.select');
   uiTranslations.selectAll = await t('updates.select_all');
+  uiTranslations.upgradeFormulas = await t('updates.upgrade_formulas');
+  uiTranslations.upgradeCasks = await t('updates.upgrade_casks');
+  uiTranslations.upgradeSelected = await t('updates.upgrade_selected');
 
   // Update CATEGORIES with translated labels
   CATEGORIES = [uiTranslations.all, uiTranslations.installed];
@@ -151,6 +157,7 @@ interface OutdatedApp {
 let activeView: 'dashboard' | 'explore' | 'updates' | 'services' = 'dashboard';
 let outdatedApps: Array<OutdatedApp> = [];
 let selectedUpgradeKeys = new Set<string>();
+let upgradeInFlight = false;
 let cacheSize = 0;
 
 // Virtual scrolling state
@@ -628,7 +635,7 @@ function setupEventListeners(): void {
     updatesUpgradeFormulasBtn.addEventListener('click', () => {
       const targets = filterUpgradeScopeLocal(outdatedApps, 'formula');
       if (targets.length > 0) {
-        upgradeTargets(targets);
+        upgradeTargets(targets, uiTranslations.upgradeFormulas);
       }
     });
   }
@@ -638,7 +645,7 @@ function setupEventListeners(): void {
     updatesUpgradeCasksBtn.addEventListener('click', () => {
       const targets = filterUpgradeScopeLocal(outdatedApps, 'cask');
       if (targets.length > 0) {
-        upgradeTargets(targets);
+        upgradeTargets(targets, uiTranslations.upgradeCasks);
       }
     });
   }
@@ -649,7 +656,7 @@ function setupEventListeners(): void {
       if (confirm(uiTranslations.confirmUpgradeSelected)) {
         const targets = buildUpgradeTargetsLocal(outdatedApps, selectedUpgradeKeys);
         if (targets.length > 0) {
-          upgradeTargets(targets);
+          upgradeTargets(targets, uiTranslations.upgradeSelected);
         }
       }
     });
@@ -1051,6 +1058,8 @@ function setupIpcListeners(): void {
   // Upgrade all complete listener
   ipcRenderer.on('upgrade-all-complete', (_event: any, { success }: { success: boolean }) => {
     console.log('[Renderer] Upgrade all complete:', success);
+    upgradeInFlight = false;
+    setBulkUpgradeButtonsDisabled(false);
     if (success) {
       // Clear any per-package selections so stale keys never survive a completed batch upgrade
       selectedUpgradeKeys.clear();
@@ -1945,7 +1954,7 @@ function syncSelectionUi(): void {
     : [];
   const checkedCount = Array.from(rowCbs).filter((cb) => cb.checked).length;
   if (updatesUpgradeSelectedBtn) {
-    updatesUpgradeSelectedBtn.disabled = checkedCount === 0;
+    updatesUpgradeSelectedBtn.disabled = upgradeInFlight || checkedCount === 0;
   }
   if (updatesSelectAllCb) {
     updatesSelectAllCb.checked = checkedCount > 0 && checkedCount === rowCbs.length;
@@ -1987,16 +1996,30 @@ function buildUpgradeTargetsLocal(
 // Shared seam for every bulk upgrade flow (all / formulas / casks / selected).
 // Sends an arbitrary target list to the existing upgrade-all IPC handler
 // (ipcHandlers.ts:461 already consumes Array<{ name, type }>) — the contract is unchanged.
-async function upgradeTargets(targets: Array<{ name: string; type: string }>): Promise<void> {
+function setBulkUpgradeButtonsDisabled(disabled: boolean): void {
+  [updatesUpgradeAllBtn, updatesUpgradeFormulasBtn, updatesUpgradeCasksBtn].forEach((btn) => {
+    if (btn) btn.disabled = disabled;
+  });
+}
+
+async function upgradeTargets(
+  targets: Array<{ name: string; type: string }>,
+  label?: string
+): Promise<void> {
   if (!targets || targets.length === 0) {
     return;
   }
+  if (upgradeInFlight) {
+    return;
+  }
+  upgradeInFlight = true;
+  setBulkUpgradeButtonsDisabled(true);
   if (!terminalVisible) {
     toggleTerminal();
   }
   terminalOutput.insertAdjacentHTML(
     'beforeend',
-    `<span class="terminal-prompt">${terminalPrompt}</span> ${uiTranslations.upgradingAll}\n`
+    `<span class="terminal-prompt">${terminalPrompt}</span> ${escapeHtml(label || uiTranslations.upgradingAll)}\n`
   );
   terminalOutput.scrollTop = terminalOutput.scrollHeight;
   ipcRenderer.send('upgrade-all', targets);
