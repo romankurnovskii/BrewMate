@@ -1869,9 +1869,21 @@ function renderUpdatesView(): void {
     }
   }
 
+  // Compute whether we have formulas/casks to disable scope-specific buttons
+  const hasFormulas = outdatedApps.some((app) => app.type === 'formula');
+  const hasCasks = outdatedApps.some((app) => app.type === 'cask');
+
   // Wrapper controls visibility of all upgrade action buttons
   if (updatesUpgradeActions) {
     updatesUpgradeActions.style.display = updatesCount > 0 ? 'flex' : 'none';
+  }
+
+  // Disable scope-specific buttons when no matching packages exist AND not in flight
+  if (updatesUpgradeFormulasBtn) {
+    updatesUpgradeFormulasBtn.disabled = upgradeInFlight || !hasFormulas;
+  }
+  if (updatesUpgradeCasksBtn) {
+    updatesUpgradeCasksBtn.disabled = upgradeInFlight || !hasCasks;
   }
 
   if (updatesCount === 0) {
@@ -1889,6 +1901,7 @@ function renderUpdatesView(): void {
       .map((app) => {
         const key = `${app.type}:${app.name}`;
         const checked = selectedUpgradeKeys.has(key) ? 'checked' : '';
+        // Note: All dynamic values below are escaped with escapeHtml to prevent XSS.
         return `
           <tr>
             <td class="updates-check-col">
@@ -1902,7 +1915,7 @@ function renderUpdatesView(): void {
               <div class="updates-app-name">${escapeHtml(app.name)}</div>
             </td>
             <td>
-              <span class="updates-app-type">${app.type}</span>
+              <span class="updates-app-type">${escapeHtml(app.type)}</span>
             </td>
             <td>
               <span class="updates-version-badge">${escapeHtml(truncateVersion(app.installedVersion))}</span>
@@ -1997,7 +2010,7 @@ function buildUpgradeTargetsLocal(
 // Sends an arbitrary target list to the existing upgrade-all IPC handler
 // (ipcHandlers.ts:461 already consumes Array<{ name, type }>) — the contract is unchanged.
 function setBulkUpgradeButtonsDisabled(disabled: boolean): void {
-  [updatesUpgradeAllBtn, updatesUpgradeFormulasBtn, updatesUpgradeCasksBtn].forEach((btn) => {
+  [updatesUpgradeAllBtn, updatesUpgradeFormulasBtn, updatesUpgradeCasksBtn, updatesUpgradeSelectedBtn].forEach((btn) => {
     if (btn) btn.disabled = disabled;
   });
 }

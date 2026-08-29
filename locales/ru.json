@@ -37,7 +37,7 @@
     "subtitle": "Выберите приложения для обновления",
     "upgrade_all": "Обновить все пакеты",
     "upgrade_formulas": "Обновить формулы",
-    "upgrade_casks": "Обновить каски",
+    "upgrade_casks": "Обновить Casks",
     "upgrade_selected": "Обновить выбранные",
     "all_up_to_date": "Все пакеты обновлены",
     "up_to_date_msg": "Все работают на последних версиях.",
