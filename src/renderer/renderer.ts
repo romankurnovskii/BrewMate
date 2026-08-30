@@ -1858,6 +1858,102 @@ function updateDashboardView(): void {
   }
 }
 
+function renderUpdatesTable(
+  outdated: Array<OutdatedApp>,
+  selectedKeys: Set<string>
+): void {
+  if (!updatesTableBody) return;
+
+  // Clear existing rows
+  while (updatesTableBody.firstChild) {
+    updatesTableBody.removeChild(updatesTableBody.firstChild);
+  }
+
+  for (const app of outdated) {
+    const key = `${app.type}:${app.name}`;
+
+    const tr = document.createElement('tr');
+
+    // Checkbox cell
+    const tdCheck = document.createElement('td');
+    tdCheck.className = 'updates-check-col';
+    const checkbox = document.createElement('input');
+    checkbox.type = 'checkbox';
+    checkbox.className = 'update-select';
+    checkbox.dataset.app = app.name;
+    checkbox.dataset.type = app.type;
+    checkbox.checked = selectedKeys.has(key);
+    checkbox.setAttribute('aria-label', `${uiTranslations.select} ${app.name}`);
+    tdCheck.appendChild(checkbox);
+    tr.appendChild(tdCheck);
+
+    // Name cell
+    const tdName = document.createElement('td');
+    const nameDiv = document.createElement('div');
+    nameDiv.className = 'updates-app-name';
+    nameDiv.textContent = app.name;
+    tdName.appendChild(nameDiv);
+    tr.appendChild(tdName);
+
+    // Type cell
+    const tdType = document.createElement('td');
+    const typeSpan = document.createElement('span');
+    typeSpan.className = 'updates-app-type';
+    typeSpan.textContent = app.type;
+    tdType.appendChild(typeSpan);
+    tr.appendChild(tdType);
+
+    // Installed version cell
+    const tdInstalled = document.createElement('td');
+    const installedBadge = document.createElement('span');
+    installedBadge.className = 'updates-version-badge';
+    installedBadge.textContent = truncateVersion(app.installedVersion);
+    tdInstalled.appendChild(installedBadge);
+    tr.appendChild(tdInstalled);
+
+    // Latest version cell
+    const tdLatest = document.createElement('td');
+    const latestBadge = document.createElement('span');
+    latestBadge.className = 'updates-version-badge latest';
+    latestBadge.textContent = truncateVersion(app.latestVersion);
+    tdLatest.appendChild(latestBadge);
+    tr.appendChild(tdLatest);
+
+    // Action cell
+    const tdAction = document.createElement('td');
+    tdAction.style.textAlign = 'right';
+    const upgradeBtn = document.createElement('button');
+    upgradeBtn.className = 'dashboard-action-btn primary action-upgrade-btn';
+    upgradeBtn.dataset.app = app.name;
+    upgradeBtn.dataset.type = app.type;
+    upgradeBtn.textContent = uiTranslations.upgrade;
+    upgradeBtn.addEventListener('click', () => {
+      upgradeApp(app.name, app.type);
+    });
+    tdAction.appendChild(upgradeBtn);
+    tr.appendChild(tdAction);
+
+    updatesTableBody.appendChild(tr);
+  }
+
+  // Add event listeners for checkboxes
+  const checkboxes = updatesTableBody.querySelectorAll<HTMLInputElement>('.update-select');
+  checkboxes.forEach((cb) => {
+    cb.addEventListener('change', () => {
+      const app = cb.dataset.app;
+      const type = cb.dataset.type;
+      if (!app || !type) return;
+      const key = `${type}:${app}`;
+      if (cb.checked) {
+        selectedKeys.add(key);
+      } else {
+        selectedKeys.delete(key);
+      }
+      syncSelectionUi();
+    });
+  });
+}
+
 function renderUpdatesView(): void {
   const updatesCount = outdatedApps.length;
 
@@ -1897,65 +1993,7 @@ function renderUpdatesView(): void {
   if (updatesTable) updatesTable.style.display = 'table';
 
   if (updatesTableBody) {
-    updatesTableBody.innerHTML = outdatedApps
-      .map((app) => {
-        const key = `${app.type}:${app.name}`;
-        const checked = selectedUpgradeKeys.has(key) ? 'checked' : '';
-        // Note: All dynamic values below are escaped with escapeHtml to prevent XSS.
-        return `
-          <tr>
-            <td class="updates-check-col">
-              <input type="checkbox" class="update-select"
-                     data-app="${escapeHtml(app.name)}"
-                     data-type="${escapeHtml(app.type)}"
-                     ${checked}
-                     aria-label="${escapeHtml(uiTranslations.select)} ${escapeHtml(app.name)}">
-            </td>
-            <td>
-              <div class="updates-app-name">${escapeHtml(app.name)}</div>
-            </td>
-            <td>
-              <span class="updates-app-type">${escapeHtml(app.type)}</span>
-            </td>
-            <td>
-              <span class="updates-version-badge">${escapeHtml(truncateVersion(app.installedVersion))}</span>
-            </td>
-            <td>
-              <span class="updates-version-badge latest">${escapeHtml(truncateVersion(app.latestVersion))}</span>
-            </td>
-            <td style="text-align: right;">
-              <button class="dashboard-action-btn primary action-upgrade-btn" 
-                      data-app="${escapeHtml(app.name)}" 
-                      data-type="${escapeHtml(app.type)}">
-                ${escapeHtml(uiTranslations.upgrade)}
-              </button>
-            </td>
-          </tr>
-        `;
-      })
-      .join('');
-
-    updatesTableBody.querySelectorAll('.action-upgrade-btn').forEach((btn) => {
-      btn.addEventListener('click', () => {
-        const name = (btn as HTMLElement).dataset.app;
-        const type = (btn as HTMLElement).dataset.type;
-        if (name && type) {
-          upgradeApp(name, type);
-        }
-      });
-    });
-
-    updatesTableBody.querySelectorAll<HTMLInputElement>('.update-select').forEach((cb) => {
-      cb.addEventListener('change', () => {
-        const app = cb.dataset.app;
-        const type = cb.dataset.type;
-        if (!app || !type) return;
-        const key = `${type}:${app}`;
-        if (cb.checked) selectedUpgradeKeys.add(key);
-        else selectedUpgradeKeys.delete(key);
-        syncSelectionUi();
-      });
-    });
+    renderUpdatesTable(outdatedApps, selectedUpgradeKeys);
   }
 
   syncSelectionUi();
