@@ -240,12 +240,39 @@
               <h1 data-i18n="updates.title">Available Updates</h1>
               <p class="view-subtitle" data-i18n="updates.subtitle">Select applications to upgrade</p>
             </div>
-            <button class="dashboard-action-btn primary" id="updatesUpgradeAllBtn" style="display: none; padding: 12px 24px;">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"></path>
-              </svg>
-              <span data-i18n="updates.upgrade_all">Upgrade All Packages</span>
-            </button>
+            <div class="updates-upgrade-actions" id="updatesUpgradeActions" style="display: none;">
+              <button class="dashboard-action-btn" id="updatesUpgradeFormulasBtn" style="padding: 12px 24px;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <path d="M10 2v7.31"></path>
+                  <path d="M14 9.3V2"></path>
+                  <path d="M8.5 2h7"></path>
+                  <path d="M14 9.3a6.5 6.5 0 1 1-4 0"></path>
+                  <path d="M5.52 16h12.96"></path>
+                </svg>
+                <span data-i18n="updates.upgrade_formulas">Upgrade Formulas</span>
+              </button>
+              <button class="dashboard-action-btn" id="updatesUpgradeCasksBtn" style="padding: 12px 24px;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <path d="M21 8l-9-5-9 5v8l9 5 9-5V8z"></path>
+                  <path d="M3 8l9 5 9-5"></path>
+                  <path d="M12 13v8"></path>
+                </svg>
+                <span data-i18n="updates.upgrade_casks">Upgrade Casks</span>
+              </button>
+              <button class="dashboard-action-btn" id="updatesUpgradeSelectedBtn" style="padding: 12px 24px;" disabled>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <polyline points="9 11 12 14 22 4"></polyline>
+                  <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
+                </svg>
+                <span data-i18n="updates.upgrade_selected">Upgrade Selected</span>
+              </button>
+              <button class="dashboard-action-btn primary" id="updatesUpgradeAllBtn" style="padding: 12px 24px;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"></path>
+                </svg>
+                <span data-i18n="updates.upgrade_all">Upgrade All Packages</span>
+              </button>
+            </div>
           </div>
 
           <div class="updates-container">
@@ -261,6 +288,10 @@
             <table class="updates-table" id="updatesTable" style="display: none;">
               <thead>
                 <tr>
+                  <th class="updates-check-col">
+                    <span class="select-all-label" data-i18n="updates.table.select">Select</span>
+                    <input type="checkbox" id="updatesSelectAllCb" aria-label="Select all packages">
+                  </th>
                   <th data-i18n="updates.table.app">Application</th>
                   <th data-i18n="updates.table.type">Type</th>
                   <th data-i18n="updates.table.installed">Installed</th>
