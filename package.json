@@ -52,5 +52,8 @@
   "dependencies": {
     "i18next": "^26.4.0",
     "node-pty": "^1.1.0"
+  },
+  "overrides": {
+    "node-abi": "^4.35.0"
   }
 }
