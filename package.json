@@ -33,7 +33,7 @@
     "@types/jest": "^30.0.0",
     "@types/node": "^26.4.0",
     "dotenv": "^17.2.3",
-    "electron": "^43.4.1",
+    "electron": "^44.0.0",
     "electron-builder": "^26.15.3",
     "electron-rebuild": "^3.2.9",
     "jest": "^30.3.0",
@@ -52,5 +52,8 @@
   "dependencies": {
     "i18next": "^26.4.0",
     "node-pty": "^1.1.0"
+  },
+  "overrides": {
+    "node-abi": "^4.35.0"
   }
 }
