@@ -7,6 +7,7 @@ out/
 # Build artifacts
 build/icon.iconset/
 ipcHandlers.js
+.dev/
 
 # Test coverage
 coverage/
