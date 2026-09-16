@@ -45,9 +45,13 @@ sudo apt-get install build-essential procps curl file git \
 
 ### macOS — Option 1 (Homebrew cask)
 
+Install from the [`romankurnovskii/awesome-brew`](https://github.com/romankurnovskii/homebrew-awesome-brew) tap (Homebrew taps it automatically):
+
 ```sh
-brew install romankurnovskii/BrewMate/brewmate --cask
+brew install romankurnovskii/awesome-brew/brewmate --cask
 ```
+
+If Homebrew asks you to trust the third-party tap, run `brew trust --cask romankurnovskii/awesome-brew/brewmate` and retry the install.
 
 ### macOS — Option 2 (DMG)
 
