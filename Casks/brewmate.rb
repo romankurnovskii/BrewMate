@@ -5,7 +5,7 @@ cask "brewmate" do
   name "BrewMate"
   desc "Homebrew GUI apps manager"
   homepage "https://github.com/romankurnovskii/BrewMate"
-  sha256 'e223db46bc4478c953304f7f432a3624690b1340a14ef93c7c9da64646ab27f4'
+  sha256 'fb7245b90d6898feede10be97405a646e4519e8ad3fa8c8ddfde95f01ec7a309'
 
   auto_updates true
 
