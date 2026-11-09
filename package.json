@@ -34,7 +34,7 @@
     "@types/node": "^26.6.6",
     "dotenv": "^18.0.8",
     "electron": "^45.2.3",
-    "electron-builder": "^26.15.3",
+    "electron-builder": "^26.18.0",
     "electron-rebuild": "^3.2.9",
     "jest": "^30.5.2",
     "lint-staged": "^17.6.0",
