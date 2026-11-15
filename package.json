@@ -50,7 +50,7 @@
     ]
   },
   "dependencies": {
-    "i18next": "^26.4.2",
+    "i18next": "^26.7.2",
     "node-pty": "^1.1.0"
   },
   "overrides": {
